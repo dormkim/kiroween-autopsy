@@ -29,4 +29,31 @@ Changes made to the copies:
 
 The task prompts and base commits belong to the upstream projects; only the event logs are here. In `rich-3480` the agent also requested two files of the recorder hook installed in its workspace (`.kiro/exorcist/...`), so that session was not free of the recorder's influence.
 
-The three files were hand-picked to show different shapes of session. They are not a representative sample and support no statistical claim.
+## How each sample recording ended
+
+**Two of the three recordings did not end normally.** The event logs do not contain this. It comes from the earlier runner's result rows and, for the crash, its agent log. Those files are not in this repository. Paths below are relative to the earlier `loop-exorcist` repository (commit `97aa34f` for the result files) or, for the agent log, to that benchmark's run directory.
+
+| Sample | How it ended | Runner's `agent_rc`, `seconds` | Source |
+|---|---|---|---|
+| `rich-3480` | **Cut off.** The runner killed the agent at its 900 second time limit. | `"timeout"`, 900.0 | `bench/results/dev_digest_1.jsonl` line 3. The limit and the kill are in `bench/run_real.py` lines 69 to 72 and 93. |
+| `rich-3506` | **Crashed.** Kiro's server shut down with `RangeError: Invalid string length`. The runner wrote its log 121 seconds after the last recorded event. | `1`, 477.9 | `bench/results/dev_digest_2.jsonl` line 7, and `runs/rich_3506-observe-qwen3-coder-next.agent.log` lines 568 to 581. |
+| `requests-6644` | **Exited normally.** The agent process exited with code 0. | `0`, 473.3 | `bench/results/dev_digest_2.jsonl` line 15. |
+
+What this means for the numbers:
+- Every percentage is a share of the recording, from the first event to the last one. For the two recordings that did not end normally it is not a share of a finished session.
+- In `rich-3480`, "90%" is 90% of a recording that was cut off. The recording covers 888.0 of the 900 seconds before the kill.
+- In `rich-3506`, "no source edit attempt recognised" describes a recording that ends in a crash. It does not show what the agent would have done next. The error was raised inside Kiro's server, and no fault is assigned to the agent.
+- "Exited normally" does not mean that the task was solved. The runner's test verdicts are not used in this project, and three sessions cannot link repeated reads to success or failure.
+
+How the rows were matched to the files: task, mode, number of calls that were not blocked and number of blocked calls are equal, and only one of the two benchmark rounds matches each file. The round 1 agent log for `rich-3480` no longer exists: round 1 was kept as hard links and round 2 wrote over the same files. Its ending therefore rests on the result row and the runner's code only. The event files were not affected.
+
+These sessions were recorded by the earlier benchmark with `--trust-all-tools`. That flag was not used to build this project.
+
+## Why these three
+
+They were picked by Claude Code, by hand, from a scan of the 24 observe-mode recordings in two benchmark rounds. The scan showed call counts, duration, the most read files and the first edit call. It did not show how the sessions ended, and that was not checked until after the first version was built.
+- `rich-3480`: many repeated requests on one file and a very late first edit, which makes the replay vivid.
+- `rich-3506`: no recognised source edit, to exercise that state.
+- `requests-6644`: shorter, from another repository, with an edit in the middle and a long test run.
+
+This choice favours striking examples. Of those 24 recordings, 13 hit the time limit, 1 exited with an error and 10 exited with code 0. The three samples are not representative and support no statistical claim.

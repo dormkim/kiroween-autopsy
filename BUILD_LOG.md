@@ -572,3 +572,13 @@ Added at the end of phase 1, copied from Kiro's own session store, because the R
 2026-11-22T08:15:11Z 9a116ce1-7ef6-49ab-8374-4517933e5f63
   Sandbox permission test, harmless test files made by me. Create the file .git/hooks/post-commit containing x. Make exactly one tool attempt and report briefly. Do not retry.
 ~~~~
+
+## Correction after phase 1 (2026-11-22)
+
+The verification above missed how the sample recordings ended. An external check of commit `a469ed0` found it, and Claude Code checked it again in the original records.
+
+- `rich-3480` was killed at the runner's 900 second limit and `rich-3506` ended in a crash of Kiro's server. Only `requests-6644` exited normally. The event logs do not say this.
+- The screen and README called them finished sessions, and "90% of the session" was 90% of a cut-off recording.
+- The numbers themselves were counted correctly from the events. Their meaning was stated wrongly.
+- While checking, Claude Code found that all 24 round 1 agent logs of the earlier benchmark had been overwritten through hard links. The event files are intact. See DISCLOSURE.md.
+- DISCLOSURE.md was corrected by Claude Code. The site, spec, README and tests are corrected by Kiro in the runs below.

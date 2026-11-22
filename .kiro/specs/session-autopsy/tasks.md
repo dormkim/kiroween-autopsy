@@ -2,7 +2,7 @@
 
 Plan for `requirements.md` and `design.md`. Increments A, B and C are each implemented in one session and committed on their own. Increment D is run by the reviewer.
 
-Kiro has no shell. At the end of each increment the reviewer runs that increment's tests and commits. The reviewer also committed failing states, on purpose (tests written before the code they test) or as work in progress, and marked them in the commit message, for example 952c17c, 6fc3f70 and ac643e2. Each increment ended on a passing commit. Every test file runs as `node --permission --allow-fs-read=. test/<name>.test.mjs`, except `test/recorder.test.mjs` (steering tech.md). Property tests accept `SEED=<n>` to change the seed.
+Kiro has no shell. At the end of each increment the reviewer runs that increment's tests and commits. The reviewer also committed failing states, on purpose (tests written before the code they test) or as work in progress, and marked them in the commit message, for example 60738f7, 5c880a6 and 9920065. Each increment ended on a passing commit. Every test file runs as `node --permission --allow-fs-read=. test/<name>.test.mjs`, except `test/recorder.test.mjs` (steering tech.md). Property tests accept `SEED=<n>` to change the seed.
 
 R-numbers refer to `requirements.md`. P-numbers refer to "Correctness properties" in `design.md`.
 

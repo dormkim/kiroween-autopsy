@@ -575,7 +575,7 @@ Added at the end of phase 1, copied from Kiro's own session store, because the R
 
 ## Correction after phase 1 (2026-11-22)
 
-The verification above missed how the sample recordings ended. An external check of commit `a469ed0` found it, and Claude Code checked it again in the original records.
+The verification above missed how the sample recordings ended. An external check of commit `a531458` found it, and Claude Code checked it again in the original records.
 
 - `rich-3480` was killed at the runner's 900 second limit and `rich-3506` ended in a crash of Kiro's server. Only `requests-6644` exited normally. The event logs do not say this.
 - The screen and README called them finished sessions, and "90% of the session" was 90% of a cut-off recording.
@@ -679,7 +679,7 @@ By Claude Code, on the committed tree after run 14.
 - Account meter for the correction: 854.94 to 875.49 (20.55 credits), total for the build 335.72. The per-run meter lags, so the 0 shown for run 14 is not its real cost; the totals here were read afterwards.
 - Still open: inline number buttons are 42 px high and as narrow as 12 px, below the 44 px rule.
 
-## Phase 2 (2026-11-22): recorder hook. Start: commit `a4a597a`, account meter 875.49
+## Phase 2 (2026-11-22): recorder hook. Start: commit `2b88b46`, account meter 875.49
 
 Pass criteria were written and committed outside this repository before this phase began. Credit cap for the phase: 300, including test recordings.
 
@@ -845,7 +845,7 @@ B. FALSE CLAIMS found in an outside review. Fix each everywhere it occurs (scree
 2. "Kiro's server shut down about 2 minutes after the last recorded event": 121 s is when the runner wrote its log. Say in the rich-3506 sentence and README: "Crashed: the benchmark runner's agent log shows Kiro's server shut down with an internal error (\"RangeError: Invalid string length\"). The time of the crash is not recorded; the runner wrote that log 121 seconds after the last recorded event." Adjust its test.
 3. "A Content Security Policy enforces [no upload]": false, connect-src 'self' allows sending to the same server. Say: the code has no upload or storage; the CSP blocks connections to other origins but does not by itself prevent a request to the server that hosts the page.
 4. "Every control is 44px": false. Measured at 360, 768 and 1280: every control is at least 44x44 except traced number buttons. Those inside table cells (TD, 38px high, 99 found): FIX in CSS to at least 44 high and 44 wide without page overflow at 360. Those inside running text (as small as 11x38): keep, and state the exception in steering design.md, R9.5, tasks and README limits, with the 44px "Show log lines" button as the alternative for each finding. Say that it is an open limit, not compliance.
-5. "commits only when they pass" in tasks.md: false. Red commits exist on purpose or as work in progress (952c17c, 6fc3f70, ac643e2). State what really happened: the reviewer committed failing states too and marked them in the commit message; each increment ended on a passing commit.
+5. "commits only when they pass" in tasks.md: false. Red commits exist on purpose or as work in progress (60738f7, 5c880a6, 9920065). State what really happened: the reviewer committed failing states too and marked them in the commit message; each increment ended on a passing commit.
 6. C21 in tasks.md is done (runs 13 and 14, verified): tick it. Check the other boxes of increments C and E against what exists; leave unverified reviewer tasks open.
 7. The screen's limit sentence must stay true now that a recorder exists: "In three comparisons of interventions we did not confirm more issues solved, so this page only reads recordings after a session ends. It never intervenes." Same in product.md and README. In README add that the recorder never blocks or steers, with one exception: when recording fails, its prompt check asks the agent to say so.
 
@@ -1000,7 +1000,7 @@ By Claude Code. Results against the five criteria written before the phase:
 | 1. A live recorded log opens unedited; read requests and first source edit equal the session store | **Not met.** Reads 5 of 5 equal and the first edit's call number equal, but its file differs, because hooks of parallel calls start out of order. |
 | 2. No content, edits, output or home path, no network, never blocks, failures not hidden | **Not met** (corrected after run 22, first written as partly met; see the end of this log). Privacy, no network and non-blocking hold (tests, strace, live). A failure at prompt start was visible live on both engines through the agent's reply. A failure in the middle of a turn is only reported at the next prompt, and a missing node is never reported. |
 | 3. Any project directory; outside paths are never source edits | **Met** for the two live recordings (directories not named workspace) and the path tests. |
-| 4. Reviewed defects fixed or stated as limits; sample numbers unchanged | **Met.** For the three samples the full analysis object and the findings text equal those of a4a597a; 22 on-screen numbers equal the independent count. |
+| 4. Reviewed defects fixed or stated as limits; sample numbers unchanged | **Met.** For the three samples the full analysis object and the findings text equal those of 2b88b46; 22 on-screen numbers equal the independent count. |
 | 5. At most 300 credits, local commits only, nothing installed globally | **Met.** Account meter 875.49 to 1011.41: 135.92 credits. Total for the build 471.64. |
 
 - 282 tests in a fresh copy, 0 failed, with the default seed and seeds 7, 12345 and 987654321. The recorder test also passed on macOS (28 of 28).
@@ -1066,7 +1066,7 @@ Checked on the run 22 code:
 - 286 tests in a fresh copy, 0 failed, with the default seed and seeds 7, 12345 and 987654321.
 - Those three failures are now reported by both check modes. So is a really full disk (a 2 MB disk image on macOS), with and without a log directory.
 - Two live V2 sessions with the final recorder, asked for one tool call per response. The first logged 3 of 3 calls in the session's order, with the same first edit file. The second had an unwritable log directory: the tool still ran and the reply began with the failure line.
-- The three samples: same headlines and findings as `a4a597a`. Both phase 2 recordings now read "over 99%", with no console error, external request or overflow at 360 and 1280.
+- The three samples: same headlines and findings as `2b88b46`. Both phase 2 recordings now read "over 99%", with no console error, external request or overflow at 360 and 1280.
 
 Final result against the criteria, which did not change: **1 not met, 2 not met, 3 met, 4 met, 5 met.**
 
@@ -1074,3 +1074,7 @@ Final result against the criteria, which did not change: **1 not met, 2 not met,
 - 2: failures that leave no file and have cleared, quota and inode limits, and a missing node can still go unreported.
 
 Account meter: 1030.62, so 155.13 credits for phase 2 and 490.85 for the build.
+
+## 2026-11-23: author e-mail rewritten before publishing
+
+Before the first push, every commit's author and committer e-mail was changed to the GitHub noreply address with git-filter-repo. Content, messages, dates and the Claude trailers are unchanged; only commit ids changed. Commit ids cited above were updated to the new ids (in this file and in `.kiro/specs/session-autopsy/tasks.md`). Run 22 was commit `589818b` before the rewrite and is `5869f19` after it.

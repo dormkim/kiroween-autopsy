@@ -219,7 +219,7 @@ test("sed -n 'A,Bp' F and sed -n 'Ap' F give a range; any other sed with a file 
   assert.deepEqual(fx('sed -n 5p a.py').requests, [['a.py', 'range', 5, 5]]);
   assert.deepEqual(fx('sed -n "5,9p" a.py').requests, [['a.py', 'range', 5, 9]]);
   assert.equal(fx("sed -n '81,100p' a.py").category, 'request');
-  for (const cmd of ["sed -i 's/a/b/' a.py", "sed 's/a/b/' a.py", "sed -n '5,$p' a.py", "sed -n '9,5p' a.py"]) {
+  for (const cmd of ["sed 's/a/b/' a.py", "sed -n '5,$p' a.py", "sed -n '9,5p' a.py"]) {
     const r = fx(cmd);
     assert.equal(r.category, 'unknown', `${cmd}: unknown`);
     assert.equal(r.hidden[0], true, `${cmd}: hidden edit`);
@@ -227,6 +227,96 @@ test("sed -n 'A,Bp' F and sed -n 'Ap' F give a range; any other sed with a file 
   }
   assert.deepEqual(fx("sed -n '1,99999999p' a.py").requests, [['a.py', 'unlocated']], 'an end above MAX_LINE is unlocated');
   assert.deepEqual(fx("cat a.py | sed 's/x/y/'"), { category: 'request', requests: [['a.py', 'open', 1]], edits: [], hidden: [false, false] }, 'sed with no file is a filter');
+});
+
+// ---- shell write programs: sed in place and tee (reviewer probe after increment A) ----
+
+test('sed -i, -iSUFFIX and --in-place with static file operands: edit attempt on each file, never on the script', () => {
+  const cases = [
+    ["sed -i 's/a/b/' src/a.py", [['src/a.py', 'source']]],
+    ["sed -i '1d' src/a.py tests/test_a.py", [['src/a.py', 'source'], ['tests/test_a.py', 'test']]],
+    ["sed --in-place 's|a|b|g; s/c/d/2' rich/text.py", [['rich/text.py', 'source']]],
+    ["sed -i -e 's/a/b/' -e '/^#/d' a.py", [['a.py', 'source']]],
+    ["sed -i --expression='3,5d' a.py b.md", [['a.py', 'source'], ['b.md', 'other']]],
+    ["sed -Ei 's/a+/b/' a.py", [['a.py', 'source']]],
+    ["sed -i -E 's/x/y/g' a.py", [['a.py', 'source']]],
+    ["sed -i -- 's/x/y/' a.py", [['a.py', 'source']]],
+    ["cd rich && sed -i 's/x/y/' text.py", [['rich/text.py', 'source']]],
+    ["sed -i 's/x/y/' /workspace/rich/text.py", [['rich/text.py', 'source']]],
+  ];
+  for (const [cmd, expected] of cases) {
+    assert.deepEqual(fx(cmd), { category: 'edit', requests: [], edits: expected, hidden: [false, false] },
+      `${cmd}: the first operand is the script unless -e gave one; every other static operand is rewritten in place`);
+  }
+});
+
+test('sed in place with a backup suffix also writes the backup file', () => {
+  assert.deepEqual(fx("sed -i.bak 's/a/b/' src/a.py").edits, [['src/a.py', 'source'], ['src/a.py.bak', 'other']],
+    '-i.bak writes src/a.py and the backup src/a.py.bak');
+  assert.deepEqual(fx("sed --in-place=.orig 's/a/b/' a.py b.py").edits,
+    [['a.py', 'source'], ['a.py.orig', 'other'], ['b.py', 'source'], ['b.py.orig', 'other']], 'one backup per file, after its file');
+  assert.deepEqual(fx("sed -ie 's/a/b/' a.py").edits, [['a.py', 'source'], ['a.pye', 'other']],
+    '-ie is -i with suffix "e" (the letters after -i are the suffix), so the script is the next word');
+  const star = fx("sed '-ibak/*' 's/a/b/' a.py");
+  assert.deepEqual([star.edits, star.hidden], [[['a.py', 'source']], [true, false]],
+    'a suffix with * or / names the backup by a template: the file edit stays, the backup is a hidden edit');
+});
+
+test('sed in place: a script that may write or run other things keeps the file edits and adds a hidden edit', () => {
+  for (const cmd of ["sed -i 's/a/b/w out.txt' a.py", "sed -i 's/a/b/e' a.py", "sed -i '1e date' a.py", "sed -i '/x/W log' a.py", 'sed -i "s/a/$X/" a.py']) {
+    assert.deepEqual(fx(cmd), { category: 'edit', requests: [], edits: [['a.py', 'source']], hidden: [true, false] },
+      `${cmd}: the w, W and e commands and a dynamic script can write files the log does not name`);
+  }
+});
+
+test('sed in place: dynamic, glob or unresolvable file operands give an edit with unknown target', () => {
+  for (const cmd of ["sed -i 's/a/b/' $F", "sed -i 's/a/b/' rich/*.py", "cd $D && sed -i 's/a/b/' a.py"]) {
+    assert.deepEqual(fx(cmd), { category: 'unknown', requests: [], edits: [[null, 'unknown']], hidden: [true, false] },
+      `${cmd}: sed writes a file, but which one is unknown`);
+  }
+  assert.deepEqual(fx("sed -i 's/a/b/' /tmp/x.py"), { category: 'other', requests: [], edits: [['/tmp/x.py', 'outside']], hidden: [false, false] },
+    'a write outside the workspace does not make the call an edit attempt, as for redirects');
+});
+
+test('sed in place stays unknown when the script and the file operands cannot be told apart', () => {
+  for (const cmd of ["sed -i '' 's/a/b/' a.py", "sed -i .bak 's/a/b/' a.py", "sed -Ei '' 's/a/b/' a.py", "sed -i 's/a/b/'", "sed -i -f fix.sed a.py"]) {
+    assert.deepEqual(fx(cmd), { category: 'unknown', requests: [], edits: [], hidden: [true, true] },
+      `${cmd}: BSD sed reads the word after a bare -i as a suffix, GNU sed as the script; -f and no file are not followed`);
+  }
+});
+
+test('tee with static file operands: edit attempt on each file, also after a pipe', () => {
+  assert.deepEqual(fx('echo x | tee src/a.py'), { category: 'edit', requests: [], edits: [['src/a.py', 'source']], hidden: [false, false] });
+  assert.deepEqual(fx('cat a.py | tee -a notes.md /tmp/copy'), {
+    category: 'edit', requests: [['a.py', 'open', 1]], edits: [['notes.md', 'other'], ['/tmp/copy', 'outside']], hidden: [false, false],
+  }, 'tee -a appends to every file operand');
+  assert.deepEqual(fx('python3 t.py 2>&1 | tee --append repro_log.txt'), {
+    category: 'edit', requests: [], edits: [['repro_log.txt', 'scratch']], hidden: [true, true],
+  }, 'python3 keeps its hidden flags; edit outranks run');
+  assert.deepEqual(fx('cd pkg && echo x | tee -i -p a.py').edits, [['pkg/a.py', 'source']], '-i and -p take no argument; cd before the pipe is followed');
+  assert.deepEqual(fx('tee a.py < b.py'), { category: 'edit', requests: [['b.py', 'unlocated']], edits: [['a.py', 'source']], hidden: [false, false] });
+  assert.deepEqual(fx('echo x | tee /tmp/out'), { category: 'other', requests: [], edits: [['/tmp/out', 'outside']], hidden: [false, false] });
+  assert.deepEqual(fx('echo x | tee'), { category: 'other', requests: [], edits: [], hidden: [false, false] }, 'tee with no file only copies to stdout');
+  assert.deepEqual(fx('echo x | tee /dev/null'), { category: 'other', requests: [], edits: [], hidden: [false, false] }, '/dev/null is not a write');
+});
+
+test('tee stays unknown where the target or the options cannot be read', () => {
+  for (const cmd of ['echo x | tee "$OUT"', 'echo x | tee *.log', 'echo x | tee -']) {
+    assert.deepEqual(fx(cmd), { category: 'unknown', requests: [], edits: [[null, 'unknown']], hidden: [true, false] },
+      `${cmd}: tee writes, but the file is unknown`);
+  }
+  assert.deepEqual(fx('echo x | tee --zz a.py'), { category: 'unknown', requests: [], edits: [], hidden: [true, true] },
+    'an unparsed option could take a.py as its argument');
+});
+
+test('truncated: sed in place and tee keep edits only from segments that ended before the cut', () => {
+  const t = (cmd) => {
+    const e = bash(cmd, { cmd_truncated: true });
+    return { category: e.category, edits: edits(e), hidden: flags(e) };
+  };
+  assert.deepEqual(t("sed -i 's/a/b/' src/a.py; cat b.py"), { category: 'edit', edits: [['src/a.py', 'source']], hidden: [true, true] });
+  assert.deepEqual(t('echo x | tee src/a.py').edits, [], 'the cut tee segment adds no edit');
+  assert.deepEqual(t("sed -i 's/a/b/' src/a.py").edits, [], 'the cut sed segment adds no edit');
 });
 
 test('tail and wc with files: request with unknown lines', () => {

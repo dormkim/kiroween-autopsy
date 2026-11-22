@@ -51,3 +51,4 @@
 {"time":"2026-11-22T09:26:22.855Z","path":".kiro/specs/session-autopsy/tasks.md","decision":"allow","rule":"ok"}
 {"time":"2026-11-22T09:26:22.855Z","path":".kiro/specs/session-autopsy/tasks.md","decision":"allow","rule":"ok"}
 {"time":"2026-11-22T09:26:22.858Z","path":".kiro/specs/session-autopsy/tasks.md","decision":"allow","rule":"ok"}
+{"time":"2026-11-22T09:30:04.566Z","path":"test/classify.test.mjs","decision":"allow","rule":"ok"}

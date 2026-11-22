@@ -234,3 +234,31 @@ Prompt, verbatim:
 ~~~~text
 Your last turn ended without writing any file: it ran out of output while planning. Continue increment A now, in small steps. Write one file per response, with one fs_write call each, and keep planning short before each write. For a file that would be long, create it with the first part and append the rest in further calls. Start with the product.md fix, then the test helper, then each test file, then each core module, then package.json and the task ticks. Finish with one line per file written.
 ~~~~
+
+## Run 6: increment B: metrics, findings and sample tests
+
+- Time: 2026-11-22T09:27:16Z to 2026-11-22T09:30:30Z
+- Model: `claude-opus-5.5`
+- Kiro session: `9e4d0982-ef00-45bd-8773-4b1338a7eeb2`
+- Exit code: 0
+- Account meter: 657.51 to 665.32 (7.81 credits)
+
+Files changed:
+- `build-evidence/write-guard.jsonl`
+- `test/classify.test.mjs`
+
+Prompt, verbatim:
+
+~~~~text
+Read .kiro/steering, the spec in .kiro/specs/session-autopsy and src/core. The reviewer ran increment A: 113 tests pass under the permission model.
+
+Work in small steps: one file per response, short planning before each write, long files in several fs_write calls. Do not plan the whole increment in one response.
+
+1. One correction from the reviewer's adversarial probe. Two unambiguous shell write attempts are now only "unknown" with hiddenEdit, so a session that edits with them would report no first source edit:
+   - `sed -i` / `sed -i.bak` / `sed --in-place` with static file operands is an edit attempt on those files (never on the script operand; if the operands cannot be told apart safely it stays unknown);
+   - `tee` / `tee -a` with static file operands is an edit attempt on those files, including after a pipe.
+   Add the failing cases to the tests and one line to the design table, then fix classify.js. Everything ambiguous stays unknown.
+2. Implement ONLY increment B from tasks.md: tests first (metrics, lines, timeline, findings, samples, samples-invariants, with properties), then the modules. The hand-derived table in the spec is the expected value; never edit it to match code. Broken lines, empty files and unknowns must never turn into a zero.
+   The finding sentences are the product, so make them plain for someone who has never seen the log: no internal category ids or snake_case in copy, correct singular and plural.
+3. Add the new test files to the package.json test script and tick the tasks you wrote.
+~~~~

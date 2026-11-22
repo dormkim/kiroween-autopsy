@@ -57,3 +57,7 @@ They were picked by Claude Code, by hand, from a scan of the 24 observe-mode rec
 - `requests-6644`: shorter, from another repository, with an edit in the middle and a long test run.
 
 This choice favours striking examples. Of those 24 recordings, 13 hit the time limit, 1 exited with an error and 10 exited with code 0. The three samples are not representative and support no statistical claim.
+
+## Recorder test sessions
+
+The recorder was tested with a small made-up task (`orchard`, a toy stock-note library with two planted bugs), written by Claude Code for that purpose. These are not natural work sessions. They are not bundled as samples, and their results are in BUILD_LOG.md, including the criterion they did not meet: the order of calls sent in parallel is not kept by the hook.

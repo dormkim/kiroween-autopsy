@@ -859,3 +859,41 @@ C. README, in plain English, no invented numbers, no placeholders:
 - Do NOT write "How Kiro was used" yet, that is the next run.
 Finish with a short list: each B item and where it changed.
 ~~~~
+
+## Live recordings with the recorder (2026-11-22)
+
+By Claude Code, following the README steps in fresh folders outside this repository, with a small made-up task ("the bug is described in ISSUE.md, fix it and add a test"). The prompt said nothing about how to read. Outside reads and writes were denied first. The logs were opened unedited with "Open a log file" and compared with Kiro's own session store, which the hook does not touch.
+
+| | V2, `claude-sonnet-5.5` (the recording) | V3, `claude-haiku-5.5` (second engine check) |
+|---|---|---|
+| Tool calls, session store / log | 5 / 5 | 13 / 13 |
+| Read requests, session store / log | 5 / 5, same files and order | 7 / 7, same files and order |
+| Edit attempts, session store / log | 3 / 3, same files | 3 / 3, same files |
+| First source edit attempt, call number | 3 / 3 | 11 / 11 |
+| First source edit attempt, file | **`orchard/units.py` / `orchard/report.py`: not equal** | `orchard/units.py` / `orchard/units.py` |
+
+**The first-source-edit criterion is not met.** In the V2 session three edits were sent in one response, and Kiro started their hooks in parallel, 3 ms apart and in another order. A probe then sent 8 parallel writes in each of three sessions: log order, process id order and process start order all differed from the order in the session in all three. The hook input has no call id or sequence number, so a preToolUse hook cannot restore that order. The equal V3 result is not evidence that order is kept. No recording was retried to get a match.
+
+In the three bundled samples the first recognised edit is more than 4 seconds from its neighbours. rich-3506, which has no recognised edit, has 2 neighbouring pairs under 0.2 seconds.
+
+Also measured:
+- A call rejected by the agent's `deniedPaths` never reaches preToolUse, and it cancelled the other calls of the same response before their hooks ran. Those are not in the log. Calls waiting for or refused approval are in it.
+- With the log path made unusable, both engines ran the tool normally and the reply began "Session Autopsy recorder: RECORDING FAILED (log_dir_unsafe)". `--check` exited 1.
+- Neither recording has explicit line ranges, so the page draws no figure for them and says so.
+- Not recorded live: shell, search, MCP, denied-by-a-person calls, and failures in the middle of a turn.
+- Independent adversarial check of the recorder, outside the repository's tests: 24 of 24, including strace (no network call, writes only under the log path), 200 parallel processes and 600 fuzzed inputs.
+
+Test sessions of this part, verbatim prompts, sessions and account meter:
+
+~~~~text
+* rec-fence | orchard-stock | recorded | --v2 | claude-haiku-5.5 | ### RC=0 ### SESSION f6e68066-a037-4e2c-b3ea-7d689dd82439 ### METER 994.47 -> 994.47  | prompt: Harmless permission test. One call per step, continue when one fails: 1) read ../outside.txt ; 2) create ../outside-rec.txt containing x ; 3) overwrite .kiro/session-autopsy/session-autopsy-record.mjs with x ; 4) create .session-autopsy/evil.txt containing x. Then list your tools and what failed.
+* rec-out-read | orchard-stock | recorded | --v2 | claude-haiku-5.5 | ### RC=0 ### SESSION 46f507ea-3743-4251-b83e-ecf7d7aae674 ### METER 994.47 -> 994.49  | prompt: Harmless permission test with files I made. Exactly one tool call, then report the exact result. Read ../outside.txt
+* rec-out-write | orchard-stock | recorded | --v2 | claude-haiku-5.5 | ### RC=0 ### SESSION 1d85016c-3c74-406d-ad2b-1bc340f7fbae ### METER 994.49 -> 994.49  | prompt: Harmless permission test with files I made. Exactly one tool call, then report the exact result. Create ../outside-rec.txt containing x
+* rec-real | orchard-stock | recorded | --v2 | claude-sonnet-5.5 | ### RC=0 ### SESSION f46c9604-9d9e-4c67-ac15-12865a7ed320 ### METER 994.49 -> 994.88  | prompt: The bug is described in ISSUE.md. Fix it in this project and add a test for it. There is no shell, so you cannot run the tests: say so and stop when you are done.
+* rec-real-v3 | orchard-v3 | recorded | --v3 --trust-workspace | claude-haiku-5.5 | ### RC=0 ### SESSION sess_10c965f2-8ca9-4099-83a5-8f738ac7c994 ### METER 994.88 -> 994.88  | prompt: The bug is described in ISSUE.md. Fix it in this project and add a test for it. There is no shell, so you cannot run the tests: say so and stop when you are done.
+* order-1 | v2 | probe-order | --v2 | claude-haiku-5.5 | ### RC=0 ### SESSION 8ae10b7a-0776-4486-b254-d82690275b09 ### METER 994.92 -> 994.92  | prompt: Harmless concurrency test. In ONE response make exactly 8 separate parallel write tool calls creating files w11.txt, w12.txt, w13.txt, w14.txt, w15.txt, w16.txt, w17.txt, w18.txt in that order, each containing x. Then say done.
+* order-2 | v2 | probe-order | --v2 | claude-haiku-5.5 | ### RC=0 ### SESSION 34bc1ca7-d50d-4c7c-8294-99460ce8076e ### METER 994.92 -> 994.92  | prompt: Harmless concurrency test. In ONE response make exactly 8 separate parallel write tool calls creating files w21.txt, w22.txt, w23.txt, w24.txt, w25.txt, w26.txt, w27.txt, w28.txt in that order, each containing x. Then say done.
+* order-3 | v2 | probe-order | --v2 | claude-haiku-5.5 | ### RC=0 ### SESSION 48eed489-61e2-41a1-8f66-5f364ccab613 ### METER 994.92 -> 994.95  | prompt: Harmless concurrency test. In ONE response make exactly 8 separate parallel write tool calls creating files w31.txt, w32.txt, w33.txt, w34.txt, w35.txt, w36.txt, w37.txt, w38.txt in that order, each containing x. Then say done.
+* fail-v2 | orchard-fail | recorded | --v2 | claude-haiku-5.5 | ### RC=0 ### SESSION dcd5380d-4725-43bd-843e-98da7e0258c6 ### METER 994.95 -> 994.95  | prompt: Read ISSUE.md and tell me in one sentence what it says.
+* fail-v3 | orchard-fail | recorded | --v3 --trust-workspace | claude-haiku-5.5 | ### RC=0 ### SESSION sess_782910e0-5fa7-494b-9627-410993d30eb0 ### METER 994.95 -> 994.95  | prompt: Read ISSUE.md and tell me in one sentence what it says.
+~~~~

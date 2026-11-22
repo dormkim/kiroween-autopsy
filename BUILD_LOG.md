@@ -726,3 +726,49 @@ Prompts of the headless probes, verbatim, with session and account meter:
 * v3-channels | v3 | probe-channels | --v3 --trust-workspace | claude-haiku-5.5 | ### RC=0 ### SESSION sess_fac7d158-2bee-43cd-a085-ba17d4764bfa ### METER 875.53 -> 875.58  | prompt: Harmless hook test. Read numbered.txt with limit 1. Then list word for word every string starting with MARK- that you can see anywhere in your context.
 * interactive probes (4 sessions, agents probe-channels and probe-tty on both engines) | prompt: Read numbered.txt with limit 1, then say done.
 ~~~~
+
+## Run 15: recorder spec and failing tests
+
+- Time: 2026-11-22T13:04:58Z to 2026-11-22T13:29:20Z
+- Model: `claude-opus-5.5`
+- Kiro session: `24708258-7f79-4f07-894d-ebcc4c3f9d04`
+- Exit code: 0
+- Account meter: 875.60 to 919.90 (44.3 credits)
+
+Files changed:
+- `build-evidence/write-guard.jsonl`
+- `.kiro/specs/session-autopsy/design.md`
+- `.kiro/specs/session-autopsy/requirements.md`
+- `.kiro/specs/session-autopsy/tasks.md`
+- `.kiro/steering/tech.md`
+- `package.json`
+- `test/recorder-format.test.mjs`
+- `test/recorder.test.mjs`
+
+Prompt, verbatim:
+
+~~~~text
+Phase 2 of Session Autopsy: a recorder. THIS RUN: spec and failing tests only, no implementation. Read .kiro/steering, .kiro/specs/session-autopsy, src/core/parse.js, src/core/classify.js, test/classify.test.mjs (top), and the "Phase 2" section at the end of BUILD_LOG.md (measured facts, do not assume anything beyond it). Plan briefly, one file per tool call, keep going until done.
+
+Add to requirements.md (R13 recorder, R14 reading its logs), design.md (a decision table and properties), tasks.md (increment E: tests, implementation, live recording by the reviewer):
+
+THE RECORDER: one file, recorder/session-autopsy-record.mjs, node: built-ins only, that a stranger copies to <project>/.kiro/session-autopsy/ and registers in a Kiro CLI custom agent (example: examples/recorder-agent.json).
+1. Mode "record" (default) is the preToolUse hook, matcher "*". It reads the event on stdin and appends one JSON line per tool call to <project>/.session-autopsy/<session_id>.events.jsonl, in the current log format: {t, hook:"pre", tool, paths?, range?}. Canonical tool names: read_file (from V2 read/fs_read and V3 read_file), str_replace (meaning a write attempt: V2 write/fs_write create, strReplace, insert; V3 fs_write, fs_append, str_replace), list_directory (V2 Directory-only reads, V3 list_directory), search (V3 grep_search, file_search). Everything else, including unknown shapes, commands and modes: "unknown_tool". Shell names (shell, execute_bash, execute_cmd, controlBashProcess) become "execute_bash" WITHOUT cmd. Tool names are never copied freely, they can be arbitrary text.
+2. A V2 read call with several Line operations stays one log line: paths:[...] plus a new optional field ranges:[...] of the same length ({} when the whole file). One operation keeps the existing paths + range. offset and limit are copied only as safe integers (offset >= 0, limit >= 1); null means absent. A wrong type must never become a whole-file request.
+3. NEVER write `allow`: preToolUse runs before the permission check and cannot know it. 
+4. Privacy by construction, an allow-list of output fields. Never in the log, stdout, stderr or a file name: file content, old/new text, tool output, prompt, __tool_use_purpose, commands (no option to record them), unknown field values, home paths, absolute paths, error messages containing paths. File names inside the project ARE recorded; document that.
+5. Paths: resolved against the project, where the event's cwd must be the same real directory as process.cwd(), else it is a failure with nothing written elsewhere. Inside: relative to the project with "/", symlinks resolved, also for a file that does not exist yet and for a project reached through a symlink. The project itself: "/workspace". Outside (including ~, ../, a symlink leading out, a dangling symlink, a prefix sibling such as project-evil): exactly "/outside-workspace", no name. NUL, control characters or over 1024 characters: target unknown ("/workspace"). If the project is /, the home directory or an ancestor of home, refuse to record (failure), because relative names would reveal the home.
+6. Writes: zero outside <project>/.session-autopsy/. Refuse a symlinked log directory or file, a hard-linked log file (nlink > 1) and a non-regular file. Avoid the directory-swap race: chdir into the directory, verify process.cwd(), then open the bare file name with O_APPEND|O_CREAT|O_NOFOLLOW|O_NONBLOCK, mode 0600, fstat, one write of one complete line of at most 16 KiB (a larger one becomes unknown_tool, never a cut line). session_id must match ^[A-Za-z0-9_-]{1,128}$, else failure. Take t (Date.now()/1000) immediately before the write. No network, no child process, no environment dump. Input over 64 MiB is a failure.
+7. Failure never blocks: exit 1, never 2, under any input, with one fixed "session-autopsy-recorder: RECORDING FAILED (<code>)" line on stderr. Because Kiro does not show that stderr (measured), also: (a) where the log directory is usable, append {time, code} to .session-autopsy/recording-failures.jsonl under the same write safety; (b) mode "--prompt-check" for userPromptSubmit: it never reads or stores stdin, is silent when healthy, and when the directory is not usable or the failure file is non-empty prints one fixed instruction on stdout, exit 0, telling the agent to begin its reply with "Session Autopsy recorder: RECORDING FAILED (<code>)"; (c) mode "--check" for a human: prints OK or the failure, exit 0 or 1. State the limits: the prompt check depends on the agent relaying it and cannot see a failure after the last prompt; a missing node cannot report itself.
+
+READING THE LOGS (parse, classify, metrics, findings), which must not change any number for the three samples:
+8. `allow` absent (not recorded) is different from true, from false and from malformed. Absent: classify the attempt normally, marked permission 'not_recorded'; NEVER described as allowed. Export a traced count, and a fixed copy string: "Whether N calls were allowed or ran was not recorded. They count as attempts and can include denied calls." (singular form too). Malformed allow stays unknown as today. false stays blocked.
+9. ranges: valid only as an array of the same length as paths, giving one request per path; invalid means unknown lines, never invented ranges.
+10. "/outside-workspace": never a file key for requests or lines and never a repeat; a write there is class outside, never a source edit, and not "possibly earlier". list_directory: search, no effects. search: search with hiddenRequest. unknown_tool and execute_bash without cmd: unknown, hidden effects. Other absolute paths keep today's rule (only /workspace is the project; the recorder is what converts).
+
+TESTS NOW, they must fail before the implementation and must not be weakened later:
+- test/recorder.test.mjs: runs the real script as a child process (node test/recorder.test.mjs, without the permission model; say why in tech.md and in the file). Work only in fresh directories from fs.mkdtemp under os.tmpdir(); DELETE NOTHING, leave them. Cover both engines' measured shapes, every privacy item with canary strings searched in all output files and both streams, every path case, symlink and hardlink attacks with unchanged victim checks, invalid inputs (never exit 2), both check modes, project not called workspace, 40 parallel processes with long paths (40 intact lines), and a static check of imports (no network, no child_process).
+- test/recorder-format.test.mjs (pure, under the permission model): items 8 to 10, end to end through parse and analyse, including first source edit and repeats, plus a seeded property that no path outside becomes a source edit.
+- Add both to package.json.
+Do not write home-like absolute paths literally in tests (the write guard blocks them); build them from parts.
+~~~~

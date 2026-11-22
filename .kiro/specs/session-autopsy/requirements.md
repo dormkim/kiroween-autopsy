@@ -122,3 +122,50 @@ As a viewer, I want to know whether a recording stopped early, so that I do not 
 - R12.5 Shares, totals and absence claims SHALL be worded as about the recording: "{share}% of the recording had passed before the first recognised source edit attempt", "{share}% into the recording", "{pct}% of the recorded time came after {category}", "The largest share of the recording", "No source edit attempt recognised in this recording", and the duration labelled "Recorded time". The end of the replay SHALL read "End of the recording".
 - R12.6 THE screen SHALL NOT show solved or unsolved and SHALL NOT link repeated requests to an ending.
 - R12.7 A test SHALL check the exact ending copy, that every bundled sample has an ending, that a name outside the bundled list and an opened file with a bundled name get "unknown", and that `src/core` does not import the provenance module.
+
+# Phase 2: recorder
+
+Measured facts behind these requirements are in the "Phase 2" section of BUILD_LOG.md. Anything not measured there is treated as unknown.
+
+## Terms, phase 2
+
+- **Project**: the real directory the recorder runs in (`process.cwd()`, symlinks resolved).
+- **Log directory**: `<project>/.session-autopsy/`.
+- **Engine**: Kiro CLI 3.5.0 runs two engines, V2 and V3, with different tool names and input shapes.
+- **Failure code**: one of the fixed codes in design.md "Recorder failure codes".
+
+## R13. Recorder
+
+As someone who runs Kiro CLI on my own project, I want a recorder I can copy in, so that my sessions produce logs this page can open, without recording what my files or prompts contain.
+
+- R13.1 THE recorder SHALL be one file, `recorder/session-autopsy-record.mjs`, using only `node:` built-ins, with no network access, no child process and no read of the environment beyond what `node:os` needs for the home directory. A user installs it by copying it to `<project>/.kiro/session-autopsy/` and registering it in a Kiro CLI custom agent, as in `examples/recorder-agent.json`.
+- R13.2 WHEN run with no argument or with `record`, as a preToolUse hook with matcher `*`, THE recorder SHALL read one event on stdin and append exactly one line to `<project>/.session-autopsy/<session_id>.events.jsonl`, of the form `{t, hook: "pre", tool, paths?, range?, ranges?}`.
+- R13.3 THE recorder SHALL write `tool` only as one of `read_file`, `str_replace`, `list_directory`, `search`, `execute_bash` or `unknown_tool`, chosen by the tool table in design.md. It SHALL NOT copy a tool name from the event. Unknown tool names, unknown input shapes, unknown commands and unknown modes SHALL give `unknown_tool`.
+- R13.4 WHEN the event is a shell tool (`shell`, `execute_bash`, `execute_cmd`, `controlBashProcess`), THE recorder SHALL write `execute_bash` with no `cmd`, `paths` or range field.
+- R13.5 WHEN a V2 read has several `Line` operations, THE recorder SHALL write one line with `paths` and `ranges` of the same length, `{}` for a whole-file operation. WHEN it has one, THE recorder SHALL write `paths` with one entry and `range`.
+- R13.6 THE recorder SHALL copy `offset` only as a safe integer of at least 0 and `limit` only as a safe integer of at least 1, and SHALL treat `null` or absence as not given. IF either has any other value, THEN THE recorder SHALL write `unknown_tool`. A wrong type SHALL NOT become a whole-file request.
+- R13.7 THE recorder SHALL NOT write `allow`, because preToolUse runs before the permission check (measured on both engines).
+- R13.8 THE recorder SHALL build every output line from an allow-list of fields. File content, old and new text, tool output, the prompt, `__tool_use_purpose`, commands, values of unknown fields, home paths and absolute paths SHALL NOT appear in the log, on stdout, on stderr or in a file name. There SHALL be no option to record commands. File names inside the project are recorded, and the documentation SHALL say so.
+- R13.9 THE recorder SHALL turn each path into exactly one of: a name relative to the project with `/` separators and symlinks resolved, also for a file that does not exist yet and for a project reached through a symlink; `/workspace` for the project itself or an unknown target (not a string, empty, NUL or another control character, longer than 1024 characters); `/outside-workspace` for anything outside the project, including `~` paths outside it, `../`, a symlink leading out, a dangling symlink and a sibling whose name starts with the project's name. An outside path SHALL carry no name.
+- R13.10 IF the event's `cwd` is not the same real directory as `process.cwd()`, THEN THE recorder SHALL fail with nothing written outside the log directory. IF the project is `/`, the home directory or an ancestor of it, THEN THE recorder SHALL fail and write nothing, because relative names would reveal the home.
+- R13.11 THE recorder SHALL write nothing outside the log directory. It SHALL refuse a symlinked log directory, a symlinked log file, a log file with more than one hard link and a log file that is not a regular file. It SHALL change into the log directory, verify the working directory, open the bare file name with `O_APPEND|O_CREAT|O_NOFOLLOW|O_NONBLOCK` and mode 0600, check it with `fstat`, and write one complete line of at most 16 KiB in one write. A longer line SHALL be written as `unknown_tool`, never cut.
+- R13.12 THE recorder SHALL fail IF `session_id` does not match `^[A-Za-z0-9_-]{1,128}$` or the input is larger than 64 MiB. It SHALL take `t` as `Date.now() / 1000` immediately before the write.
+- R13.13 IF recording fails, THEN THE recorder SHALL exit 1, never 2, under any input, and print exactly one line `session-autopsy-recorder: RECORDING FAILED (<code>)` on stderr. WHERE the log directory is usable, it SHALL also append `{time, code}` to `.session-autopsy/recording-failures.jsonl` with the same write safety.
+- R13.14 WHEN run with `--prompt-check` as a userPromptSubmit hook, THE recorder SHALL NOT read or store stdin, SHALL write no file, SHALL print nothing when healthy, and WHEN the log directory is not usable or `recording-failures.jsonl` is not empty SHALL print the fixed instruction from design.md on stdout and exit 0.
+- R13.15 WHEN run with `--check`, THE recorder SHALL write no file and print `session-autopsy-recorder: OK` with exit 0, or the failure line with exit 1, on stdout.
+- R13.16 THE documentation SHALL state the limits: stderr of a preToolUse hook is not shown by Kiro (measured); the prompt check works only when the agent relays it and cannot see a failure after the last prompt; a missing `node` cannot report itself; the recorder sees attempts, not whether they were allowed or ran.
+- R13.17 `test/recorder.test.mjs` SHALL run the real script as a child process in fresh directories under `os.tmpdir()`, delete nothing, and cover both engines' measured shapes, every privacy item with canary strings, every path case, symlink and hard-link attacks with unchanged victims, invalid inputs, both check modes, a project not named `workspace`, 40 parallel processes and a static import check.
+
+## R14. Reading recorder logs
+
+As a viewer, I want recorder logs to be read as honestly as the samples, so that a call whose permission was not recorded is never shown as allowed.
+
+- R14.1 THE parser SHALL keep apart an absent `allow` (permission `not_recorded`), `true` (`allowed`), `false` (`blocked`) and a wrong type (`unknown`, listed as malformed).
+- R14.2 WHEN `allow` is absent, THE classifier SHALL classify the call from `tool`, `cmd`, `paths`, `range` and `ranges` as if it had run, and mark its permission `not_recorded`. THE screen SHALL NOT describe such a call as allowed. A malformed `allow` SHALL stay unknown with hidden effects, and `false` SHALL stay blocked.
+- R14.3 THE analysis SHALL export a traced count of calls whose permission was not recorded. WHEN it is above 0, THE screen SHALL show "Whether N calls were allowed or ran was not recorded. They count as attempts and can include denied calls." or, for one call, "Whether 1 call was allowed or ran was not recorded. It counts as an attempt and can be a denied call."
+- R14.4 WHEN `ranges` is an array of the same length as `paths` whose entries are valid ranges, THE classifier SHALL give one request per path, each by the `read_file` range rules. IF `ranges` is present and invalid, THEN THE classifier SHALL give a request with unknown lines on each usable path and SHALL NOT invent ranges.
+- R14.5 THE path `/outside-workspace` SHALL never be a file key for requests or line counts and SHALL never be a repeat. A write there SHALL have class `outside`. It SHALL NOT be a source edit or count among the calls that might have changed files earlier.
+- R14.6 THE classifier SHALL treat `list_directory` as a search with no effects, `search` as a search with possible hidden requests, and `unknown_tool` and `execute_bash` without `cmd` as unknown with possible hidden edits and requests.
+- R14.7 Other absolute paths SHALL keep the phase 1 rule: only `/workspace` is the project.
+- R14.8 These changes SHALL NOT change any number for the three bundled samples.
+- R14.9 `test/recorder-format.test.mjs` SHALL check R14.1 to R14.7 end to end through `parse` and `analyse`, including the first source edit attempt and repeats, with a seeded property that no path outside the project becomes a source edit, under the permission model.

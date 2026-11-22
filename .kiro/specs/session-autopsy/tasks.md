@@ -238,3 +238,52 @@ Not implemented by Kiro. The reviewer runs it after C and records the results.
 
 - [ ] D5. Record the results and the screenshot file names, then commit or report the failures as tasks for a new session.
   - Status: recorded in BUILD_LOG.md.
+
+## Increment E: recorder (phase 2)
+
+Three sessions: E1 to E4 (tests and spec, this run), E5 to E10 (implementation), E11 to E13 (reviewer). The tests written in E2 and E3 must fail before E5 and must not be weakened afterwards. If one turns out to be wrong, the reviewer decides, and the change is recorded in BUILD_LOG.md.
+
+- [x] E1. Spec: R13 and R14 in `requirements.md`; phase 2 decisions, recorder, reading recorder logs and P21 to P29 in `design.md`; why the recorder test runs without the permission model in steering `tech.md`.
+
+- [x] E2. Recorder tests
+  - Files: `test/recorder.test.mjs`
+  - Runs the real script as a child process in fresh `fs.mkdtemp` directories under `os.tmpdir()`, deletes nothing. Both engines' measured shapes; canaries for every privacy item, searched in every file under the temporary root (names and contents) and in both streams; every path case; symlink and hard-link attacks with unchanged victims; invalid inputs and sizes, never exit 2; `--prompt-check` and `--check`; a project not named `workspace`; 40 parallel processes with long paths; a static check of imports and calls.
+  - Properties: P21 to P25
+  - Requirements: R13.1 to R13.17
+
+- [x] E3. Format tests
+  - Files: `test/recorder-format.test.mjs`
+  - Permission states, `ranges`, `/outside-workspace`, the new tools, `notRecorded` and `permissionNote` copy, end to end through `parse`, `analyse` and `findings`, a seeded property that no outside path becomes a source edit, and `notRecorded` 0 on the samples.
+  - Properties: P26 to P29
+  - Requirements: R14.1 to R14.9
+
+- [x] E4. Test script: `package.json` runs `node test/recorder.test.mjs` and `node --permission --allow-fs-read=. test/recorder-format.test.mjs` after the existing files.
+
+- [ ] E5. Parser: `permission` and `ranges` on `Call` (design "Reading recorder logs").
+  - Files: `src/core/parse.js`
+  - Existing assertions that pin an absent `allow` as malformed or unknown change with R14.1. List each one changed in the session summary; do not change any other assertion.
+  - Proof: `test/recorder-format.test.mjs`, `test/parse.test.mjs`
+
+- [ ] E6. Classifier: permission cases, `list_directory`, `search`, `ranges`, `OUTSIDE`.
+  - Files: `src/core/classify.js`
+  - Proof: `test/recorder-format.test.mjs`, `test/classify.test.mjs`, `test/classify.property.test.mjs`
+
+- [ ] E7. Metrics and findings: `notRecorded`, `OUTSIDE` re-export, `permissionNote()`.
+  - Files: `src/core/metrics.js`, `src/core/findings.js`
+  - Proof: `test/recorder-format.test.mjs`, `test/samples.test.mjs` unchanged
+
+- [ ] E8. Recorder
+  - Files: `recorder/session-autopsy-record.mjs`, with the limits from design.md in its header comment
+  - Proof: `test/recorder.test.mjs`
+
+- [ ] E9. Install example and docs
+  - Files: `examples/recorder-agent.json` (preToolUse matcher `*` running `node .kiro/session-autopsy/session-autopsy-record.mjs`, userPromptSubmit running it with `--prompt-check`), README section "Record your own session" (copy, register, `--check`, what is recorded including file names inside the project, the limits), steering `structure.md` tree with `recorder/` and `examples/`, the case-line note from `permissionNote()` in `src/ui/summary.js`.
+  - Proof: `test/boundaries.test.mjs`, E12
+
+- [ ] E10. Checkpoint: the reviewer runs `npm test` and the property seeds, then commits.
+
+- [ ] E11. Live recording on V2 (reviewer): a harmless session in a scratch project with the example agent; the log opens in the page; every line matches the session's tool calls; no content, command or outside name in it.
+
+- [ ] E12. Live recording on V3 (reviewer): the same, plus one forced failure (for example a symlinked `.session-autopsy`) and a check that the next prompt's reply begins with the failure line.
+
+- [ ] E13. Record sessions, credits and results in BUILD_LOG.md.

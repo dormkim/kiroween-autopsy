@@ -301,3 +301,163 @@ Files in `test/`: `gen.mjs` (helper), `parse`, `shell`, `classify`, `classify.pr
 | longest interval | 69.441 s, call 65, log lines 66 and 67 | 17.612 s, call 71, log lines 71 and 72 | 18.299 s, call 144, log lines 144 and 145 |
 
 Pinned details in those logs: `requests-6644` log line 67 (call 66) requests `models.py` after the edit attempt on log line 46, so it is not a repeat. `rich-3506` log lines 41 and 42 (`offset 530, limit 100` and `offset 630, limit 50`) do not overlap. `rich-3480` log line 172 is not a repeat, because the edit attempt on log line 165 reset `rich/text.py`. Log line 80 (`tail -50 tests/test_text.py`) is a request with unknown lines.
+
+# Design: phase 2, recorder
+
+Input facts come only from the "Phase 2" section of BUILD_LOG.md. Shapes not listed there (shell tool input, V3 `list_directory`, `grep_search`, `file_search` input) are not measured, so the recorder copies nothing from them except what the tables below allow.
+
+## Decisions, phase 2
+
+| Topic | Decision | Why |
+|---|---|---|
+| New folders | `recorder/` holds the one file a user copies. `examples/` holds `recorder-agent.json`. Neither is loaded by the page. | R13.1. The recorder runs in a user's project, so it cannot live in `scripts/` (development only) or `src/` (site). |
+| No `allow` | The recorder never writes `allow`. | preToolUse runs before the permission check on both engines, and denied attempts reach the hook (measured). |
+| Absent `allow` | Parsed as permission `not_recorded`, classified like an allowed call, counted and stated on screen. | Phase 1 treated absent like malformed (unknown, hidden effects). That would make every recorder call unknown. Malformed stays unknown. |
+| Tool names | Mapped to a fixed set by the table below. Never copied. | Tool names are text from the event and can be anything. |
+| Shell | `execute_bash` with no `cmd`, always. No option records commands. | Commands can hold secrets and paths. Shell input shape is not measured. |
+| Several reads | One line with `paths` and `ranges`. | V2 reads several files in one call (measured). One line keeps one call per log line. |
+| Outside | `/outside-workspace`, never a name. Not a request, not a line count, never a repeat, edit class `outside`. | An outside name can reveal the home or other projects. |
+| Unknown target | `/workspace`, the phase 1 sentinel for "target unknown". | The classifier already treats it so (R3.5). |
+| Failure signal | Exit 1, one fixed stderr line, `recording-failures.jsonl`, and a userPromptSubmit check that asks the agent to relay it. | Exit 2 would block the tool. Kiro does not show preToolUse stderr, and `/dev/tty` output is not shown (measured). userPromptSubmit stdout reaches the agent (measured). stop must not be used: on V3 its stderr starts another agent turn (measured). |
+| Recorder test | Runs the real script as a child process, without the permission model. | See steering tech.md. |
+
+## Recorder (recorder/session-autopsy-record.mjs)
+
+Node built-ins only: `node:fs`, `node:path`, `node:os`, `node:process`, `node:buffer`. No `child_process`, network module, `fetch`, `process.env`, dynamic `import()`, `eval` or `new Function`. Named functions, no exports needed.
+
+### Modes
+
+| argv after the script | Hook | Reads stdin | Writes | stdout | Exit |
+|---|---|---|---|---|---|
+| none or `record` | preToolUse, matcher `*` | yes, at most 64 MiB | one log line, or one failure line | nothing | 0, or 1 on failure |
+| `--prompt-check` | userPromptSubmit | never | nothing | nothing when healthy, else the instruction below | 0 |
+| `--check` | none, for a human | never | nothing | `session-autopsy-recorder: OK`, or the failure line | 0 or 1 |
+| anything else | | no | failure line if the directory is usable | nothing | 1, code `mode_unknown` |
+
+Fixed text, with `<code>` from the failure codes:
+
+- stderr on failure, record mode: `session-autopsy-recorder: RECORDING FAILED (<code>)`
+- `--check` on failure, stdout: the same line.
+- `--prompt-check` when unhealthy, stdout, one line: `Session Autopsy recorder: recording of this session failed (<code>), so its log is incomplete. Begin your reply with this exact line: Session Autopsy recorder: RECORDING FAILED (<code>)`
+
+Healthy for both checks: the project is safe, the log directory is missing or is a real directory (not a symlink) inside the project, and `recording-failures.jsonl` is missing or empty. A missing directory is healthy because the first prompt comes before the first tool call. When the failure file is not empty, `<code>` is the code of its last line if that is a known code, else `unknown`. The failure file is read only after the same checks as a log file (not a symlink, regular, one link). A user clears the state by deleting `recording-failures.jsonl`.
+
+### Failure codes
+
+`input_too_large`, `input_invalid` (not UTF-8 JSON, or not an object), `session_id_invalid`, `cwd_mismatch` (missing, not absolute, not resolvable, or not the same real directory as `process.cwd()`), `project_unsafe` (`/`, the home directory or an ancestor of it), `log_dir_unsafe` (a symlink, not a directory, or `process.cwd()` after `chdir` differs), `log_file_unsafe` (symlink, `ELOOP`, `EISDIR`, not regular, more than one link), `write_failed`, `mode_unknown`, `internal`. Codes never contain paths or event text.
+
+Order in record mode: mode, project safety, stdin size, JSON, `session_id`, `cwd`, then the line, then the write. Every failure after project safety appends `{time, code}` (`time` an ISO 8601 UTC string) to `<project>/.session-autopsy/recording-failures.jsonl` when the directory is usable, with the write procedure below. A failure to record the failure changes nothing else: the stderr line and exit 1 stay. The whole run is inside one try/catch that maps any exception to `internal`, so no input gives exit 2.
+
+### Tool table
+
+The event is `{ session_id, cwd, tool_name, tool_input, ... }`. Only these keys are read. A `tool_name` that is not a string or a `tool_input` that is not an object gives `unknown_tool`.
+
+| `tool_name` | `tool_input` (measured) | Logged |
+|---|---|---|
+| `read`, `fs_read` | `operations[]`, every one `{mode: "Line", path, offset?, limit?}` | `read_file`, `paths`, and `range` (one operation) or `ranges` (several) |
+| `read`, `fs_read` | `operations[]`, every one `{mode: "Directory", path}` | `list_directory`, `paths` |
+| `read`, `fs_read` | empty, mixed modes, any other mode, an operation that is not an object or whose `path` is not a string | `unknown_tool` |
+| `read_file` | `{path, offset, limit}`, null when absent | `read_file`, `paths` with one entry, `range` |
+| `write`, `fs_write` with `command` | `create`, `strReplace`, `insert`, with a string `path` | `str_replace`, `paths` with one entry |
+| `write`, `fs_write` with `command` | any other command | `unknown_tool` |
+| `fs_write` without `command`, `fs_append`, `str_replace` | string `path` | `str_replace`, `paths` with one entry |
+| `list_directory` | string `path`: `paths` with one entry; else no `paths` | `list_directory` |
+| `grep_search`, `file_search` | not read | `search` |
+| `shell`, `execute_bash`, `execute_cmd`, `controlBashProcess` | not read | `execute_bash` |
+| anything else | not read | `unknown_tool` |
+
+Range fields: `offset` is copied when it is a safe integer ≥ 0, `limit` when it is a safe integer ≥ 1. `null` and absence mean not given. Any other value, in any operation, makes the whole call `unknown_tool`. A whole-file operation is `{}`. Other keys of an operation are ignored and never copied.
+
+Output keys by tool: `read_file` has `t, hook, tool, paths` and exactly one of `range` or `ranges`; `str_replace` and `list_directory` with a path have `t, hook, tool, paths`; `search`, `execute_bash`, `unknown_tool` and `list_directory` without a path have `t, hook, tool`. `hook` is always `"pre"`. `t` is `Date.now() / 1000`, taken immediately before the write.
+
+### Paths
+
+`project` is `realpath(process.cwd())`. `home` is `realpath(os.homedir())` when it resolves, else `os.homedir()` normalised.
+
+1. Project safety: fail with `project_unsafe` when `project` is `/`, equals `home`, or is an ancestor of `home`. Nothing is written.
+2. `cwd`: a string, absolute, and `realpath(cwd) === project`; else `cwd_mismatch`.
+3. Each path string `p`:
+   - not a string: the call is `unknown_tool` (unknown shape);
+   - empty, containing NUL or another control character (U+0000 to U+001F, U+007F), or longer than 1024 characters: `/workspace`;
+   - `~` or `~/...`: joined to `home`; `~name...`: `/outside-workspace`;
+   - else resolved against `cwd` and normalised.
+4. Real resolution: walk from the full path up to the deepest existing ancestor with `lstat`. If any existing component on the way is a symlink whose target does not exist (dangling), the result is `/outside-workspace`. Otherwise `realpath` of that ancestor, plus the missing rest. An error other than `ENOENT` or `ENOTDIR` gives `/workspace`.
+5. Result equal to `project`: `/workspace`. Strictly inside `project` (by `path.relative`, so `project-evil` is outside): the relative name with `/` separators. Anything else: `/outside-workspace`.
+
+File names inside the project are written to the log. A file named `outside-workspace` inside the project is logged as `outside-workspace`, without the leading `/`.
+
+### Writes
+
+1. `session_id` must match `^[A-Za-z0-9_-]{1,128}$`, else `session_id_invalid`. The log name is `<session_id>.events.jsonl`.
+2. Log directory `<project>/.session-autopsy`: `lstat`; when missing, `mkdir` with mode 0700 and `lstat` again. It must be a directory and not a symlink, else `log_dir_unsafe`.
+3. `process.chdir` into it, then `realpath(process.cwd())` must equal `<project>/.session-autopsy`, else `log_dir_unsafe`. From here only bare file names are opened, so a swapped directory cannot redirect the write.
+4. `openSync(name, O_WRONLY|O_APPEND|O_CREAT|O_NOFOLLOW|O_NONBLOCK, 0o600)`. `ELOOP` and `EISDIR` give `log_file_unsafe`. `fstat` on the descriptor: regular file and `nlink === 1`, else `log_file_unsafe`, closing without writing.
+5. The line is `JSON.stringify(obj) + '\n'`. Above 16 KiB in UTF-8 bytes, it is rebuilt as `{t, hook: "pre", tool: "unknown_tool"}`. One `writeSync` of the whole buffer; a short write gives `write_failed`. Then `closeSync`.
+6. The failure file uses steps 2 to 5 with the name `recording-failures.jsonl`.
+
+### Limits, stated in the recorder's header and the README
+
+- Kiro does not show preToolUse stderr, so a failure reaches the user only through the prompt check, `--check` or the failure file.
+- The prompt check works only when the agent relays the instruction, and cannot see a failure after the last prompt.
+- If `node` is missing, the hook cannot run and cannot report itself.
+- The log records attempts. It cannot say whether a call was allowed, denied or ran.
+- File names inside the project are recorded. Commands, contents and outside names are not.
+
+## Reading recorder logs
+
+### Parse
+
+`Call` gains two fields:
+
+```js
+Call = { ...phase 1, permission: 'allowed' | 'blocked' | 'not_recorded' | 'unknown',
+         ranges: Range[] | null }
+```
+
+`allow` absent: `allow: null`, `permission: 'not_recorded'`, not malformed. `true`: `allowed`. `false`: `blocked`. Any other type: `allow: null`, `permission: 'unknown'`, `malformed` has `allow`. `ranges` absent: `null`. An array whose entries all pass the `range` rules: that array. Anything else: `null` and `malformed` has `ranges`.
+
+### Classify
+
+`OUTSIDE = '/outside-workspace'`, exported from `classify.js` and re-exported by `metrics.js`. `Effect` gains `permission`, copied from the call.
+
+| Case | Result |
+|---|---|
+| `permission === 'blocked'` | `blocked`, as phase 1 |
+| `permission === 'unknown'` | `unknown`, hiddenEdit, hiddenRequest, as phase 1 |
+| `permission === 'not_recorded'` or `'allowed'` | by tool below |
+| `list_directory` | `search`, no requests, no edits, no hidden flags |
+| `search` | `search`, hiddenRequest |
+| `unknown_tool`, `execute_bash` without `cmd` | `unknown`, hiddenEdit, hiddenRequest |
+| `read_file` with `ranges` valid and of the same length as `paths` (and no `range` field) | one request per path by the phase 1 range rules |
+| `read_file` with `ranges` present but malformed, of another length, or beside a `range` field | one unlocated request per usable path, no lines |
+| `read_file` with one path and no `ranges` | phase 1 |
+
+Per path in a `read_file`: `/workspace`, no path or an unresolvable path gives no request and hiddenRequest. `OUTSIDE` gives no request and no hidden flag. `str_replace` on `OUTSIDE`: an edit `{ file: OUTSIDE, cls: 'outside' }`. A request whose key would be `OUTSIDE` is dropped wherever it comes from, shell included. Other absolute paths keep the phase 1 rule.
+
+### Metrics and findings
+
+`analysis.notRecorded`: traced count of calls with `permission === 'not_recorded'`, built like the other counts (0 traced to all call lines, `null` with `no_calls` when there are none). `couldEdit` is unchanged: an `outside` edit is neither `unknown` nor hidden, so it is never possibly earlier.
+
+`permissionNote(analysis)` in `findings.js` returns parts, or `null` when the count is 0 or unknown:
+
+- 1: "Whether 1 call was allowed or ran was not recorded. It counts as an attempt and can be a denied call."
+- N > 1: "Whether N calls were allowed or ran was not recorded. They count as attempts and can include denied calls."
+
+The number is a traced part. The UI shows it in the case line. No screen copy describes a `not_recorded` call as allowed.
+
+## Correctness properties, phase 2
+
+- **P21** For every event, record mode exits 0 or 1, never 2. On exit 1, stderr is exactly one failure line and stdout is empty. Validates R13.13.
+- **P22** No canary placed in content, old or new text, tool output, prompt, `__tool_use_purpose`, commands, unknown field names or values, tool names, modes, outside paths, the home path or the environment appears in any log, failure file, file name, stdout or stderr. Neither do the project's absolute path and the home path. Validates R13.3, R13.4, R13.8.
+- **P23** Every logged path is `/workspace`, `/outside-workspace` or a relative name that resolves inside the project. An outside path never yields a name. Validates R13.9.
+- **P24** With a symlinked or non-directory log directory, a symlinked, hard-linked or non-regular log or failure file, every victim outside the log directory keeps its content and listing. Validates R13.11.
+- **P25** 40 parallel recordings into one log give exactly 40 complete lines. A line above 16 KiB is never written cut. Validates R13.11.
+- **P26** Absent `allow` is `not_recorded` and is classified as if the call ran; malformed is unknown; false is blocked. Validates R14.1, R14.2.
+- **P27** A valid `ranges` gives exactly one request per path. An invalid one never yields a `range` or `open` request. Validates R14.4.
+- **P28** Gen recorder logs: no request, line count or repeat has the file `/outside-workspace`; no edit on it or on any absolute path has class `source`; every call counted in `possibleEarlier` has hiddenEdit or an `unknown`-class edit. Validates R14.5, R14.7.
+- **P29** The three samples give the phase 1 numbers and `notRecorded` 0. Validates R14.8.
+
+## Tests, phase 2
+
+- `test/recorder.test.mjs`: P21 to P25 and R13.14, R13.15, R13.17. Runs as `node test/recorder.test.mjs`. Children get a minimal environment: a fake `HOME` inside the test's temporary root (so `~` cases do not depend on the machine) and one canary variable. POSIX only; it skips on Windows.
+- `test/recorder-format.test.mjs`: P26 to P29 through `parse`, `classify`, `analyse` and `findings`. Runs under the permission model.

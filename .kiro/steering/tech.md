@@ -32,6 +32,8 @@
 - Each core module has a test file. Small hand-written fixtures in `test/fixtures/` cover: empty file, broken lines, all lines broken, truncated `cmd`, `allow: false`, `post` lines, no calls.
 - Sample tests check exact numbers and their log lines against `samples/`.
 - Kiro has no shell. The reviewer runs the tests, so assertion messages must say what was expected and why.
+- One exception: `test/recorder.test.mjs` runs as `node test/recorder.test.mjs`, without the permission model. It must run the real recorder the way Kiro does (a child process with stdin, exit code and stderr), which needs `--allow-child-process`, and that lifts the model for the child. It must also create files, symlinks and hard links, and Node's permission model follows symlinks outside the granted paths, so it would not be a real fence there. The test works only inside fresh `fs.mkdtemp` directories under `os.tmpdir()`, deletes nothing and uses no network.
+- The recorder (`recorder/session-autopsy-record.mjs`) runs in a user's project, not in the page: `node:` built-ins only, no child process, no network, no `process.env`.
 
 ## Development hook
 

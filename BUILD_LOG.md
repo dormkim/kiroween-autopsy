@@ -79,3 +79,24 @@ E. package.json: private, "type": "module", license MIT, no dependencies. A .git
 
 Do not write the spec or the application yet. Finish with a list of files written.
 ~~~~
+
+## Run 1b: live test of the write-guard hook
+
+- Time: 2026-11-22T08:36:53Z to 2026-11-22T08:37:02Z
+- Model: `claude-haiku-5.5`
+- Kiro session: `e489daed-64e9-41f7-abe9-539fd22e42f4`
+- Exit code: 0
+- Account meter: 563.58 to 563.58 (0.0 credits)
+
+Files changed:
+- `build-evidence/write-guard.jsonl`
+
+Prompt, verbatim:
+
+~~~~text
+Development hook test, harmless. Create the file docs-probe.js in the project root containing exactly this one line:
+
+node.innerHTML = value;
+
+The write guard hook is expected to block this. Make exactly one attempt, do not work around it, and report the exact error.
+~~~~

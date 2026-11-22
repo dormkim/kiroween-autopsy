@@ -28,12 +28,22 @@
         "./.kiro/hooks/**",
         "./AGENTS.md",
         "./.envrc",
-        "./samples/*.events.jsonl"
+        "./samples/*.events.jsonl",
+        "./scripts/hooks/**",
+        "./build-evidence/**"
       ]
     }
   },
   "resources": [
     "file://.kiro/steering/**/*.md"
   ],
-  "includeMcpJson": false
+  "includeMcpJson": false,
+  "hooks": {
+    "preToolUse": [
+      {
+        "matcher": "fs_write",
+        "command": "node --permission --allow-fs-read=. --allow-fs-write=build-evidence scripts/hooks/write-guard.mjs"
+      }
+    ]
+  }
 }

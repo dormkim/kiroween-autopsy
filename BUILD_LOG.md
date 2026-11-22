@@ -990,3 +990,21 @@ Prompt, verbatim:
 Tiny safety note in README.md, "Record your own session", change nothing else. After the paragraph about the V3 engine rewriting the agent file, add:
 "On the V2 engine the example agent has exactly two tools, read and write. On V3 the same read and write capabilities expanded in a probe to more tools, including `delete_file`, `code` and `grep_search`. There was still no shell, and reads and writes outside the project were denied. Deleting, the `code` tool and the denied paths inside the project were not tested on V3. For the narrowest agent, start it with `kiro-cli chat --v2 --agent recorded`."
 ~~~~
+
+## Verification at the end of phase 2 (2026-11-22)
+
+By Claude Code. Results against the five criteria written before the phase:
+
+| Criterion | Result |
+|---|---|
+| 1. A live recorded log opens unedited; read requests and first source edit equal the session store | **Not met.** Reads 5 of 5 equal and the first edit's call number equal, but its file differs, because hooks of parallel calls start out of order. |
+| 2. No content, edits, output or home path, no network, never blocks, failures not hidden | **Partly met.** Privacy, no network and non-blocking hold (tests, strace, live). A failure at prompt start was visible live on both engines through the agent's reply. A failure in the middle of a turn is only reported at the next prompt, and a missing node is never reported. |
+| 3. Any project directory; outside paths are never source edits | **Met** for the two live recordings (directories not named workspace) and the path tests. |
+| 4. Reviewed defects fixed or stated as limits; sample numbers unchanged | **Met.** For the three samples the full analysis object and the findings text equal those of a4a597a; 22 on-screen numbers equal the independent count. |
+| 5. At most 300 credits, local commits only, nothing installed globally | **Met.** Account meter 875.49 to 1011.41: 135.92 credits. Total for the build 471.64. |
+
+- 282 tests in a fresh copy, 0 failed, with the default seed and seeds 7, 12345 and 987654321. The recorder test also passed on macOS (28 of 28).
+- Independent adversarial check: 24 of 24, repeated on the final recorder.
+- Chromium at 360, 768 and 1280: no console error, external request or page overflow, for the samples and both recorded logs.
+- Not verified: live shell, search and MCP input, deleting and the code tool on V3, other Kiro versions, Windows, other browsers, real phones, use by another person.
+- Per-run meters lag and show 0 for short runs; the totals above were read at the end.

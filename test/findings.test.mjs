@@ -37,9 +37,20 @@ const sentences = (a) => findings(a).map(text);
 test('the three findings, word for word', () => {
   assert.deepEqual(sentences(base()), [
     'Lines 81 to 100 of src/requests/models.py were requested 3 times. 1 of 13 requests asked again for lines already requested since the last edit attempt on that file; 6 could not be checked.',
-    'First source edit attempt: call 46 at 2:58, 39% into the session (log line 46). 13 earlier calls could have changed files: unknown.',
-    'Most time until the next call followed code runs: 4:10 of 7:37 (55%). Longest: 1:09 after call 65 (log lines 66 and 67).',
+    'First source edit attempt: call 46 at 2:58, 39% into the session (log line 46). 13 earlier calls might also have changed files; the log cannot tell.',
+    'The largest share of the session, 4:10 of 7:37 (55%), came after code runs. That includes the tool, the model and waiting. The longest time until the next call was 1:09, after call 65 (log lines 66 and 67).',
   ]);
+});
+
+test('a file with open-ended or unlocated requests gives a lower bound: "at least"', () => {
+  const files = new Map([['src/requests/models.py', { lowerBound: true }]]);
+  assert.equal(sentences(base({ files }))[0],
+    'Lines 81 to 100 of src/requests/models.py were requested at least 3 times. 1 of 13 requests asked again for lines already requested since the last edit attempt on that file; 6 could not be checked.',
+    'an open-ended request may cover these lines too, so 3 is a lower bound');
+  const other = new Map([['src/requests/models.py', { lowerBound: false }], ['b.py', { lowerBound: true }]]);
+  assert.ok(!sentences(base({ files: other }))[0].includes('at least'), 'only the lower bound of the most requested file counts');
+  const one = base({ files, top: tr({ file: 'src/requests/models.py', from: 5, to: 5, count: 1 }, [3]) });
+  assert.ok(sentences(one)[0].startsWith('Line 5 of src/requests/models.py was requested at least 1 time.'), 'singular');
 });
 
 test('every number is a traced part, never fixed text', () => {
@@ -62,7 +73,7 @@ test('singular forms', () => {
   });
   const s = sentences(a);
   assert.equal(s[0], 'Line 5 of a.py was requested 1 time. 0 of 1 request asked again for lines already requested since the last edit attempt on that file; 1 could not be checked.');
-  assert.equal(s[1], 'First source edit attempt: call 46 at 2:58, 39% into the session (log line 46). 1 earlier call could have changed files: unknown.');
+  assert.equal(s[1], 'First source edit attempt: call 46 at 2:58, 39% into the session (log line 46). 1 earlier call might also have changed files; the log cannot tell.');
 });
 
 test('no explicit range: open-ended or unknown lines, or no request at all', () => {
@@ -77,9 +88,9 @@ test('no explicit range: open-ended or unknown lines, or no request at all', () 
 test('no source edit attempt recognised, never "did not edit"', () => {
   const none = tr(null, [], 'none_recognised');
   assert.equal(sentences(base({ firstSource: none, possibleEarlier: tr(23, [5, 9]) }))[1],
-    'No source edit attempt recognised. 23 calls could have changed files: unknown.');
+    'No source edit attempt recognised. 23 calls might have changed files; the log cannot tell.');
   assert.equal(sentences(base({ firstSource: none, possibleEarlier: tr(1, [5]) }))[1],
-    'No source edit attempt recognised. 1 call could have changed files: unknown.');
+    'No source edit attempt recognised. 1 call might have changed files; the log cannot tell.');
   assert.equal(sentences(base({ firstSource: none, possibleEarlier: tr(0, [1, 2]) }))[1],
     'No source edit attempt recognised. 0 calls could have changed files.');
   assert.equal(sentences(base({ possibleEarlier: tr(0, [46]) }))[1],
@@ -94,26 +105,26 @@ test('first source edit attempt with an unknown time', () => {
 
 test('time: one-line longest, unknown gaps, unknown span, unknown effect category', () => {
   const one = withTime({ longest: [tr({ call: 9, n: 9, seconds: 4 }, [9])] });
-  assert.equal(sentences(one)[2], 'Most time until the next call followed code runs: 4:10 of 7:37 (55%). Longest: 0:04 after call 9 (log line 9).');
+  assert.equal(sentences(one)[2], 'The largest share of the session, 4:10 of 7:37 (55%), came after code runs. That includes the tool, the model and waiting. The longest time until the next call was 0:04, after call 9 (log line 9).');
   const gaps = withTime({ gaps: [tr(10, [1, 2, 3])], byCategory: new Map([['unknown', tr(300, [1])], ['unknown_time', tr(10, [1, 2, 3])]]) });
   assert.equal(sentences(gaps)[2],
-    'Most time until the next call followed calls with unknown effect: 5:00 of 7:37 (66%). Longest: 1:09 after call 65 (log lines 66 and 67). Times are unknown for 0:10 of the session.');
+    'The largest share of the session, 5:00 of 7:37 (66%), came after calls with unknown effect. That includes the tool, the model and waiting. The longest time until the next call was 1:09, after call 65 (log lines 66 and 67). Times are unknown for 0:10 of the session.');
   const span = withTime({ span: tr(null, [], 'no_time'), byCategory: new Map(), longest: [] });
   assert.equal(sentences(span)[2], 'No call has a usable time, so where the time went is unknown.');
 });
 
 test('category names are plain words', () => {
-  const label = (category) => sentences(withTime({ byCategory: new Map([[category, tr(400, [1])]]) }))[2].split(':')[0];
+  const label = (category) => /came after (.+?)\. That/.exec(sentences(withTime({ byCategory: new Map([[category, tr(400, [1])]]) }))[2])[1];
   assert.deepEqual(['request', 'search', 'edit', 'test', 'run', 'vcs', 'other', 'blocked', 'unknown'].map(label), [
-    'Most time until the next call followed file requests',
-    'Most time until the next call followed searches',
-    'Most time until the next call followed edit attempts',
-    'Most time until the next call followed test runs',
-    'Most time until the next call followed code runs',
-    'Most time until the next call followed version control calls',
-    'Most time until the next call followed other calls',
-    'Most time until the next call followed blocked calls',
-    'Most time until the next call followed calls with unknown effect',
+    'file requests',
+    'searches',
+    'edit attempts',
+    'test runs',
+    'code runs',
+    'version control calls',
+    'other calls',
+    'blocked calls',
+    'calls with unknown effect',
   ]);
 });
 

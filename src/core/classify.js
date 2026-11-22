@@ -737,6 +737,7 @@ const runProgram = (acc, prog, args, cwd, call) => {
   if (name === 'cat' || name === 'nl') catLike(acc, args, cwd, call);
   else if (name === 'head') head(acc, args, cwd, call);
   else if (name === 'sed') sed(acc, args, cwd, call);
+  else if (name === 'tee') tee(acc, args, cwd, call);
   else if (name === 'tail') unlocatedFiles(acc, args, cwd, call, new Set(['-n', '-c', '--lines', '--bytes']));
   else if (name === 'wc') unlocatedFiles(acc, args, cwd, call, new Set());
   else if (name === 'grep' || name === 'egrep' || name === 'fgrep') grep(acc, args, cwd, call);

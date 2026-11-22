@@ -46,9 +46,11 @@ const requested = (a) => {
     return ['No line ranges were requested. ', num(a.requests), many(k, ' request had', ' requests had'), ' unknown or open-ended lines.'];
   }
   const single = top.from === top.to;
+  const lower = a.files instanceof Map && a.files.get(top.file)?.lowerBound === true;
   return [
     ...(single ? ['Line ', val(top.from, a.top)] : ['Lines ', val(top.from, a.top), ' to ', val(top.to, a.top)]),
-    ' of ', val(top.file, a.top), single ? ' was requested ' : ' were requested ', val(top.count, a.top), many(top.count, ' time. ', ' times. '),
+    ' of ', val(top.file, a.top), single ? ' was requested ' : ' were requested ', ...(lower ? ['at least '] : []),
+    val(top.count, a.top), many(top.count, ' time. ', ' times. '),
     num(a.repeats), ' of ', num(a.requests), many(k, ' request', ' requests'),
     ' asked again for lines already requested since the last edit attempt on that file; ', num(a.unchecked), ' could not be checked.',
   ];
@@ -58,10 +60,11 @@ const requested = (a) => {
 const firstEdit = (a) => {
   const fs = a.firstSource.value;
   const k = a.possibleEarlier.value;
-  const could = (earlier) => [
-    ' ', num(a.possibleEarlier), many(k, ` ${earlier}call`, ` ${earlier}calls`),
-    k === 0 ? ' could have changed files.' : ' could have changed files: unknown.',
-  ];
+  const could = (earlier) => {
+    const noun = many(k, ` ${earlier}call`, ` ${earlier}calls`);
+    if (k === 0) return [' ', num(a.possibleEarlier), noun, ' could have changed files.'];
+    return [' ', num(a.possibleEarlier), noun, earlier === '' ? ' might have' : ' might also have', ' changed files; the log cannot tell.'];
+  };
   if (fs === null) return ['No source edit attempt recognised.', ...could('')];
   let when = [' at an unknown time'];
   if (fs.offset !== null) {
@@ -85,12 +88,13 @@ const timeSpent = (a) => {
   } else {
     const [key, t] = best;
     const pct = span.value > 0 ? `${Math.round((t.value / span.value) * 100)}%` : 'unknown';
-    parts.push(`Most time until the next call followed ${LABELS[key]}: `, val(formatTime(t.value), t), ' of ', val(formatTime(span.value), span), ' (', val(pct, t), ').');
+    parts.push('The largest share of the session, ', val(formatTime(t.value), t), ' of ', val(formatTime(span.value), span), ' (', val(pct, t),
+      `), came after ${LABELS[key]}. That includes the tool, the model and waiting.`);
   }
   const top = a.time.longest[0];
   if (top !== undefined) {
     const [first, second] = top.lines;
-    parts.push(' Longest: ', val(formatTime(top.value.seconds), top), ' after call ', val(top.value.call, top));
+    parts.push(' The longest time until the next call was ', val(formatTime(top.value.seconds), top), ', after call ', val(top.value.call, top));
     if (second === undefined) parts.push(' (log line ', val(first, top), ').');
     else parts.push(' (log lines ', val(first, top), ' and ', val(second, top), ').');
   }

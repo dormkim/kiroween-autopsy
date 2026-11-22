@@ -295,3 +295,31 @@ Prompt, verbatim:
 ~~~~text
 Continue, and do not end your turn until all three jobs are written. "One file per response" meant one fs_write call at a time with short planning between calls: keep making tool calls one after another, design line, classify.js fix, every increment B test and module, package.json, task ticks. Only then summarise briefly.
 ~~~~
+
+## Run 8: fix tee classification, plainer findings copy
+
+- Time: 2026-11-22T09:47:42Z to 2026-11-22T09:49:16Z
+- Model: `claude-opus-5.5`
+- Kiro session: `9e4d0982-ef00-45bd-8773-4b1338a7eeb2`
+- Exit code: 0
+- Account meter: 708.26 to 716.21 (7.95 credits)
+
+Files changed:
+- `build-evidence/write-guard.jsonl`
+- `.kiro/specs/session-autopsy/design.md`
+- `src/core/classify.js`
+- `src/core/findings.js`
+- `test/findings.test.mjs`
+
+Prompt, verbatim:
+
+~~~~text
+The reviewer ran every test: 208 pass, 2 fail, both in test/classify.test.mjs, "tee with static file operands" and "tee stays unknown where the target or the options cannot be read". `echo x | tee src/a.py` still gives category unknown, no edits, both hidden flags. Read classify.js, find the cause and fix it without weakening those tests.
+
+All sample numbers matched the reviewer's independent count from the original logs. Three copy fixes, in findings.js, its tests and the spec templates:
+1. When the file with the most requested lines has open-ended or unlocated requests, its count is a lower bound and the sentence must say "at least 8 times".
+2. "35 earlier calls could have changed files: unknown." is unreadable. Use words like "35 earlier calls might also have changed files; the log cannot tell." (and the matching form when no source edit attempt was recognised).
+3. "Most time until the next call followed code runs" is hard to parse. Say where the time went plainly while keeping it honest, for example "The largest share of the session, 4:15 of 14:48 (29%), came after code runs. That includes the tool, the model and waiting."
+
+Keep making tool calls until all are written, then summarise in at most five lines.
+~~~~

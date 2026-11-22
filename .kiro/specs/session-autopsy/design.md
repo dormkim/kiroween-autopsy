@@ -189,9 +189,11 @@ Time on screen is m:ss from `start`, rounded to the nearest second; minutes can 
 
 `findings(analysis)` returns three sentences, each a list of parts: either a string or `{ text, traced }`. Templates, with every number as a traced part:
 
-1. "Lines {from} to {to} of {file} were requested {count} times. {repeats} of {requests} requests asked again for lines already requested since the last edit attempt on that file; {unchecked} could not be checked." When no explicit range exists: "No line ranges were requested. {requests} requests had unknown or open-ended lines."
-2. "First source edit attempt: call {call} at {m:ss}, {share}% into the session (log line {n}). {k} earlier calls could have changed files: unknown." When there is none: "No source edit attempt recognised. {k} calls could have changed files: unknown."
-3. "Most time until the next call followed {category} calls: {m:ss} of {span} ({pct}%). Longest: {m:ss} after call {call} (log lines {a} and {b})."
+1. "Lines {from} to {to} of {file} were requested {count} times. {repeats} of {requests} requests asked again for lines already requested since the last edit attempt on that file; {unchecked} could not be checked." When that file has open-ended or unlocated requests, its count is a lower bound: "were requested at least {count} times". When no explicit range exists: "No line ranges were requested. {requests} requests had unknown or open-ended lines."
+2. "First source edit attempt: call {call} at {m:ss}, {share}% into the session (log line {n}). {k} earlier calls might also have changed files; the log cannot tell." When there is none: "No source edit attempt recognised. {k} calls might have changed files; the log cannot tell." When {k} is 0: "0 earlier calls could have changed files."
+3. "The largest share of the session, {m:ss} of {span} ({pct}%), came after {category}. That includes the tool, the model and waiting. The longest time until the next call was {m:ss}, after call {call} (log lines {a} and {b})."
+
+Singular forms ("1 time", "1 request", "1 earlier call") are used for a count of 1. Category names on screen are plain words: file requests, searches, edit attempts, test runs, code runs, version control calls, other calls, blocked calls, calls with unknown effect.
 
 When `totals.partial` is true, each sentence ends with "Partial: {b} log lines could not be read."
 

@@ -83,3 +83,12 @@
 {"time":"2026-11-22T09:46:45.343Z","path":".kiro/specs/session-autopsy/tasks.md","decision":"allow","rule":"ok"}
 {"time":"2026-11-22T09:46:45.345Z","path":".kiro/specs/session-autopsy/tasks.md","decision":"allow","rule":"ok"}
 {"time":"2026-11-22T09:46:45.347Z","path":".kiro/specs/session-autopsy/tasks.md","decision":"allow","rule":"ok"}
+{"time":"2026-11-22T09:48:21.383Z","path":"src/core/classify.js","decision":"allow","rule":"ok"}
+{"time":"2026-11-22T09:48:32.303Z","path":"test/findings.test.mjs","decision":"allow","rule":"ok"}
+{"time":"2026-11-22T09:48:48.434Z","path":"test/findings.test.mjs","decision":"allow","rule":"ok"}
+{"time":"2026-11-22T09:48:48.434Z","path":"test/findings.test.mjs","decision":"allow","rule":"ok"}
+{"time":"2026-11-22T09:48:48.434Z","path":"test/findings.test.mjs","decision":"allow","rule":"ok"}
+{"time":"2026-11-22T09:49:01.756Z","path":"src/core/findings.js","decision":"allow","rule":"ok"}
+{"time":"2026-11-22T09:49:01.761Z","path":"src/core/findings.js","decision":"allow","rule":"ok"}
+{"time":"2026-11-22T09:49:01.764Z","path":"src/core/findings.js","decision":"allow","rule":"ok"}
+{"time":"2026-11-22T09:49:10.582Z","path":".kiro/specs/session-autopsy/design.md","decision":"allow","rule":"ok"}

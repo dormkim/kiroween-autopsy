@@ -866,10 +866,10 @@ By Claude Code, following the README steps in fresh folders outside this reposit
 
 | | V2, `claude-sonnet-5.5` (the recording) | V3, `claude-haiku-5.5` (second engine check) |
 |---|---|---|
-| Tool calls, session store / log | 5 / 5 | 13 / 13 |
+| Tool calls, session store / log | 5 / 5 | **14 / 13: not equal** (corrected after run 22, first written as 13 / 13) |
 | Read requests, session store / log | 5 / 5, same files and order | 7 / 7, same files and order |
 | Edit attempts, session store / log | 3 / 3, same files | 3 / 3, same files |
-| First source edit attempt, call number | 3 / 3 | 11 / 11 |
+| First source edit attempt, call number | 3 / 3 | **12 / 11: not equal** (corrected after run 22, first written as 11 / 11) |
 | First source edit attempt, file | **`orchard/units.py` / `orchard/report.py`: not equal** | `orchard/units.py` / `orchard/units.py` |
 
 **The first-source-edit criterion is not met.** In the V2 session three edits were sent in one response, and Kiro started their hooks in parallel, 3 ms apart and in another order. A probe then sent 8 parallel writes in each of three sessions: log order, process id order and process start order all differed from the order in the session in all three. The hook input has no call id or sequence number, so a preToolUse hook cannot restore that order. The equal V3 result is not evidence that order is kept. No recording was retried to get a match.
@@ -998,7 +998,7 @@ By Claude Code. Results against the five criteria written before the phase:
 | Criterion | Result |
 |---|---|
 | 1. A live recorded log opens unedited; read requests and first source edit equal the session store | **Not met.** Reads 5 of 5 equal and the first edit's call number equal, but its file differs, because hooks of parallel calls start out of order. |
-| 2. No content, edits, output or home path, no network, never blocks, failures not hidden | **Partly met.** Privacy, no network and non-blocking hold (tests, strace, live). A failure at prompt start was visible live on both engines through the agent's reply. A failure in the middle of a turn is only reported at the next prompt, and a missing node is never reported. |
+| 2. No content, edits, output or home path, no network, never blocks, failures not hidden | **Not met** (corrected after run 22, first written as partly met; see the end of this log). Privacy, no network and non-blocking hold (tests, strace, live). A failure at prompt start was visible live on both engines through the agent's reply. A failure in the middle of a turn is only reported at the next prompt, and a missing node is never reported. |
 | 3. Any project directory; outside paths are never source edits | **Met** for the two live recordings (directories not named workspace) and the path tests. |
 | 4. Reviewed defects fixed or stated as limits; sample numbers unchanged | **Met.** For the three samples the full analysis object and the findings text equal those of a4a597a; 22 on-screen numbers equal the independent count. |
 | 5. At most 300 credits, local commits only, nothing installed globally | **Met.** Account meter 875.49 to 1011.41: 135.92 credits. Total for the build 471.64. |
@@ -1051,3 +1051,26 @@ Correction pass after an independent check found four defects. No new feature. R
 README also: in "When recording fails" make every sentence true after item 1; in "What failed" add one line saying an independent check found failures the recorder hid and a wrong live-result count, fixed in run 22 as far as stated in Limits; the acceptance criteria about first-edit equality and about never hiding a failure are both NOT met. Do not call either of them met or partly met anywhere; tick no new task for them.
 Finish with a short list: item, files changed.
 ~~~~
+
+## Corrections and verification after run 22 (2026-11-22)
+
+By Claude Code, from a second check that counted the session store again and attacked the recorder itself.
+
+What the first phase 2 verification got wrong:
+
+- V3: the session store has 14 tool calls and the log 13. The first edit is call 12 in the session and 11 in the log. A call to `generate_codebase_overview`, which the agent does not have, never reached the hook. The table above is corrected.
+- Criterion 2 was written as partly met. It was not met: with an unwritable log directory, an unwritable project, or a write that failed after the empty failure file was created, recording failed while `--check` printed OK and the prompt check was silent.
+
+Checked on the run 22 code:
+
+- 286 tests in a fresh copy, 0 failed, with the default seed and seeds 7, 12345 and 987654321.
+- Those three failures are now reported by both check modes. So is a really full disk (a 2 MB disk image on macOS), with and without a log directory.
+- Two live V2 sessions with the final recorder, asked for one tool call per response. The first logged 3 of 3 calls in the session's order, with the same first edit file. The second had an unwritable log directory: the tool still ran and the reply began with the failure line.
+- The three samples: same headlines and findings as `a4a597a`. Both phase 2 recordings now read "over 99%", with no console error, external request or overflow at 360 and 1280.
+
+Final result against the criteria, which did not change: **1 not met, 2 not met, 3 met, 4 met, 5 met.**
+
+- 1: the sequential session above does not pass it. Parallel calls can still be logged out of order, and calls to unavailable tools are still missing.
+- 2: failures that leave no file and have cleared, quota and inode limits, and a missing node can still go unreported.
+
+Account meter: 1030.62, so 155.13 credits for phase 2 and 490.85 for the build.

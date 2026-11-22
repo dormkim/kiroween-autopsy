@@ -1,6 +1,6 @@
 // Case line, the three findings and the exposure meter.
 
-import { findings, formatTime, stateMessage } from '../core/findings.js';
+import { findings, headlines, formatTime, stateMessage } from '../core/findings.js';
 import { el, setVar } from './dom.js';
 import { renderParts, tracedButton } from './notes.js';
 
@@ -21,8 +21,16 @@ const METER = [
 /** Session name: the file name without .events.jsonl or .jsonl. */
 export const sessionName = (name) => name.replace(/\.events\.jsonl$|\.jsonl$/i, '') || name;
 
+/** A number outside running text: a full 44px button. */
+const statButton = (ctx, text, traced, label) => {
+  const b = tracedButton(ctx, text, traced, label);
+  b.classList.remove('traced');
+  b.classList.add('button', 'stat-value');
+  return b;
+};
+
 /**
- * Heading and case line: file, calls, duration plus unknown tail, broken lines.
+ * Heading, case line (file, calls, duration plus unknown tail, broken lines) and the replay action.
  * @param {object} ctx
  */
 export function caseLine(ctx) {
@@ -31,16 +39,20 @@ export function caseLine(ctx) {
   const calls = { value: callLines.length, lines: callLines, reason: null };
   const span = a.time.span;
   const broken = a.totals.broken.map((b) => b.n);
-  const parts = [
-    'Developed from ', el('span', { class: 'data' }, ctx.name), ': ',
-    tracedButton(ctx, String(calls.value), calls, 'Calls in this session'), calls.value === 1 ? ' call over ' : ' calls over ',
-    span.value === null ? 'an unknown time' : tracedButton(ctx, formatTime(span.value), span, 'Time from the first call to the last valid event'),
-    ' plus an unknown tail; ',
-    broken.length === 0 ? '0' : tracedButton(ctx, String(broken.length), { value: broken.length, lines: broken, reason: null }, 'Log lines that could not be read'),
-    broken.length === 1 ? ' broken log line.' : ' broken log lines.',
-  ];
+  const stat = (label, value, after = null) => el('li', { class: 'stat' }, el('span', { class: 'stat-label' }, label), value, after);
+  const stats = el('ul', { class: 'stats' },
+    stat('Calls', statButton(ctx, String(calls.value), calls, 'Calls in this session')),
+    stat('Duration', span.value === null ? el('span', { class: 'stat-plain' }, 'unknown')
+      : statButton(ctx, formatTime(span.value), span, 'Time from the first call to the last valid event'),
+    el('span', { class: 'stat-after' }, 'plus an unknown tail')),
+    stat('Broken log lines', broken.length === 0 ? el('span', { class: 'stat-plain' }, '0')
+      : statButton(ctx, String(broken.length), { value: broken.length, lines: broken, reason: null }, 'Log lines that could not be read')));
+  const replayButton = el('button', { class: 'button button-primary', type: 'button' }, 'Replay from the first call');
+  replayButton.addEventListener('click', () => ctx.playFromStart());
   const head = el('h2', { class: 'case-name', tabindex: '-1', id: 'case-head' }, sessionName(ctx.name));
-  const out = el('header', { class: 'case' }, head, el('p', { class: 'case-line' }, parts));
+  const out = el('header', { class: 'case' }, head,
+    el('p', { class: 'case-line' }, 'Developed from ', el('span', { class: 'data' }, ctx.name), '.'),
+    el('div', { class: 'case-row' }, stats, replayButton));
   if (a.totals.partial) {
     const msg = stateMessage({ state: 'partial', name: ctx.name, broken: a.totals.broken });
     out.append(el('p', { class: 'partial-banner', role: 'note' }, renderParts(ctx, msg, 'Log lines that could not be read'),
@@ -52,19 +64,29 @@ export function caseLine(ctx) {
 const FINDING_LABELS = ['Most requested lines', 'First source edit attempt', 'Where the time went'];
 
 /**
- * The three findings as large sentences. Every number is a traced button.
+ * The three findings: a plain answer, the full sentence as detail, and one control for the log lines.
  * @param {object} ctx
  */
 export function findingsBlock(ctx) {
   const sentences = findings(ctx.analysis);
+  const heads = headlines(ctx.analysis);
   const fog = ctx.frames.filter((f) => f.fog).map((f) => f.n);
+  const items = sentences.map((parts, i) => {
+    const h = heads[i];
+    const show = el('button', { class: 'button finding-show', type: 'button' }, 'Show log lines');
+    show.addEventListener('click', () => ctx.select({ kind: 'traced', label: h.label, text: h.text, traced: h.traced }, { reveal: true, origin: show }));
+    return el('li', { class: 'finding' },
+      el('h3', { class: 'finding-kind' }, FINDING_LABELS[i]),
+      el('p', { class: 'finding-head' }, h.text),
+      el('p', { class: 'finding-detail' }, renderParts(ctx, parts, FINDING_LABELS[i])),
+      show);
+  });
   return el('section', { class: 'findings-block', 'aria-label': 'Findings' },
-    el('ul', { class: 'findings' }, sentences.map((parts, i) => el('li', { class: 'finding' }, renderParts(ctx, parts, FINDING_LABELS[i])))),
+    el('ul', { class: 'findings' }, items),
     el('p', { class: 'finding-note' },
       'Calls with unknown effect may have requested or changed files that are not counted: ',
       tracedButton(ctx, String(fog.length), { value: fog.length, lines: fog, reason: null }, 'Calls with unknown effect'),
-      fog.length === 1 ? ' call. ' : ' calls. ',
-      'Choose any underlined number to see its log lines.'));
+      fog.length === 1 ? ' call.' : ' calls.'));
 }
 
 /**

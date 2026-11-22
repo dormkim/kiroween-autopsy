@@ -8,7 +8,9 @@ Each file the agent requested is a photographic plate, its lines running top to 
 
 Under the plates runs the contact strip: the session as a strip of film, one frame per call. A frame's width is the time until the next event. The film margin carries printed edge codes with the call number and log line, so every frame points back to the raw log. Replay develops the plates: as the playhead moves along the strip, exposures land on the plates in recorded order.
 
-The ghost is the measurement. No mascots, bats, cobwebs, skulls, dripping type or glow effects.
+The ghost is the measurement. The most requested line range develops into an apparition: a veiled figure with hollow eyes in a cabinet-card photograph, made of exactly one offset exposure per request of those lines up to the playhead. It is invisible at zero requests, faint at one and a dense, staring figure at eight. One short caption says so, and the line plate beside it stays the exact reading, with one strand per exposure running from the requested lines into the figure.
+
+No mascots, bats, cobwebs, skulls, dripping type or glow effects. A ghost or figure is allowed only when it is built from the data like the apparition; ghosts that carry no data are banned.
 
 ## Data mapping
 
@@ -26,6 +28,11 @@ The ghost is the measurement. No mascots, bats, cobwebs, skulls, dripping type o
 | Cut mark | first edit attempt | full-height line across strip and plates in `--c-edit` | "First edit attempt: call 46, log line 46" plus the unknown count before it |
 | Exposure meter | time per category | one horizontal bar, segment length proportional to seconds | label with seconds and share; table |
 | Playhead | replay position | accent line over the strip | native range input with value text |
+| Apparition | requests (with an explicit range) covering the most requested lines, up to the playhead | one veiled figure per request, each at opacity 0.17, skewed further back the older it is; shared hollow eyes darken as copies stack | caption "The figure is 8 superimposed exposures, one per request of lines 1007 to 1010 so far", plus "requested at least" when the file has open-ended requests |
+| Strand | one exposure of the apparition | pale curve from that request's range on the line plate into the figure | the same caption |
+| Headline | one finding | 28px plain answer above the exact sentence, computed by `headlines()` in `findings.js` | the sentence and a "Show log lines" button |
+
+"At least" is used everywhere a file's count is a lower bound: headline, sentence, caption, plate labels, table and notes.
 
 Color never carries meaning alone. Every semantic color comes with a pattern, a shape and a word.
 
@@ -49,6 +56,10 @@ Color never carries meaning alone. Every semantic color comes with a pattern, a 
 --c-blocked: #c7c2b0;       /* blocked by the recording hook */
 --c-error: #ff8f80;         /* broken lines, load errors */
 
+/* cabinet-card mount around the apparition; --c-text-dim is about 7:1 on it */
+--c-mount: #1b1913;
+--c-mount-edge: #4a4434;    /* mount rules, never text */
+
 /* spacing: 4px scale */
 --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px;
 --s-6: 24px; --s-8: 32px; --s-12: 48px; --s-16: 64px;
@@ -67,7 +78,7 @@ Text colors meet 4.5:1 on `--c-ground` and `--c-plate`. Check every new pair bef
 | Role | Stack | Size / line height | Use |
 |---|---|---|---|
 | display | `ui-serif, "New York", "Iowan Old Style", Georgia, Cambria, "Times New Roman", serif` | 40 / 1.1 | page title only |
-| heading | display stack | 28 / 1.2 | session name |
+| heading | display stack | 28 / 1.2 | session name, finding headlines |
 | caption | display stack | 20 / 1.3 | plate captions, panel heads |
 | body | `system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif` | 16 / 1.5 | prose, claims paragraph |
 | small | body stack | 14 / 1.45 | controls, tables, notes |
@@ -78,12 +89,13 @@ Six sizes total: 12, 14, 16, 20, 28, 40. Weights 400 and 600 only. Numbers use `
 ## Layout
 
 - Left-aligned and asymmetric. Nothing is centered except numbers inside table cells.
-- First screen: title, one-line purpose, the claims paragraph, then "Open a log file" (file input with label) and one button per sample file name.
-- After loading: a case line (file name, calls, duration plus unknown tail, broken line count), the contact strip at full width, the plates, the exposure meter, and the notes panel for the selected call or range.
-- 360px: single column. The strip scrolls horizontally inside its own box. Plates stack.
+- First screen: title, one-line purpose, the claims paragraph, one primary button "Open the autopsy of rich-3480", the apparition of that sample (developing once, from its data), then the other sample buttons, "Open a log file" and the line "Recorded sessions of a coding agent on public issues, hand-picked, not representative." linking to `./DISCLOSURE.md`. From 1000px the apparition takes the right column, so it is in the first viewport; at 360 its head is within the first 740px.
+- After loading: case line (file name, then calls, duration plus unknown tail and broken lines as 44px buttons, and "Replay from the first call"), the three findings (headline, sentence, "Show log lines"), the replay stage, the plates with the notes panel, the exposure meter, the evidence.
+- Replay stage: apparition, Play, live line, compact strip (100px) and slider together, fitting one viewport at 1280x800 and 360x740. From a 1040px container the apparition (560px) and the controls sit side by side. Explanations and the legend are in a closed "How to read the replay" details element.
+- 360px: single column. The strip scrolls horizontally inside its own box. Plates stack. Evidence tables become stacked rows with a label per cell, so headers never break inside words.
 - 768px: plates in two columns, notes below.
 - 1280px: plates take two thirds, notes stay beside them in a sticky third.
-- No page-level horizontal scroll at any width. Grid children get `min-width: 0`.
+- No page-level horizontal scroll at any width. Every grid sets `minmax(0, 1fr)` columns and grid children get `min-width: 0`; the body does not hide overflow, so a wide child shows up as a bug.
 
 ## States
 
@@ -96,10 +108,10 @@ Six sizes total: 12, 14, 16, 20, 28, 40. Weights 400 and 600 only. Numbers use `
 - Every control is at least 44 by 44px and reachable with Tab, with the visible `--focus` ring.
 - The strip has one tab stop: the playhead range input. Arrow keys step one call, Home and End jump to the ends, Space plays and pauses.
 - The repeated-requests table is the keyboard path to the bands. Selecting a row highlights its band and lights its frames on the strip. Clicking a band selects the same row.
-- Replay: one frame per 120ms. A new exposure appears over 160ms.
+- Replay: one frame per 120ms. A new exposure appears over 160ms. The strip keeps the playhead in view while playing, scrubbing and after load. After load the playhead is at the end (fully developed) and the button reads "Replay from call 1"; pressing it at the end restarts from the first call and brings the stage into view.
 - `prefers-reduced-motion: reduce`: no autoplay and no transitions. Play steps one call per press and plates update at once.
 - No entrance animation on sections.
 
 ## Do not
 
-Purple or blue gradients, gradient text, everything centered, rows of identical rounded cards, cards inside cards, eyebrow labels above headings, numbered section headings, fade-up on scroll, glassmorphism, neon glow, emoji, decorative ghosts that carry no data.
+Purple or blue gradients, gradient text, everything centered, rows of identical rounded cards, cards inside cards, eyebrow labels above headings, numbered section headings, fade-up on scroll, glassmorphism, neon glow, emoji, ghosts or figures that carry no data.

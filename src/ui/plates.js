@@ -128,6 +128,8 @@ export function drawPlate(spec) {
     }
 
     const brightest = intervals.reduce((p, q) => (p === null || q.count > p.count ? q : p), null);
+    const lower = live.some((r) => r.kind !== 'range');
+    const times = (c) => (lower ? `at least ${timesText(c)}` : timesText(c));
     for (const iv of intervals) {
       const { top, h } = box(iv.from, iv.to);
       const key = `${iv.from}:${spec.file}`;
@@ -144,9 +146,9 @@ export function drawPlate(spec) {
       if (!isTop && !selected && iv.count < 2 && spec.tier !== 'hero') continue;
       let node;
       if (isTop && spec.tier === 'hero' && iv.count >= 2) {
-        node = el('span', { class: 'band-label apparition' }, 'Apparition: ', el('span', { class: 'data' }, linesText(iv.from, iv.to)), `, requested ${timesText(iv.count)}`);
+        node = el('span', { class: 'band-label apparition' }, 'Brightest: ', el('span', { class: 'data' }, linesText(iv.from, iv.to)), `, requested ${times(iv.count)}`);
       } else {
-        node = el('span', { class: 'band-label' }, `${linesText(iv.from, iv.to)}, ${timesText(iv.count)}`);
+        node = el('span', { class: 'band-label' }, `${linesText(iv.from, iv.to)}, ${times(iv.count)}`);
       }
       if (selected) node.classList.add('band-label-selected');
       const priority = selected ? 0 : isTop ? 1 : iv.count >= 2 ? 2 : 4;
@@ -308,20 +310,3 @@ export function plates(ctx, traced) {
   return out;
 }
 
-// ---- first screen specimen ----
-
-/**
- * The hero plate of a sample, fully exposed, for the first screen.
- * Appends into `mount` first so the labels can be measured.
- * @param {HTMLElement} mount
- * @param {object} a analysis of the sample
- * @param {Map<string, object[]>} exposures exposuresAt(a, last call)
- */
-export function specimen(mount, a, exposures) {
-  const { byFile, hero } = tiers(a);
-  if (hero === null) return false;
-  const p = drawPlate({ file: hero, requests: byFile.get(hero), tier: 'hero', number: 1, narrow: isNarrow(), onPick: null, note: [] });
-  mount.append(p.node);
-  p.update(a.calls.length, exposures.get(hero) ?? [], null);
-  return true;
-}

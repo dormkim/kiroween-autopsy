@@ -74,14 +74,20 @@ const firstEdit = (a) => {
   return ['First source edit attempt: call ', val(fs.call, a.firstSource), ...when, ' (log line ', val(fs.n, a.firstSource), ').', ...could('earlier ')];
 };
 
-/** Finding 3: where the time went. */
-const timeSpent = (a) => {
-  const span = a.time.span;
-  if (span.value === null) return ['No call has a usable time, so where the time went is unknown.'];
+/** The category with the most time after it, as [key, traced], or null. */
+const largest = (a) => {
   let best = null;
   for (const [key, t] of a.time.byCategory) {
     if (Object.hasOwn(LABELS, key) && (best === null || t.value > best[1].value)) best = [key, t];
   }
+  return best;
+};
+
+/** Finding 3: where the time went. */
+const timeSpent = (a) => {
+  const span = a.time.span;
+  if (span.value === null) return ['No call has a usable time, so where the time went is unknown.'];
+  const best = largest(a);
   const parts = [];
   if (best === null) {
     parts.push('The time until the next call is unknown for every call.');
@@ -118,6 +124,50 @@ const partialSuffix = (broken) => [
 export function findings(a) {
   const out = [requested(a), firstEdit(a), timeSpent(a)];
   return a.totals.partial ? out.map((s) => [...s, ...partialSuffix(a.totals.broken)]) : out;
+}
+
+const isLowerBound = (a, file) => a.files instanceof Map && a.files.get(file)?.lowerBound === true;
+
+/**
+ * The plain answer that leads each finding, readable in two seconds. Each carries the
+ * traced value its "Show log lines" control opens, and a label for that value.
+ * Same numbers as findings(); only shorter words.
+ * @param {ReturnType<typeof import('./metrics.js').analyse>} a
+ * @returns {{ text: string, traced: Traced, label: string }[]}
+ */
+export function headlines(a) {
+  const out = [];
+
+  const top = a.top.value;
+  if (top === null) {
+    out.push({ text: a.requests.value === 0 ? 'No file requests recognised' : 'No line ranges requested', traced: a.requests, label: 'Requests' });
+  } else if (top.count < 2) {
+    out.push({ text: 'No line was requested twice', traced: a.top, label: 'Most requested lines' });
+  } else {
+    const n = top.to - top.from + 1;
+    const lines = n === 1 ? 'the same line' : `the same ${n} lines`;
+    const text = isLowerBound(a, top.file) ? `At least ${top.count} requests for ${lines}` : `${top.count} requests for ${lines}`;
+    out.push({ text, traced: a.top, label: 'Most requested lines' });
+  }
+
+  const fs = a.firstSource.value;
+  if (fs === null) {
+    out.push({ text: 'No source edit attempt recognised', traced: a.possibleEarlier, label: 'Calls that could have changed files' });
+  } else if (fs.share === null) {
+    out.push({ text: `First source edit attempt at call ${fs.call}, time unknown`, traced: a.firstSource, label: 'First source edit attempt' });
+  } else {
+    out.push({ text: `${Math.round(fs.share * 100)}% of the session passed before the first source edit attempt`, traced: a.firstSource, label: 'First source edit attempt' });
+  }
+
+  const span = a.time.span;
+  const best = largest(a);
+  if (span.value === null || span.value <= 0 || best === null) {
+    out.push({ text: 'Where the time went is unknown', traced: span, label: 'Time from the first call to the last valid event' });
+  } else {
+    const [key, t] = best;
+    out.push({ text: `${Math.round((t.value / span.value) * 100)}% of the time came after ${LABELS[key]}`, traced: t, label: `Time after ${LABELS[key]}` });
+  }
+  return out;
 }
 
 /** "1 to 3, 5": runs of three or more consecutive numbers are shortened. */

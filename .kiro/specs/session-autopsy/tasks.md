@@ -199,6 +199,16 @@ Boundary test first, then the page. UI code is not imported by tests. It is prov
 
 - [ ] C11. Checkpoint: the reviewer runs all test files, then commits increment C.
 
+### Increment C, review fixes (after the first screenshots)
+
+- [x] C12. Headlines: `headlines()` in `findings.js` with tests in `findings.test.mjs` (word for word, "At least", null forms, sample values from the design.md table, copy rules). Each finding shows headline, sentence, and one 44px "Show log lines" control.
+- [x] C13. Apparition: `src/ui/apparition.js`, one offset veiled figure per covering request up to the playhead, cabinet-card mount, vignette, grain, hollow eyes, strands from the line plate, caption with "at least" when the count is a lower bound. Steering now bans only ghosts that carry no data.
+- [x] C14. Replay stage: apparition, Play, live line, compact strip and slider in one viewport at 1280x800 and 360x740; explanations and legend in "How to read the replay". The strip follows the playhead while playing, scrubbing and after load; after load the playhead is at the end with "Replay from call 1"; Play at the end restarts.
+- [x] C15. First screen: two columns from 1000px with the developing apparition of rich-3480, one primary "Open the autopsy of rich-3480", sample line with a relative link to DISCLOSURE.md.
+- [x] C16. Copy and type: "at least" on every lower-bound count (headline, sentence, caption, plate labels, table, notes); six font sizes (12, 14, 16, 20, 28, 40); case-line numbers as 44px buttons; space above the unknown-effect note.
+- [x] C17. Narrow tables: below 600px evidence tables become stacked rows with a label per cell; headers never break inside words.
+- [ ] C18. Checkpoint: the reviewer runs all tests and the 360, 768 and 1280 screenshots again, then commits.
+
 ## Increment D: verification (reviewer)
 
 Not implemented by Kiro. The reviewer runs it after C and records the results.

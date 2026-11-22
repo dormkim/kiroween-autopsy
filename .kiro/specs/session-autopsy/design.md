@@ -31,7 +31,8 @@ src/core/findings.js  Analysis -> three finding sentences with traced parts
 src/ui/main.js        state machine, sample buttons, file input, chunked parse
 src/ui/dom.js         el(), svg() on createElement(NS) + textContent
 src/ui/summary.js     case line, findings, exposure meter
-src/ui/strip.js       contact strip, playhead, ectoplasm threads
+src/ui/strip.js       replay stage: contact strip, playhead, live line, ectoplasm threads
+src/ui/apparition.js  spirit photograph of the most requested lines, one exposure per request
 src/ui/plates.js      plates and exposure bands
 src/ui/notes.js       evidence panel and tables
 src/styles/tokens.css, src/styles/app.css
@@ -197,16 +198,28 @@ Singular forms ("1 time", "1 request", "1 earlier call") are used for a count of
 
 When `totals.partial` is true, each sentence ends with "Partial: {b} log lines could not be read."
 
+`headlines(analysis)` returns the plain answer that leads each finding, with the traced value its "Show log lines" control opens. Same numbers as the sentences:
+
+1. "{count} requests for the same {n} lines" ("the same line" for one line), "At least {count} requests..." when the file's count is a lower bound, "No line was requested twice" when the top count is 1, "No line ranges requested" or "No file requests recognised" when there is no explicit range.
+2. "{share}% of the session passed before the first source edit attempt"; "First source edit attempt at call {call}, time unknown" when the share is unknown; "No source edit attempt recognised" (traced to the calls that could have changed files).
+3. "{pct}% of the time came after {category}"; "Where the time went is unknown" when the span is unknown or 0.
+
 ## Screen
 
-Order after load: case line ("Developed from {file}: {calls} calls over {span} plus an unknown tail; {b} broken log lines"), the three findings, contact strip, plates, exposure meter, evidence (notes panel and tables). Layout breakpoints, tokens and type follow steering `design.md`.
+Order after load: case line ("Developed from {file}", then calls, duration plus an unknown tail and broken log lines as 44px buttons, and "Replay from the first call"), the three findings (headline, sentence, "Show log lines"), the replay stage, plates with the notes panel, exposure meter, evidence (collapsible tables). Layout breakpoints, tokens and type follow steering `design.md`.
+
+The first screen shows, before anything is opened, the apparition of `rich-3480` developing once from its own data, with one primary button "Open the autopsy of rich-3480". From 1000px it takes the right column.
+
+The replay stage holds the apparition, Play, the live line ("{m:ss}, call {k} of {total}", then the plain action, file and count, then the raw command), the compact strip and the slider, and fits one viewport at 1280x800 and 360x740. After load the playhead is at the end and the strip is scrolled to it; Play at the end restarts from call 1. The strip keeps the playhead in view while playing and scrubbing.
 
 Haunted at a glance. Every element below is data:
+
+- **Apparition**: a cabinet-card photograph of the most requested range. The figure is exactly one offset, translucent copy of a veiled figure with hollow eyes per request (explicit range) covering those lines, up to the playhead: none at 0, faint at 1, dense at 8. Older copies lean further back, like a long exposure. Beside it, the file's line plate is the exact reading, and one strand per exposure runs from that request's lines into the figure. Caption: "The figure is {n} superimposed exposures, one per request of lines {from} to {to} so far", plus "Requested at least {n} times; open-ended requests are not drawn." when the file has open-ended or unlocated requests.
 
 - **Plates** are SVG columns on fixer black, one per file, captioned like a cabinet card: "Plate II. rich/text.py". The vertical axis is the requested line number.
 - **Exposure bands** use the steering opacity formula, per merged interval. Bright bands are the ghost.
 - **Misregistration**: each request also draws a 1px outline, shifted right by 2px times its order on that plate (capped at 24px). A range requested 8 times shows 8 staggered outlines, the double exposure of a spirit photograph. The number of outlines is the count, and the shift is the order.
-- **Apparition caption**: next to the brightest band, "Apparition: lines 1007 to 1010, requested 8 times", in the caption face.
+- **Brightest band caption**: next to the brightest band of the hero plate, "Brightest: lines 1007 to 1010, requested at least 8 times" ("at least" only when the file has open-ended or unlocated requests).
 - **Overexposed edge**: an open-ended request runs off the plate bottom with a ragged edge, labelled "whole file, length unknown".
 - **Ectoplasm threads**: a pale arc above the strip joins each repeat-request frame to the earlier frames it overlaps. The threads come from `RepeatMark.earlier`.
 - **Fog** hatches frames with possible hidden effects and the unknown tail. **Unexposed frames** with a cross are blocked calls. The **cut mark** is the first source edit attempt, drawn across the strip and plates.

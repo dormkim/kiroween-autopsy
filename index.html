@@ -20,33 +20,68 @@
       <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"></feTurbulence>
       <feColorMatrix type="saturate" values="0"></feColorMatrix>
     </filter>
+    <filter id="haze" x="-30%" y="-20%" width="160%" height="140%">
+      <feGaussianBlur stdDeviation="1.3"></feGaussianBlur>
+    </filter>
+    <filter id="soft" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="1.1"></feGaussianBlur>
+    </filter>
+    <radialGradient id="ecto" cx="50%" cy="20%" r="75%">
+      <stop class="ecto-0" offset="0"></stop>
+      <stop class="ecto-1" offset="0.4"></stop>
+      <stop class="ecto-2" offset="1"></stop>
+    </radialGradient>
+    <radialGradient id="vignette" cx="50%" cy="42%" r="70%">
+      <stop class="vig-0" offset="0.45"></stop>
+      <stop class="vig-1" offset="1"></stop>
+    </radialGradient>
+    <linearGradient id="backdrop" x1="0" y1="0" x2="0" y2="1">
+      <stop class="back-0" offset="0"></stop>
+      <stop class="back-1" offset="0.7"></stop>
+      <stop class="back-2" offset="1"></stop>
+    </linearGradient>
+    <!-- Hollow eyes and mouth, in the figure's own 120 by 240 coordinates. -->
+    <mask id="hollow" maskUnits="userSpaceOnUse" x="-60" y="-20" width="240" height="300">
+      <rect x="-60" y="-20" width="240" height="300" fill="#fff"></rect>
+      <g filter="url(#soft)">
+        <ellipse cx="52.5" cy="45" rx="4.6" ry="6.2" fill="#000"></ellipse>
+        <ellipse cx="67.5" cy="45" rx="4.6" ry="6.2" fill="#000"></ellipse>
+        <ellipse cx="60" cy="63" rx="3.2" ry="5.2" fill="#000"></ellipse>
+      </g>
+    </mask>
   </defs>
 </svg>
 
 <a class="skip" href="#content">Skip to content</a>
 
-<header class="masthead">
-  <h1 class="title">Session Autopsy</h1>
-  <p class="purpose">Develops the recording of a finished coding-agent session like a spirit photograph. Lines that were requested again come out brighter each time.</p>
-  <p class="limit" id="limit">In three comparisons of interventions we did not confirm more issues solved, so this only reads recordings after a session ends. It never intervenes.</p>
-</header>
-
 <main id="content" class="page">
-  <section class="open" id="open" aria-labelledby="open-head">
-    <h2 class="visually-hidden" id="open-head">Open a session</h2>
-    <div class="open-row">
-      <input class="file-input" id="file" type="file" accept=".jsonl,.json,.txt,application/x-ndjson,application/json,text/plain">
-      <label class="button button-primary" for="file">Open a log file</label>
-      <p class="open-or">or open a recorded session:</p>
-      <div class="samples" id="samples"></div>
-    </div>
-    <p class="privacy">A file you open stays in this browser. Nothing is uploaded or stored.</p>
-  </section>
+  <div class="intro" id="intro">
+    <header class="intro-text">
+      <h1 class="title">Session Autopsy</h1>
+      <p class="purpose">Develops the recording of a finished coding-agent session like a spirit photograph. Each time the same file lines are requested, they are exposed once more, and a figure forms where requests repeated.</p>
+      <p class="limit" id="limit">In three comparisons of interventions we did not confirm more issues solved, so this only reads recordings after a session ends. It never intervenes.</p>
+    </header>
 
-  <section class="specimen" id="specimen" aria-labelledby="specimen-head" hidden>
-    <h2 class="caption-head" id="specimen-head">A spirit photograph made from a log</h2>
-    <div id="specimen-body"></div>
-  </section>
+    <div class="intro-primary">
+      <button class="button button-primary button-large" id="open-specimen" type="button">Open the autopsy of rich-3480</button>
+    </div>
+
+    <section class="intro-photo" id="specimen" aria-labelledby="specimen-head" hidden>
+      <h2 class="visually-hidden" id="specimen-head">Spirit photograph of the session rich-3480</h2>
+      <div id="specimen-body"></div>
+    </section>
+
+    <section class="intro-more" id="open" aria-labelledby="open-head">
+      <h2 class="intro-more-head" id="open-head">Or open another session</h2>
+      <div class="open-row">
+        <div class="samples" id="samples"></div>
+        <input class="file-input" id="file" type="file" accept=".jsonl,.json,.txt,application/x-ndjson,application/json,text/plain">
+        <label class="button" for="file">Open a log file</label>
+      </div>
+      <p class="samples-note">Recorded sessions of a coding agent on public issues, hand-picked, not representative. <a class="link" href="./DISCLOSURE.md">Where they come from</a></p>
+      <p class="privacy">A file you open stays in this browser. Nothing is uploaded or stored.</p>
+    </section>
+  </div>
 
   <section class="status" id="status" aria-live="polite" hidden></section>
 

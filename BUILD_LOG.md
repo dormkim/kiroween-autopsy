@@ -366,3 +366,53 @@ This screen is the product and it competes in Costume Contest ("a haunting user 
 
 README.md: plain English, short. What it is, what it does not claim (in the same honest words), run and test commands, log format it accepts, privacy, limits, MIT license, a link to DISCLOSURE.md and BUILD_LOG.md, and one paragraph "How it was built": Claude Code directed and verified, Kiro CLI wrote the code. No invented numbers and no personal paths.
 ~~~~
+
+## Run 10: replay stage, data-driven apparition, clarity fixes
+
+- Time: 2026-11-22T10:18:45Z to 2026-11-22T10:35:02Z
+- Model: `claude-opus-5.5`
+- Kiro session: `93188b46-cd87-4156-9617-9f1ace94b864`
+- Exit code: 0
+- Account meter: 768.25 to 821.45 (53.2 credits)
+
+Files changed:
+- `build-evidence/write-guard.jsonl`
+- `index.html`
+- `.kiro/specs/session-autopsy/design.md`
+- `.kiro/specs/session-autopsy/tasks.md`
+- `.kiro/steering/design.md`
+- `.kiro/steering/structure.md`
+- `src/core/findings.js`
+- `src/styles/app.css`
+- `src/styles/tokens.css`
+- `src/ui/apparition.js`
+- `src/ui/dom.js`
+- `src/ui/main.js`
+- `src/ui/notes.js`
+- `src/ui/plates.js`
+- `src/ui/strip.js`
+- `src/ui/summary.js`
+- `test/boundaries.test.mjs`
+- `test/findings.test.mjs`
+
+Prompt, verbatim:
+
+~~~~text
+The reviewer ran your site in Chromium at 360, 768 and 1280. It works: 224 tests pass, three samples play to the end, no console error, no external request, no page overflow, the XSS probe showed as text. The screenshots showed these problems. Fix all of them, updating steering design.md, the spec and tasks where a decision changes. Keep making tool calls until done.
+
+CRITICAL
+1. The replay does not show the haunting. Play, strip and live line fill the viewport and the plates are below the fold, so pressing Play shows only a slider moving. Make one REPLAY STAGE that fits in one viewport at 1280x800 and at 360x740: the hero photograph, live line, Play + slider and compact strip together, so the ghost visibly forms while playing. Move the long explanations and legend below or into a details element.
+2. The strip does not follow the playhead: at End of rich-3480 it still shows frames 1 to 140, so the cut mark at call 162 (the most important moment) is never visible. Keep the playhead in view while playing, scrubbing and after load, at every width. Play pressed at the end restarts from the first call. After load, put the playhead at the end or the start deliberately, and make the next action obvious.
+3. It is not yet "haunting and unforgettable": it reads as a green box chart with outlines. Make the hero a true spirit photograph, drawn with SVG and CSS only: an unmistakable apparition (for example a veiled figure with hollow eyes, long-exposure trails, vignette, photographic grain, a worn cabinet-card mount) that EMERGES FROM the most requested band. It must be data, and say so in one short caption: it consists of exactly as many superimposed, offset exposures as the request count at the playhead, invisible at zero, faint at one, a dense staring figure at eight. The line plate stays next to it as the exact reading, with the band visibly the source of the figure. Beautiful and eerie, not cartoon clip art, no emoji. Revise the steering line that bans ghosts to ban only ghosts that carry no data.
+4. First screen: at 1280 the right 40% is empty and the photograph is below the controls. Use two columns, with the apparition (built from the rich-3480 data) visible in the first viewport; at 360 at least its head is visible in the first 740px. One obvious primary action that opens an autopsy.
+
+CLARITY
+5. Each finding is a long sentence. Lead each with a big plain answer readable in two seconds ("At least 8 requests for the same 4 lines", "90% of the session passed before the first source edit attempt", "29% of the time came after code runs"; computed, with correct forms for null values), then the existing sentence smaller as detail, with one 44px "Show log lines" control each. Inline number buttons may stay small inside running text only.
+6. The first-screen text and the Apparition caption say "requested 8 times" while the finding says "at least 8 times". Use "at least" everywhere the file's count is a lower bound.
+7. The note "Calls with unknown effect..." touches the third finding; give it space.
+8. There are 7 font sizes on screen (12, 14, 16, 20, 24, 28, 40). Use at most 6, nothing below 12px. Case-line number buttons outside sentences need 44px height.
+9. At 360 the evidence table headers break inside words ("Tim e s", "Request s"). Stack rows or drop a column at narrow width, with no broken words.
+10. Beside the sample buttons add one line: "Recorded sessions of a coding agent on public issues, hand-picked, not representative." with a relative link to DISCLOSURE.md.
+
+Do not change any computed number and do not weaken tests. Keep CSP, zero dependencies, textContent only, reduced motion.
+~~~~

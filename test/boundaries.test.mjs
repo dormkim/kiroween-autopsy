@@ -35,7 +35,7 @@ const importsOf = (src) => [...src.matchAll(/\bimport\s*(?:[^'"`;]*?\sfrom\s*)?[
 const CSP = "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'";
 
 test('the expected site modules exist', () => {
-  for (const f of ['src/ui/main.js', 'src/ui/dom.js', 'src/ui/summary.js', 'src/ui/strip.js', 'src/ui/plates.js', 'src/ui/notes.js']) {
+  for (const f of ['src/ui/main.js', 'src/ui/dom.js', 'src/ui/summary.js', 'src/ui/strip.js', 'src/ui/apparition.js', 'src/ui/plates.js', 'src/ui/notes.js']) {
     assert.ok(UI.includes(f), `expected ${f} to exist, because structure.md lists it as a ui module`);
   }
   for (const f of ['src/styles/tokens.css', 'src/styles/app.css']) {

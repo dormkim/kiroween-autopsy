@@ -240,12 +240,13 @@ const tracedDetail = (ctx, sel) => {
 
 const intervalDetail = (ctx, sel) => {
   const lines = sel.from === sel.to ? `Line ${sel.from}` : `Lines ${sel.from} to ${sel.to}`;
+  const f = ctx.analysis.files.get(sel.file);
+  const lower = f !== undefined && f.lowerBound;
   const body = [
-    el('p', { class: 'notes-text' }, `Requested ${sel.count} ${sel.count === 1 ? 'time' : 'times'}, by ${linesLabel(sel.lines)}.`),
+    el('p', { class: 'notes-text' }, `Requested ${lower ? 'at least ' : ''}${sel.count} ${sel.count === 1 ? 'time' : 'times'}, by ${linesLabel(sel.lines)}.`),
     lineRows(ctx, sel.lines),
   ];
-  const f = ctx.analysis.files.get(sel.file);
-  if (f !== undefined && f.lowerBound) {
+  if (lower) {
     body.splice(1, 0, el('p', { class: 'notes-text notes-dim' }, 'This file also has requests with open-ended or unknown lines, so this count is a lower bound.'));
   }
   return { head: `${lines} of ${sel.file}`, body };
@@ -308,11 +309,12 @@ const repeatedTable = (ctx) => {
   const tbody = el('tbody');
   const trs = rows.map((r) => {
     const select = el('button', { class: 'button row-select data', type: 'button' }, r.from === r.to ? `${r.from}` : `${r.from} to ${r.to}`);
+    const lower = ctx.analysis.files.get(r.file)?.lowerBound === true;
     const tr = el('tr', { 'aria-selected': 'false' },
-      el('td', {}, select),
-      el('td', { class: 'path' }, r.file),
-      el('td', { class: 'num' }, String(r.count)),
-      el('td', {}, tracedButton(ctx, linesLabel(r.lines, 4), { value: r.count, lines: r.lines, reason: null },
+      el('td', { 'data-label': 'Lines' }, select),
+      el('td', { class: 'path', 'data-label': 'File' }, r.file),
+      el('td', { class: 'num', 'data-label': 'Times' }, lower ? `at least ${r.count}` : String(r.count)),
+      el('td', { 'data-label': 'Requests' }, tracedButton(ctx, linesLabel(r.lines, 4), { value: r.count, lines: r.lines, reason: null },
         `Requests of lines ${r.from} to ${r.to} of ${r.file}`)));
     select.addEventListener('click', () => ctx.select({ kind: 'interval', ...r }, { reveal: false, origin: select }));
     byKey.set(intervalKey(r.file, r.from), tr);
@@ -362,9 +364,9 @@ const countsSection = (ctx) => {
 const timeSection = (ctx) => {
   const a = ctx.analysis;
   const rows = a.time.longest.map((t) => el('tr', {},
-    el('td', { class: 'num' }, String(t.value.call)),
-    el('td', { class: 'num' }, seconds(t.value.seconds)),
-    el('td', {}, tracedButton(ctx, linesLabel(t.lines), t, `Time until the next call after call ${t.value.call}`))));
+    el('td', { class: 'num', 'data-label': 'Call' }, String(t.value.call)),
+    el('td', { class: 'num', 'data-label': 'Time' }, seconds(t.value.seconds)),
+    el('td', { 'data-label': 'From and to' }, tracedButton(ctx, linesLabel(t.lines), t, `Time until the next call after call ${t.value.call}`))));
   const body = [];
   if (rows.length === 0) {
     body.push(el('p', {}, 'No time until the next call is known.'));
@@ -404,9 +406,9 @@ const editsSection = (ctx) => {
     body.push(el('p', {}, 'No other edit attempt was recognised.'));
   } else {
     const rows = a.otherEdits.map((e) => el('tr', {},
-      el('td', {}, wordFor(CLASS_WORDS, e.cls)),
-      el('td', { class: 'path' }, e.file === null ? 'unknown' : e.file),
-      el('td', {}, tracedButton(ctx, `call ${e.call}`, { value: e.call, lines: [e.n], reason: null }, `Edit attempt in call ${e.call}`))));
+      el('td', { 'data-label': 'Class' }, wordFor(CLASS_WORDS, e.cls)),
+      el('td', { class: 'path', 'data-label': 'Target' }, e.file === null ? 'unknown' : e.file),
+      el('td', { 'data-label': 'Call' }, tracedButton(ctx, `call ${e.call}`, { value: e.call, lines: [e.n], reason: null }, `Edit attempt in call ${e.call}`))));
     body.push(el('table', { class: 'ev-table' },
       el('caption', {}, 'Other edit attempts, by class.'),
       el('thead', {}, el('tr', {}, el('th', { scope: 'col' }, 'Class'), el('th', { scope: 'col' }, 'Target'), el('th', { scope: 'col' }, 'Call'))),

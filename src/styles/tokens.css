@@ -17,6 +17,10 @@
   --c-blocked: #c7c2b0;
   --c-error: #ff8f80;
 
+  /* cabinet-card mount around the spirit photograph */
+  --c-mount: #1b1913;
+  --c-mount-edge: #4a4434;
+
   /* spacing: 4px scale */
   --s-1: 4px;
   --s-2: 8px;

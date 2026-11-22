@@ -7,7 +7,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { parse } from '../src/core/parse.js';
 import { analyse } from '../src/core/metrics.js';
-import { findings, stateMessage, formatTime } from '../src/core/findings.js';
+import { findings, headlines, stateMessage, formatTime } from '../src/core/findings.js';
+import { readFileSync } from 'node:fs';
 import { check, sessionLines } from './gen.mjs';
 
 const tr = (value, lines = [1], reason = null) => ({ value, lines: value === null ? [] : lines, reason: value === null ? (reason ?? 'unknown') : null });
@@ -243,4 +244,63 @@ test('P19 and P20: every stateMessage output; broken lines all reachable', () =>
       }
     }
   });
+});
+
+// ---- headlines: the plain answer that leads each finding ----
+
+const heads = (a) => headlines(a).map((h) => h.text);
+
+test('headlines, word for word, from the hand-built analysis', () => {
+  assert.deepEqual(heads(base()), [
+    '3 requests for the same 20 lines',
+    '39% of the session passed before the first source edit attempt',
+    '55% of the time came after code runs',
+  ], 'lines 81 to 100 are 20 lines; share 0.389 rounds to 39%; 250.4 of 456.932 s rounds to 55%, the same numbers as the sentences');
+});
+
+test('headline 1 says "At least" exactly when the most requested file has a lower bound', () => {
+  const files = new Map([['src/requests/models.py', { lowerBound: true }]]);
+  assert.equal(heads(base({ files }))[0], 'At least 3 requests for the same 20 lines', 'open-ended requests may cover these lines too');
+  const other = new Map([['src/requests/models.py', { lowerBound: false }], ['b.py', { lowerBound: true }]]);
+  assert.equal(heads(base({ files: other }))[0], '3 requests for the same 20 lines', 'only the most requested file counts');
+  assert.equal(heads(base({ top: tr({ file: 'a.py', from: 5, to: 5, count: 2 }, [3, 4]) }))[0], '2 requests for the same line', 'singular line');
+  assert.equal(heads(base({ top: tr({ file: 'a.py', from: 5, to: 9, count: 1 }, [3]) }))[0], 'No line was requested twice', 'a count of 1 is not a repeat');
+});
+
+test('headlines for unknown and missing values never show 0 as a stand-in', () => {
+  assert.equal(heads(base({ top: tr(null, [], 'no_ranges'), requests: tr(2, [1, 2]) }))[0], 'No line ranges requested');
+  assert.equal(heads(base({ top: tr(null, [], 'no_ranges'), requests: tr(0, [1, 2]) }))[0], 'No file requests recognised');
+  const none = base({ firstSource: tr(null, [], 'none_recognised'), possibleEarlier: tr(23, [5, 9]) });
+  assert.equal(heads(none)[1], 'No source edit attempt recognised', 'never "did not edit"');
+  assert.deepEqual(headlines(none)[1].traced.lines, [5, 9], 'it opens the calls that could have changed files');
+  const fs = tr({ call: 2, n: 2, file: 'a.py', offset: null, share: null }, [2]);
+  assert.equal(heads(base({ firstSource: fs }))[1], 'First source edit attempt at call 2, time unknown');
+  assert.equal(heads(withTime({ span: tr(null, [], 'no_time'), byCategory: new Map(), longest: [] }))[2], 'Where the time went is unknown');
+  assert.equal(heads(withTime({ span: tr(0, [1, 1]), byCategory: new Map([['run', tr(0, [1])]]) }))[2], 'Where the time went is unknown', 'a span of 0 gives no share');
+});
+
+test('every headline carries a traced value with log lines or a reason', () => {
+  for (const h of headlines(base())) {
+    assert.ok(h.traced && Array.isArray(h.traced.lines), `"${h.text}" must carry its traced value`);
+    assert.ok(h.traced.value === null ? h.traced.reason !== null : h.traced.lines.length > 0, `"${h.text}" must trace to log lines`);
+    assert.equal(typeof h.label, 'string');
+  }
+});
+
+test('sample headlines match the hand-derived values in design.md', () => {
+  const load = (name) => analyse(parse(readFileSync(new URL(`../samples/${name}.events.jsonl`, import.meta.url), 'utf8')));
+  const r3480 = load('rich-3480');
+  const h = heads(r3480);
+  const lower = r3480.files.get('rich/text.py').lowerBound;
+  assert.equal(h[0], `${lower ? 'At least ' : ''}8 requests for the same 4 lines`, 'rich-3480: rich/text.py 1007 to 1010 (4 lines) requested 8 times, per the design.md table');
+  assert.equal(h[1], '90% of the session passed before the first source edit attempt', 'rich-3480: share 0.903 per the design.md table');
+  assert.equal(heads(load('requests-6644'))[1], '39% of the session passed before the first source edit attempt', 'requests-6644: share 0.389 per the design.md table');
+  assert.equal(heads(load('rich-3506'))[1], 'No source edit attempt recognised', 'rich-3506: none recognised per the design.md table');
+});
+
+test('headlines contain no banned words, em dashes or exclamation marks', () => {
+  const banned = /would have failed|early warning|stuck|wasted|doomed|healthy|struggling|did not fix|did not edit|\u2014|!/i;
+  const variants = [base(), base({ firstSource: tr(null, [], 'none_recognised') }), base({ top: tr(null, [], 'no_ranges') }),
+    withTime({ span: tr(null, [], 'no_time'), byCategory: new Map(), longest: [] })];
+  for (const a of variants) for (const t of heads(a)) assert.ok(!banned.test(t), `"${t}" breaks the copy rules in product.md`);
 });

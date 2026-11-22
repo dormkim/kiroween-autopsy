@@ -4,13 +4,13 @@
 const HTML_ATTRS = new Set([
   'class', 'id', 'type', 'for', 'min', 'max', 'step', 'value', 'role', 'tabindex', 'scope', 'colspan',
   'aria-label', 'aria-labelledby', 'aria-describedby', 'aria-valuetext', 'aria-pressed', 'aria-selected',
-  'aria-expanded', 'aria-controls', 'aria-live', 'aria-hidden', 'aria-current', 'open', 'hidden', 'disabled',
+  'aria-expanded', 'aria-controls', 'aria-live', 'aria-hidden', 'aria-current', 'open', 'hidden', 'disabled', 'data-label',
 ]);
 
 const SVG_ATTRS = new Set([
-  'class', 'x', 'y', 'x1', 'y1', 'x2', 'y2', 'width', 'height', 'd', 'points', 'viewBox',
-  'preserveAspectRatio', 'fill', 'fill-opacity', 'stroke-opacity', 'opacity', 'filter', 'role', 'aria-label',
-  'aria-hidden', 'focusable', 'text-anchor', 'dominant-baseline',
+  'class', 'id', 'x', 'y', 'x1', 'y1', 'x2', 'y2', 'cx', 'cy', 'r', 'rx', 'ry', 'width', 'height', 'd', 'points', 'viewBox',
+  'preserveAspectRatio', 'fill', 'fill-opacity', 'stroke-opacity', 'stroke-width', 'opacity', 'filter', 'mask', 'clip-path',
+  'transform', 'role', 'aria-label', 'aria-hidden', 'focusable', 'text-anchor', 'dominant-baseline',
 ]);
 
 const BOOLEAN_ATTRS = new Set(['open', 'hidden', 'disabled']);

@@ -15,7 +15,8 @@ src/
     main.js                entry point and state machine (loading, empty, error, normal)
     dom.js                 el(tag, attrs, text) helper built on createElement and textContent
     summary.js             case line, findings, exposure meter
-    strip.js               contact strip and playhead
+    strip.js               replay stage: contact strip, playhead, live line
+    apparition.js          spirit photograph of the most requested lines
     plates.js              exposure plates
     notes.js               detail panel for the selected call or range
   styles/

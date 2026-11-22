@@ -7,17 +7,21 @@ import { frames, exposuresAt } from '../core/timeline.js';
 import { stateMessage } from '../core/findings.js';
 import { el, replace, grouped } from './dom.js';
 import { caseLine, findingsBlock, meter } from './summary.js';
-import { replay } from './strip.js';
-import { plates, specimen } from './plates.js';
+import { stage, WIDE } from './strip.js';
+import { plates } from './plates.js';
+import { apparition, photoSize } from './apparition.js';
 import { notesPanel, evidence, renderParts, tracedButton } from './notes.js';
 
 /** Bundled samples. Fetch URLs are './samples/' plus a name from this list only. */
 const SAMPLES = ['rich-3480.events.jsonl', 'rich-3506.events.jsonl', 'requests-6644.events.jsonl'];
 const SPECIMEN = SAMPLES[0];
 const CHUNK = 2000;
+const DEVELOP_MS = 220;
 
 const $ = (id) => document.getElementById(id);
 const ui = {
+  intro: $('intro'),
+  primary: $('open-specimen'),
   file: $('file'),
   samples: $('samples'),
   specimen: $('specimen'),
@@ -58,6 +62,7 @@ const makeContext = (name, parsed, analysis) => {
     reduced: () => reducedQuery.matches,
     get step() { return k; },
     pick: () => {},
+    playFromStart: () => {},
     select(sel, opts = {}) {
       const o = { reveal: false, origin: null, ...opts };
       for (const fn of selectSubs) fn(sel, o);
@@ -102,14 +107,24 @@ const parseChunked = async (text, progress, stale) => {
 // ---- screens ----
 
 let current = null;
+let shown = null;
 let generation = 0;
+let specimenTimer = null;
+
+const stopSpecimen = () => {
+  if (specimenTimer !== null) clearInterval(specimenTimer);
+  specimenTimer = null;
+};
 
 const reset = () => {
   if (current !== null) current.dispose();
   current = null;
+  shown = null;
   ui.autopsy.hidden = true;
   replace(ui.autopsy);
+  stopSpecimen();
   ui.specimen.hidden = true;
+  ui.intro.classList.add('intro-compact');
 };
 
 const openAnother = () => {
@@ -149,21 +164,35 @@ const showState = (input) => {
   head.focus();
 };
 
-/** The normal screen: case line, findings, replay, plates with notes, meter, evidence. */
-const showAutopsy = (name, parsed, analysis) => {
-  reset();
+/** Geometry key of the stage: the stage is rebuilt only when this changes. */
+const stageKey = (w) => (w >= WIDE ? 'wide' : `${photoSize(w).W}x${photoSize(w).H}`);
+
+/**
+ * The normal screen: case line, findings, replay stage, plates with notes, meter, evidence.
+ * @param {number|null} step replay step to keep after a rebuild, null for a fresh load (the end)
+ */
+const render = (name, parsed, analysis, step, first) => {
+  if (current !== null) current.dispose();
+  stopSpecimen();
   ui.status.hidden = true;
   replace(ui.status);
+  replace(ui.autopsy);
+  ui.specimen.hidden = true;
+  ui.intro.classList.add('intro-compact');
+  ui.autopsy.hidden = false;
+  const width = ui.autopsy.clientWidth;
   const ctx = makeContext(name, parsed, analysis);
   current = ctx;
+  shown = { name, parsed, analysis, key: stageKey(width) };
   const bench = el('div', { class: 'bench' }, plates(ctx, tracedButton), notesPanel(ctx));
-  ui.autopsy.append(caseLine(ctx), findingsBlock(ctx), replay(ctx), bench, meter(ctx), evidence(ctx));
-  ui.autopsy.hidden = false;
-  ctx.setStep(analysis.calls.length, { source: 'init' });
+  ui.autopsy.append(caseLine(ctx), findingsBlock(ctx), stage(ctx, width), bench, meter(ctx), evidence(ctx));
+  ctx.setStep(step ?? analysis.calls.length, { source: 'init' });
   if (ctx.repeated.length > 0) ctx.select({ kind: 'interval', ...ctx.repeated[0] });
-  const head = $('case-head');
-  head.focus({ preventScroll: true });
-  head.scrollIntoView({ block: 'start', behavior: ctx.reduced() ? 'auto' : 'smooth' });
+  if (first) {
+    const head = $('case-head');
+    head.focus({ preventScroll: true });
+    head.scrollIntoView({ block: 'start', behavior: ctx.reduced() ? 'auto' : 'smooth' });
+  }
 };
 
 /** Decides the state for a loaded text and shows it. */
@@ -183,7 +212,7 @@ const develop = async (name, text, stale) => {
     showState({ state: 'no_calls', name, notes: parsed.notes.map((x) => x.n) });
     return;
   }
-  showAutopsy(name, parsed, analyse(parsed));
+  render(name, parsed, analyse(parsed), null, true);
 };
 
 /**
@@ -251,35 +280,75 @@ for (const name of SAMPLES) {
   ui.samples.append(button);
 }
 
+ui.primary.addEventListener('click', () => openSample(SPECIMEN));
+
 ui.file.addEventListener('change', () => {
   const file = ui.file.files !== null && ui.file.files.length > 0 ? ui.file.files[0] : null;
   if (file === null) return;
   load(file.name, () => readFile(file));
 });
 
-/** Develops the hero plate of the first sample on the first screen, before anything is opened. */
+let specimenData = null;
+
+/**
+ * Draws the spirit photograph of the first sample on the first screen. Unless reduced motion
+ * is set, it develops once: one exposure per request of the most requested lines.
+ */
+const drawSpecimen = (animate) => {
+  stopSpecimen();
+  const a = specimenData;
+  ui.specimen.hidden = false;
+  const photo = apparition(a, { width: ui.specimenBody.clientWidth, name: SPECIMEN, onPick: null });
+  if (photo === null) {
+    ui.specimen.hidden = true;
+    return;
+  }
+  replace(ui.specimenBody, photo.node);
+  ui.specimenBody.dataset.key = stageKey(ui.specimenBody.clientWidth);
+  const file = a.top.value.file;
+  const show = (k) => photo.update(k, exposuresAt(a, k).get(file) ?? []);
+  const total = a.calls.length;
+  if (!animate || reducedQuery.matches) {
+    show(total);
+    return;
+  }
+  const steps = [0];
+  for (let k = 1; k <= total; k += 1) if (photo.countAt(k) > photo.countAt(k - 1)) steps.push(k);
+  steps.push(total);
+  let i = 0;
+  show(steps[0]);
+  specimenTimer = setInterval(() => {
+    i += 1;
+    show(steps[i]);
+    if (i >= steps.length - 1) stopSpecimen();
+  }, DEVELOP_MS);
+};
+
 const showSpecimen = async () => {
   const result = await fetchSample(SPECIMEN);
   if (result.text === undefined || generation > 0) return;
   const parsed = await parseChunked(result.text, () => {}, () => generation > 0);
-  if (parsed === null || parsed.calls.length === 0) return;
+  if (parsed === null || parsed.calls.length === 0 || generation > 0) return;
   const a = analyse(parsed);
-  const top = a.top.value;
-  if (top === null) return;
-  const single = top.from === top.to;
-  const range = single ? `line ${top.from}` : `lines ${top.from} to ${top.to}`;
-  const count = top.count === 1 ? 'once' : `${top.count} times`;
-  const open = el('button', { class: 'button button-primary', type: 'button' }, `Open the autopsy of ${shortName(SPECIMEN)}`);
-  open.addEventListener('click', () => openSample(SPECIMEN));
-  const mount = el('div', {});
-  replace(ui.specimenBody,
-    el('p', { class: 'specimen-text' }, `From the recorded session ${shortName(SPECIMEN)}: `,
-      el('span', { class: 'data' }, range), ' of ', el('span', { class: 'data' }, top.file),
-      `${single ? ' was' : ' were'} requested ${count}. Each request exposes its lines once more, so the ghost forms where requests repeated.`),
-    mount,
-    el('div', { class: 'specimen-action' }, open));
-  ui.specimen.hidden = false;
-  if (!specimen(mount, a, exposuresAt(a, a.calls.length))) ui.specimen.hidden = true;
+  if (a.top.value === null) return;
+  specimenData = a;
+  ui.intro.classList.add('intro-has-photo');
+  drawSpecimen(true);
 };
+
+// Rebuild the photograph and the stage when the available width changes their geometry.
+let resizeTimer = null;
+window.addEventListener('resize', () => {
+  if (resizeTimer !== null) clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    resizeTimer = null;
+    if (shown !== null && current !== null && stageKey(ui.autopsy.clientWidth) !== shown.key) {
+      render(shown.name, shown.parsed, shown.analysis, current.step, false);
+    } else if (shown === null && specimenData !== null && !ui.specimen.hidden
+      && stageKey(ui.specimenBody.clientWidth) !== ui.specimenBody.dataset.key) {
+      drawSpecimen(false);
+    }
+  }, 200);
+});
 
 showSpecimen();

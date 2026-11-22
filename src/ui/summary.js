@@ -1,6 +1,6 @@
 // Case line, the three findings and the exposure meter.
 
-import { findings, headlines, formatTime, stateMessage } from '../core/findings.js';
+import { findings, headlines, formatTime, permissionNote, stateMessage } from '../core/findings.js';
 import { el, setVar } from './dom.js';
 import { renderParts, tracedButton } from './notes.js';
 
@@ -51,8 +51,11 @@ export function caseLine(ctx) {
   replayButton.addEventListener('click', () => ctx.playFromStart());
   const head = el('h2', { class: 'case-name', tabindex: '-1', id: 'case-head' }, sessionName(ctx.name));
   // How the session ended is provenance for bundled samples only; an opened file is unknown.
+  // Recorder logs do not record permission: say so before the headlines, never call them allowed.
+  const note = permissionNote(a);
   const out = el('header', { class: 'case' }, head,
     el('p', { class: 'case-ending' }, ctx.ending.sentence),
+    note === null ? null : el('p', { class: 'case-permission', role: 'note' }, renderParts(ctx, note, 'Calls whose permission was not recorded')),
     el('p', { class: 'case-line' }, 'Developed from ', el('span', { class: 'data' }, ctx.name), '.'),
     el('div', { class: 'case-row' }, stats, replayButton));
   if (a.totals.partial) {

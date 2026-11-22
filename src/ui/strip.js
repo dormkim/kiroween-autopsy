@@ -205,6 +205,8 @@ const liveText = (ctx, k, exposures) => {
   }
   let main = `${said.join('; ')}.`;
   main = main[0].toUpperCase() + main.slice(1);
+  // Recorder logs have no permission field: the call is an attempt, never described as allowed.
+  if (call.permission === 'not_recorded') main = `Attempt, permission not recorded. ${main}`;
   if (frame.cut) main = `First recognised source edit attempt. ${main}`;
   if (frame.fog) main += ' Some effects unknown.';
   const raw = rawText(call);

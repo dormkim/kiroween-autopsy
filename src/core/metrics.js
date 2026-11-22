@@ -1,11 +1,11 @@
 // Parsed log -> Analysis: line counts, repeat requests, first source edit attempt, time.
 // Pure: no DOM, no I/O, no clock. Every metric is a traced value { value, lines, reason }.
 
-import { classify, ROOT, MAX_LINE } from './classify.js';
+import { classify, ROOT, MAX_LINE, OUTSIDE } from './classify.js';
 import { CUT_LEN } from './parse.js';
 import { countLines, topInterval } from './lines.js';
 
-export { ROOT, MAX_LINE, CUT_LEN };
+export { ROOT, MAX_LINE, CUT_LEN, OUTSIDE };
 /** Largest log file the page opens. */
 export const MAX_BYTES = 50 * 1024 * 1024;
 /** Accepted times: 2000-01-01 to 2100-01-01, epoch seconds. */
@@ -279,6 +279,7 @@ export function analyse(parsed) {
     requests: countOf(requestLines, callLines),
     repeats: countOf(markLines('repeat'), requestLines, callLines),
     unchecked: countOf(markLines('unchecked'), requestLines, callLines),
+    notRecorded: countOf(entries.filter((e) => e.call.permission === 'not_recorded').map((e) => e.call.n), callLines),
     ...firstSourceOf(entries, time.span),
     time,
   };

@@ -6,6 +6,8 @@ import { lex } from './shell.js';
 
 /** The sanitized working directory. */
 export const ROOT = '/workspace';
+/** What the recorder writes for any path outside the project. Never a file key for requests. */
+export const OUTSIDE = '/outside-workspace';
 /** Requested line numbers above this are treated as unknown lines. */
 export const MAX_LINE = 10_000_000;
 
@@ -18,7 +20,8 @@ export const MAX_LINE = 10_000_000;
  * @typedef {{ file: string|null, call: number, n: number, cls: EditClass }} Edit
  * @typedef {'request'|'search'|'edit'|'test'|'run'|'vcs'|'other'|'blocked'|'unknown'} Category
  * @typedef {{ category: Category, requests: Request[], edits: Edit[],
- *   hiddenEdit: boolean, hiddenRequest: boolean, reasons: string[] }} Effect
+ *   hiddenEdit: boolean, hiddenRequest: boolean, reasons: string[],
+ *   permission?: 'allowed'|'blocked'|'not_recorded'|'unknown' }} Effect
  */
 
 // Lowest to highest. 'blocked' is outside the order and overrides everything.
@@ -119,16 +122,44 @@ const lineRequest = (call, file, from, to) => {
 };
 
 const readFileEffect = (call) => {
+  const rangesBad = Array.isArray(call.malformed) && call.malformed.includes('ranges');
+  const ranges = call.ranges ?? null;
+  if (ranges !== null || rangesBad) return multiReadEffect(call, rangesBad ? null : ranges);
+  if (Array.isArray(call.paths) && call.paths.length === 1 && resolve(call.paths[0], ROOT) === OUTSIDE) {
+    return result('request', { reasons: ['outside'] });
+  }
   const file = singlePath(call);
   if (file === null) return result('request', { hiddenRequest: true, reasons: ['no_single_path'] });
-  const r = call.range;
-  let req;
-  if (r === null) req = mkRequest(call, file, 'unlocated');
-  else {
-    const off = r.offset ?? 0;
-    req = r.limit === null ? lineRequest(call, file, off + 1, null) : lineRequest(call, file, off + 1, off + r.limit);
-  }
-  return result('request', { requests: [req] });
+  return result('request', { requests: [rangeRequest(call, file, call.range)] });
+};
+
+/** One request by the read_file range rules; a Range of wrong type (null) is unlocated. */
+const rangeRequest = (call, file, r) => {
+  if (r === null) return mkRequest(call, file, 'unlocated');
+  const off = r.offset ?? 0;
+  return r.limit === null ? lineRequest(call, file, off + 1, null) : lineRequest(call, file, off + 1, off + r.limit);
+};
+
+/**
+ * A recorder read of several files: one request per path. With ranges of the same length as
+ * paths each path gets its range; otherwise lines are unknown, never invented.
+ */
+const multiReadEffect = (call, ranges) => {
+  if (!Array.isArray(call.paths)) return result('request', { hiddenRequest: true, reasons: ['no_paths'] });
+  const valid = ranges !== null && ranges.length === call.paths.length;
+  const out = result('request', { reasons: valid ? [] : ['ranges_unknown'] });
+  call.paths.forEach((p, i) => {
+    const key = resolve(p, ROOT);
+    if (key === OUTSIDE) return;
+    if (key === null) {
+      out.hiddenRequest = true;
+      out.reasons.push('unknown_target');
+      return;
+    }
+    out.requests.push(valid ? rangeRequest(call, key, ranges[i]) : mkRequest(call, key, 'unlocated'));
+  });
+  out.reasons = [...new Set(out.reasons)];
+  return out;
 };
 
 const strReplaceEffect = (call) => {
@@ -137,21 +168,40 @@ const strReplaceEffect = (call) => {
   return result('edit', { edits: [{ file, call: call.index, n: call.n, cls: editClass(file) }], reasons });
 };
 
-/**
- * Classifies one call.
- * @param {Call} call
- * @returns {Effect}
- */
-export function classify(call) {
-  if (call.allow === false) return result('blocked', { reasons: ['blocked'] });
-  if (call.allow === null) return unknownEffect('allow_unknown');
+/** Permission of a call; calls built without the parser's field fall back to allow. */
+const permissionOf = (call) => {
+  if (typeof call.permission === 'string') return call.permission;
+  if (call.allow === true) return 'allowed';
+  if (call.allow === false) return 'blocked';
+  return 'unknown';
+};
+
+const byTool = (call, permission) => {
+  if (permission === 'blocked') return result('blocked', { reasons: ['blocked'] });
+  if (permission !== 'allowed' && permission !== 'not_recorded') return unknownEffect('allow_unknown');
   switch (call.tool) {
     case 'read_file': return readFileEffect(call);
     case 'str_replace': return strReplaceEffect(call);
     case 'web_fetch': return result('other');
+    case 'list_directory': return result('search');
+    case 'search': return result('search', { hiddenRequest: true, reasons: ['search_tool'] });
     case 'execute_bash': return call.cmd === null ? unknownEffect('cmd_unknown') : shellEffect(call);
     default: return unknownEffect('unknown_tool');
   }
+};
+
+/**
+ * Classifies one call. An absent allow (permission not_recorded) is classified as an attempt,
+ * like an allowed call; a malformed allow stays unknown. Requests on OUTSIDE are dropped.
+ * @param {Call} call
+ * @returns {Effect}
+ */
+export function classify(call) {
+  const permission = permissionOf(call);
+  const e = byTool(call, permission);
+  e.requests = e.requests.filter((r) => r.file !== OUTSIDE);
+  e.permission = permission;
+  return e;
 }
 
 // ---- shell ----

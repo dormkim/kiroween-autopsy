@@ -745,3 +745,12 @@ button, input, select { font: inherit; color: inherit; }
   .band, .frame-lit { forced-color-adjust: none; }
   .traced { text-decoration: underline; }
 }
+
+/* Recorder logs: whether calls were allowed was not recorded. Text, never color alone. */
+.case-permission {
+  max-width: 64ch;
+  margin: var(--s-2) 0 0;
+  color: var(--c-text-dim);
+  font-size: 14px;
+  line-height: 1.45;
+}

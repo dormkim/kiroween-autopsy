@@ -7,8 +7,9 @@ export const CUT_LEN = 200;
 /**
  * @typedef {{ offset: number|null, limit: number|null }} Range
  * @typedef {{ n: number, index: number, t: number|null, tool: string, cmd: string|null,
- *   truncated: boolean|null, allow: boolean|null, paths: string[]|null, range: Range|null,
- *   malformed: string[] }} Call
+ *   truncated: boolean|null, allow: boolean|null,
+ *   permission: 'allowed'|'blocked'|'not_recorded'|'unknown', paths: string[]|null, range: Range|null,
+ *   ranges: Range[]|null, malformed: string[] }} Call
  * @typedef {{ n: number, kind: 'call', call: Call }
  *   | { n: number, kind: 'note', t: number|null, hook: string }
  *   | { n: number, kind: 'broken', reason: 'json'|'not_object'|'no_hook'|'no_tool' }
@@ -75,9 +76,21 @@ const readCall = (obj, n, index) => {
     if (!r.ok) malformed.push('range');
     range = r.value;
   }
+  // ranges: one Range per path (recorder logs). Beside a range field it is ambiguous, so unknown.
+  let ranges = null;
+  if (has(obj, 'ranges')) {
+    const raw = obj.ranges;
+    const read = Array.isArray(raw) && !has(obj, 'range') ? raw.map(readRange) : null;
+    if (read !== null && read.every((r) => r.ok)) ranges = read.map((r) => r.value);
+    else malformed.push('ranges');
+  }
   let truncated = null;
   if (cutFlag !== null) truncated = cutFlag;
   else if (cmd !== null) truncated = cmd.length >= CUT_LEN;
+  let permission = 'not_recorded';
+  if (allow === true) permission = 'allowed';
+  else if (allow === false) permission = 'blocked';
+  else if (has(obj, 'allow')) permission = 'unknown';
   return {
     n,
     index,
@@ -86,8 +99,10 @@ const readCall = (obj, n, index) => {
     cmd,
     truncated,
     allow,
+    permission,
     paths: paths === null ? null : [...paths],
     range,
+    ranges,
     malformed,
   };
 };

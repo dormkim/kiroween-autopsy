@@ -223,3 +223,18 @@ export function stateMessage(input) {
       throw new Error(`unknown state ${String(input.state)}`);
   }
 }
+
+/**
+ * Note for calls whose permission the log does not record (recorder logs have no allow field).
+ * Null when there are none or the count is unknown. Never calls them allowed.
+ * @param {{ notRecorded?: Traced }} analysis
+ * @returns {Part[]|null}
+ */
+export function permissionNote(analysis) {
+  const t = analysis.notRecorded;
+  if (!t || t.value === null || t.value === 0) return null;
+  if (t.value === 1) {
+    return ['Whether ', num(t), ' call was allowed or ran was not recorded. It counts as an attempt and can be a denied call.'];
+  }
+  return ['Whether ', num(t), ' calls were allowed or ran was not recorded. They count as attempts and can include denied calls.'];
+}

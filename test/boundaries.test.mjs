@@ -178,8 +178,19 @@ test('package.json has no dependencies and runs every test file', () => {
   const pkg = JSON.parse(read('package.json'));
   assert.equal(pkg.dependencies, undefined, 'expected no dependencies, because tech.md forbids them');
   assert.equal(pkg.devDependencies, undefined, 'expected no devDependencies, because tech.md forbids them');
+  // The one exception named in tech.md: the recorder test runs the real hook as a child process.
+  const UNPERMITTED = 'recorder.test.mjs';
   const files = filesUnder('test', ['.test.mjs']).map((f) => f.slice('test/'.length));
+  assert.ok(files.includes(UNPERMITTED), `expected test/${UNPERMITTED} to exist, because it is the exception named in tech.md`);
+  const commands = pkg.scripts.test.split('&&').map((c) => c.trim());
   for (const f of files) {
-    assert.ok(pkg.scripts.test.includes(`node --permission --allow-fs-read=. test/${f}`), `expected npm test to run test/${f} with the permission flags`);
+    if (f === UNPERMITTED) {
+      assert.ok(commands.includes(`node test/${f}`), `expected npm test to run test/${f} as "node test/${f}", the exception in tech.md`);
+      assert.ok(!pkg.scripts.test.includes(`--allow-child-process`), 'expected no --allow-child-process anywhere, because the exception runs without the permission model instead');
+    } else {
+      assert.ok(commands.includes(`node --permission --allow-fs-read=. test/${f}`), `expected npm test to run test/${f} with the permission flags`);
+    }
   }
+  const bare = commands.filter((c) => !c.startsWith('node --permission --allow-fs-read=. '));
+  assert.deepEqual(bare, [`node test/${UNPERMITTED}`], `expected test/${UNPERMITTED} to be the only command without the permission model`);
 });

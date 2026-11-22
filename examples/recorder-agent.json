@@ -1,0 +1,44 @@
+{
+  "name": "recorded",
+  "description": "Reads and writes files inside this project and records each tool call for Session Autopsy. No shell, no web, no MCP.",
+  "tools": [
+    "fs_read",
+    "fs_write"
+  ],
+  "allowedTools": [],
+  "toolsSettings": {
+    "fs_read": {
+      "allowedPaths": [
+        "./**"
+      ],
+      "deniedPaths": [
+        "./.git/**"
+      ]
+    },
+    "fs_write": {
+      "allowedPaths": [
+        "./**"
+      ],
+      "deniedPaths": [
+        "./.git/**",
+        "./.kiro/**",
+        "./.session-autopsy/**"
+      ]
+    }
+  },
+  "resources": [],
+  "includeMcpJson": false,
+  "hooks": {
+    "preToolUse": [
+      {
+        "matcher": "*",
+        "command": "node .kiro/session-autopsy/session-autopsy-record.mjs"
+      }
+    ],
+    "userPromptSubmit": [
+      {
+        "command": "node .kiro/session-autopsy/session-autopsy-record.mjs --prompt-check"
+      }
+    ]
+  }
+}

@@ -772,3 +772,39 @@ TESTS NOW, they must fail before the implementation and must not be weakened lat
 - Add both to package.json.
 Do not write home-like absolute paths literally in tests (the write guard blocks them); build them from parts.
 ~~~~
+
+## Run 16: recorder implementation and reading its logs
+
+- Time: 2026-11-22T13:30:04Z to 2026-11-22T13:39:46Z
+- Model: `claude-opus-5.5`
+- Kiro session: `24708258-7f79-4f07-894d-ebcc4c3f9d04`
+- Exit code: 0
+- Account meter: 924.20 to 961.64 (37.44 credits)
+
+Files changed:
+- `build-evidence/write-guard.jsonl`
+- `examples/recorder-agent.json`
+- `.kiro/specs/session-autopsy/tasks.md`
+- `.kiro/steering/structure.md`
+- `recorder/session-autopsy-record.mjs`
+- `src/core/classify.js`
+- `src/core/findings.js`
+- `src/core/metrics.js`
+- `src/core/parse.js`
+- `src/styles/app.css`
+- `src/ui/strip.js`
+- `src/ui/summary.js`
+- `test/boundaries.test.mjs`
+- `test/classify.test.mjs`
+
+Prompt, verbatim:
+
+~~~~text
+The reviewer ran your tests: they fail as intended (0 of 28 recorder, 2 of 15 format). Implement increment E now, one file per tool call, short planning before each write, keep going until done:
+1. recorder/session-autopsy-record.mjs (split into several writes).
+2. src/core changes for R14. List in tasks.md every older assertion you change and why; change only those that R14.1 really requires. Malformed allow stays unknown.
+3. examples/recorder-agent.json: a complete Kiro CLI agent in the V2 JSON format (it also loaded on V3 in the probe), tools fs_read and fs_write limited to the workspace, the preToolUse record hook with matcher "*", and the userPromptSubmit prompt check. The agent may not write .kiro/** or .session-autopsy/**. No home paths.
+4. The screen: beside the ending and before the headlines show the permission note whenever the count is above zero, with the count as a traced button; in the replay live line say "attempt, permission not recorded" for such a call. Never the word allowed for them.
+5. test/boundaries.test.mjs test 13 fails because it expects every test file to run under the permission model: make exactly recorder.test.mjs the one named exception (tech.md), everything else as strict as before.
+Do not edit or weaken the two new test files, unless one is self-contradictory: then say which and why in your summary instead of changing it. The README and the other defects come in the next run.
+~~~~

@@ -25,6 +25,8 @@ src/
     tokens.css             design tokens only (see design.md)
     app.css                layout and components
 samples/                   three sanitized session logs, read-only
+recorder/                  session-autopsy-record.mjs, the preToolUse hook a user copies; never loaded by the page
+examples/                  recorder-agent.json, a Kiro CLI agent that registers the recorder
 test/                      *.test.mjs files and fixtures/
 scripts/                   Node-only development scripts, never loaded by the page
   hooks/write-guard.mjs    preToolUse guard for fs_write

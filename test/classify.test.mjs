@@ -134,14 +134,24 @@ test('allow false: blocked with no effects and no hidden flags, for any tool', (
   }
 });
 
-test('allow unknown (absent or wrong type): unknown with both hidden flags', () => {
-  for (const allow of [undefined, 'yes']) {
+test('allow of wrong type: unknown with both hidden flags', () => {
+  for (const allow of ['yes']) {
     const fields = { tool: 'read_file', paths: ['a.py'], cmd: '' };
-    const raw = { t: T, hook: 'pre', cmd_truncated: false, ...fields, ...(allow === undefined ? {} : { allow }) };
+    const raw = { t: T, hook: 'pre', cmd_truncated: false, ...fields, allow };
     const e = classify(parseLine(JSON.stringify(raw), 1, 1).call);
     assert.equal(e.category, 'unknown', `allow ${String(allow)}: unknown`);
     assert.deepEqual(flags(e), [true, true]);
   }
+});
+
+// Changed in increment E (R14.1): an absent allow was unknown; it is now permission not_recorded,
+// classified as an attempt. Malformed allow above is unchanged.
+test('allow absent: permission not_recorded, classified as an attempt (R14.1)', () => {
+  const raw = { t: T, hook: 'pre', cmd_truncated: false, tool: 'read_file', paths: ['a.py'], cmd: '' };
+  const e = classify(parseLine(JSON.stringify(raw), 1, 1).call);
+  assert.equal(e.category, 'request', 'absent allow: a request attempt');
+  assert.equal(e.permission, 'not_recorded');
+  assert.deepEqual(flags(e), [false, false]);
 });
 
 test('read_file range rules', () => {

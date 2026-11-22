@@ -259,26 +259,31 @@ Three sessions: E1 to E4 (tests and spec, this run), E5 to E10 (implementation),
 
 - [x] E4. Test script: `package.json` runs `node test/recorder.test.mjs` and `node --permission --allow-fs-read=. test/recorder-format.test.mjs` after the existing files.
 
-- [ ] E5. Parser: `permission` and `ranges` on `Call` (design "Reading recorder logs").
+- [x] E5. Parser: `permission` and `ranges` on `Call` (design "Reading recorder logs").
   - Files: `src/core/parse.js`
   - Existing assertions that pin an absent `allow` as malformed or unknown change with R14.1. List each one changed in the session summary; do not change any other assertion.
   - Proof: `test/recorder-format.test.mjs`, `test/parse.test.mjs`
+  - Changed older assertions, all because of R14.1 (absent `allow` is `not_recorded` and classified as an attempt):
+    - `test/classify.test.mjs`, "allow unknown (absent or wrong type): unknown with both hidden flags": the absent case is removed from it, and the test is renamed "allow of wrong type: unknown with both hidden flags". The wrong-type case (`allow: 'yes'`) is unchanged. A new test, "allow absent: permission not_recorded, classified as an attempt (R14.1)", pins the absent case.
+    - `test/boundaries.test.mjs`, "package.json has no dependencies and runs every test file": `test/recorder.test.mjs` is the one named exception from tech.md and must run as `node test/recorder.test.mjs`. Every other file still needs the permission flags, and no other command may run without them. This is task 5 of the run, not R14.1.
+  - Unchanged: `test/parse.test.mjs` asserts only `allow === null` for an absent `allow`, which still holds. Every fixture, `gen.mjs` and the other tests build calls with `allow: true` or `false`.
 
-- [ ] E6. Classifier: permission cases, `list_directory`, `search`, `ranges`, `OUTSIDE`.
+- [x] E6. Classifier: permission cases, `list_directory`, `search`, `ranges`, `OUTSIDE`.
   - Files: `src/core/classify.js`
   - Proof: `test/recorder-format.test.mjs`, `test/classify.test.mjs`, `test/classify.property.test.mjs`
 
-- [ ] E7. Metrics and findings: `notRecorded`, `OUTSIDE` re-export, `permissionNote()`.
+- [x] E7. Metrics and findings: `notRecorded`, `OUTSIDE` re-export, `permissionNote()`.
   - Files: `src/core/metrics.js`, `src/core/findings.js`
   - Proof: `test/recorder-format.test.mjs`, `test/samples.test.mjs` unchanged
 
-- [ ] E8. Recorder
+- [x] E8. Recorder
   - Files: `recorder/session-autopsy-record.mjs`, with the limits from design.md in its header comment
   - Proof: `test/recorder.test.mjs`
 
 - [ ] E9. Install example and docs
   - Files: `examples/recorder-agent.json` (preToolUse matcher `*` running `node .kiro/session-autopsy/session-autopsy-record.mjs`, userPromptSubmit running it with `--prompt-check`), README section "Record your own session" (copy, register, `--check`, what is recorded including file names inside the project, the limits), steering `structure.md` tree with `recorder/` and `examples/`, the case-line note from `permissionNote()` in `src/ui/summary.js`.
   - Proof: `test/boundaries.test.mjs`, E12
+  - Status: example agent, structure.md, the case-line note (`summary.js`, `.case-permission` in `app.css`) and "Attempt, permission not recorded." in the live line (`strip.js`) are written. The README section is left for the next run.
 
 - [ ] E10. Checkpoint: the reviewer runs `npm test` and the property seeds, then commits.
 

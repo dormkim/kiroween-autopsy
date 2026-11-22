@@ -971,3 +971,22 @@ Prompt, verbatim:
 ~~~~text
 In .kiro/specs/session-autopsy/tasks.md, task E10: remove the now false status sentence "A run of the property seeds in phase 2 is not recorded, so this stays open." (and, only if one exists, the same kind of stale sentence in E14 saying it is waiting for the reviewer's check). Change nothing else.
 ~~~~
+
+## Run 21: V3 tool expansion note
+
+- Time: 2026-11-22T14:08:48Z to 2026-11-22T14:09:08Z
+- Model: `claude-sonnet-5.5`
+- Kiro session: `eb712d32-226c-4e16-a74b-f5cb6fc53e9e`
+- Exit code: 0
+- Account meter: 1010.92 to 1010.92 (0.0 credits)
+
+Files changed:
+- `build-evidence/write-guard.jsonl`
+- `README.md`
+
+Prompt, verbatim:
+
+~~~~text
+Tiny safety note in README.md, "Record your own session", change nothing else. After the paragraph about the V3 engine rewriting the agent file, add:
+"On the V2 engine the example agent has exactly two tools, read and write. On V3 the same read and write capabilities expanded in a probe to more tools, including `delete_file`, `code` and `grep_search`. There was still no shell, and reads and writes outside the project were denied. Deleting, the `code` tool and the denied paths inside the project were not tested on V3. For the narrowest agent, start it with `kiro-cli chat --v2 --agent recorded`."
+~~~~

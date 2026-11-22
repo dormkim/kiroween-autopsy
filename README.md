@@ -84,6 +84,8 @@ If your agent already has a `preToolUse` or `userPromptSubmit` list, add the ent
 
 The V3 engine of Kiro CLI may rewrite the agent file into its own format and keep the original as a `.bak` copy. This was seen in a probe. Check that both hook entries are still there after the first start.
 
+On the V2 engine the example agent has exactly two tools, read and write. On V3 the same read and write capabilities expanded in a probe to more tools, including `delete_file`, `code` and `grep_search`. There was still no shell, and reads and writes outside the project were denied. Deleting, the `code` tool and the denied paths inside the project were not tested on V3. For the narrowest agent, start it with `kiro-cli chat --v2 --agent recorded`.
+
 ### What it records
 
 One line per tool call: the time, a fixed tool name, file names relative to the project, and line ranges for reads.

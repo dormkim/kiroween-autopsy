@@ -423,32 +423,283 @@ const grep = (acc, args, cwd, call) => {
   }
 };
 
-const sed = (acc, args, cwd, call) => {
-  let quiet = false;
-  let inplace = false;
-  let unparsed = false;
-  const scripts = [];
-  const operands = [];
+/**
+ * An edit attempt by a write program (sed -i, tee) on one operand key.
+ * A null key is an unknown target and sets hiddenEdit.
+ */
+const writeTarget = (acc, key, call, reason) => {
+  acc.edits.push({ file: key, call: call.index, n: call.n, cls: editClass(key) });
+  if (key === null) {
+    hide(acc, reason, true, false);
+    acc.category = higher(acc.category, 'unknown');
+  } else if (!key.startsWith('/')) {
+    acc.category = higher(acc.category, 'edit');
+  }
+};
+
+/** Key of a write operand, or null when it is dynamic, a glob, `-` or unresolvable. */
+const writeKey = (w, cwd) => (isStatic(w) && w.text !== '-' ? resolve(w.text, cwd) : null);
+
+const SED_SHORT_FLAGS = new Set(['n', 'E', 'r', 's', 'u', 'z']);
+const SED_LONG_FLAGS = new Set(['--quiet', '--silent', '--regexp-extended', '--separate', '--unbuffered', '--null-data']);
+const SED_PLAIN = new Set('=dDgGhHnNpPxzF'.split(''));
+const SED_COUNTED = new Set(['q', 'Q', 'l', 'L']);
+
+/**
+ * Scans a static sed script for commands that touch files the operands do not name:
+ * `w`, `W`, `e` and the `w`/`e` flags of `s` write or run; `r`, `R` read.
+ * A script it cannot follow counts as both.
+ * @param {string} s
+ * @returns {{ write: boolean, read: boolean }}
+ */
+const sedScriptEffects = (s) => {
+  const len = s.length;
+  const fail = { write: true, read: true };
+  let i = 0;
+  let write = false;
+  let read = false;
+  const digits = () => {
+    const from = i;
+    while (i < len && s[i] >= '0' && s[i] <= '9') i += 1;
+    return i > from;
+  };
+  const spaces = () => {
+    while (i < len && (s[i] === ' ' || s[i] === '\t')) i += 1;
+  };
+  const toLineEnd = () => {
+    while (i < len && s[i] !== '\n') i += s[i] === '\\' ? 2 : 1;
+  };
+  const toLabelEnd = () => {
+    while (i < len && s[i] !== ';' && s[i] !== '\n') i += 1;
+  };
+  // Reads up to and past delimiter d. False when unclosed.
+  const part = (d) => {
+    while (i < len) {
+      const ch = s[i];
+      if (ch === '\\') i += 2;
+      else if (ch === '\n') return false;
+      else {
+        i += 1;
+        if (ch === d) return true;
+      }
+    }
+    return false;
+  };
+  // true: an address was read; false: none here; null: malformed.
+  const address = () => {
+    if (digits()) {
+      if (s[i] === '~') {
+        i += 1;
+        if (!digits()) return null;
+      }
+      return true;
+    }
+    if (s[i] === '$') {
+      i += 1;
+      return true;
+    }
+    if (s[i] === '/' || s[i] === '\\') {
+      const d = s[i] === '\\' ? s[i + 1] : '/';
+      i += s[i] === '\\' ? 2 : 1;
+      if (d === undefined || d === '\n' || !part(d)) return null;
+      while (s[i] === 'I' || s[i] === 'M') i += 1;
+      return true;
+    }
+    return false;
+  };
+  // After a command: only blanks, then ; newline } or the end.
+  const ended = () => {
+    spaces();
+    return i >= len || s[i] === ';' || s[i] === '\n' || s[i] === '}';
+  };
+  while (i < len) {
+    while (i < len && (s[i] === ' ' || s[i] === '\t' || s[i] === ';' || s[i] === '\n')) i += 1;
+    if (i >= len) break;
+    const a = address();
+    if (a === null) return fail;
+    if (a) {
+      spaces();
+      if (s[i] === ',') {
+        i += 1;
+        spaces();
+        if (s[i] === '+' || s[i] === '~') {
+          i += 1;
+          if (!digits()) return fail;
+        } else if (address() !== true) return fail;
+      }
+    }
+    spaces();
+    while (s[i] === '!') {
+      i += 1;
+      spaces();
+    }
+    const c = s[i];
+    i += 1;
+    if (c === '{') continue;
+    if (c === '#') {
+      toLineEnd();
+      continue;
+    }
+    if (c === '}' || SED_PLAIN.has(c)) {
+      if (!ended()) return fail;
+    } else if (SED_COUNTED.has(c)) {
+      spaces();
+      digits();
+      if (!ended()) return fail;
+    } else if (c === 's' || c === 'y') {
+      const d = s[i];
+      if (d === undefined || d === '\n' || d === '\\' || d === ' ') return fail;
+      i += 1;
+      if (!part(d) || !part(d)) return fail;
+      if (c === 's') {
+        while (i < len && /[0-9gpiImMe]/.test(s[i])) {
+          if (s[i] === 'e') write = true;
+          i += 1;
+        }
+        if (s[i] === 'w') {
+          write = true;
+          toLineEnd();
+          continue;
+        }
+      }
+      if (!ended()) return fail;
+    } else if (c === 'w' || c === 'W' || c === 'e') {
+      write = true;
+      toLineEnd();
+    } else if (c === 'r' || c === 'R') {
+      read = true;
+      toLineEnd();
+    } else if (c === 'a' || c === 'i' || c === 'c') {
+      toLineEnd();
+    } else if (c === 'b' || c === 't' || c === 'T' || c === ':' || c === 'v') {
+      toLabelEnd();
+    } else {
+      return fail;
+    }
+  }
+  return { write, read };
+};
+
+/**
+ * Reads sed options. `inplace` is null when not in place, else the backup suffix ('' for none).
+ * `ambiguous` is set for a bare -i followed by '' or a word starting with '.', which BSD sed
+ * reads as a suffix and GNU sed as the script.
+ */
+const sedOptions = (args) => {
+  const o = { quiet: false, inplace: null, ambiguous: false, unparsed: false, scripts: [], operands: [] };
   for (let k = 0; k < args.length; k += 1) {
-    const t = args[k].text;
+    const w = args[k];
+    const t = w.text;
     if (t === '--') {
-      operands.push(...args.slice(k + 1));
+      o.operands.push(...args.slice(k + 1));
       break;
     }
-    if (t === '--quiet' || t === '--silent') quiet = true;
-    else if (/^-[nErsuz]+$/.test(t)) quiet = quiet || t.includes('n');
-    else if (t.startsWith('-i') || t.startsWith('--in-place')) inplace = true;
-    else if (t === '-e' || t === '--expression') {
-      scripts.push(args[k + 1]?.text ?? '');
-      k += 1;
-    } else if (t.startsWith('--expression=')) scripts.push(t.slice('--expression='.length));
-    else if (isOption(args[k])) unparsed = true;
-    else operands.push(args[k]);
+    if (t.startsWith('--')) {
+      if (t === '--quiet' || t === '--silent') o.quiet = true;
+      else if (SED_LONG_FLAGS.has(t)) continue;
+      else if (t === '--in-place') o.inplace = '';
+      else if (t.startsWith('--in-place=')) o.inplace = t.slice('--in-place='.length);
+      else if (t === '--expression') {
+        o.scripts.push(args[k + 1] ?? null);
+        k += 1;
+      } else if (t.startsWith('--expression=')) o.scripts.push({ ...w, text: t.slice('--expression='.length) });
+      else o.unparsed = true;
+      continue;
+    }
+    if (!isOption(w)) {
+      o.operands.push(w);
+      continue;
+    }
+    for (let j = 1; j < t.length; j += 1) {
+      const ch = t[j];
+      if (SED_SHORT_FLAGS.has(ch)) {
+        if (ch === 'n') o.quiet = true;
+        continue;
+      }
+      if (ch === 'i') {
+        o.inplace = t.slice(j + 1);
+        const nx = args[k + 1];
+        if (o.inplace === '' && nx && !isOption(nx) && (nx.text === '' || nx.text.startsWith('.'))) o.ambiguous = true;
+      } else if (ch === 'e') {
+        const rest = t.slice(j + 1);
+        if (rest === '') {
+          o.scripts.push(args[k + 1] ?? null);
+          k += 1;
+        } else o.scripts.push({ ...w, text: rest });
+      } else {
+        o.unparsed = true;
+      }
+      break;
+    }
   }
-  if (scripts.length === 0 && operands.length > 0) scripts.push(operands.shift().text);
-  if (operands.length === 0 && !inplace && !unparsed) return;
-  const m = scripts.length === 1 ? /^(\d+)(?:,(\d+))?p$/.exec(scripts[0]) : null;
-  if (quiet && !inplace && !unparsed && m && operands.length > 0) {
+  if (o.scripts.includes(null)) o.unparsed = true;
+  return o;
+};
+
+/** sed -i: an edit attempt on each file operand, plus its backup when a suffix is given. */
+const sedInPlace = (acc, o, scripts, operands, cwd, call) => {
+  if (o.unparsed || o.ambiguous || scripts.length === 0 || operands.length === 0) {
+    acc.category = 'unknown';
+    hide(acc, 'sed');
+    return;
+  }
+  for (const s of scripts) {
+    if (!isStatic(s)) {
+      hide(acc, 'sed_script', true, false);
+      continue;
+    }
+    const fx = sedScriptEffects(s.text);
+    if (fx.write) hide(acc, 'sed_script', true, false);
+    if (fx.read) hide(acc, 'sed_script', false, true);
+  }
+  const template = /[*/]/.test(o.inplace);
+  if (template) hide(acc, 'sed_backup', true, false);
+  for (const w of operands) {
+    const key = writeKey(w, cwd);
+    writeTarget(acc, key, call, 'sed_target');
+    if (key !== null && o.inplace !== '' && !template) writeTarget(acc, key + o.inplace, call, 'sed_target');
+  }
+};
+
+const TEE_LONG_FLAGS = new Set(['--append', '--ignore-interrupts', '--output-error']);
+
+/** tee: an edit attempt on each file operand. */
+const tee = (acc, args, cwd, call) => {
+  const files = [];
+  for (let k = 0; k < args.length; k += 1) {
+    const w = args[k];
+    const t = w.text;
+    if (t === '--') {
+      files.push(...args.slice(k + 1));
+      break;
+    }
+    if (TEE_LONG_FLAGS.has(t) || t.startsWith('--output-error=') || /^-[aip]+$/.test(t)) continue;
+    if (isOption(w)) {
+      acc.category = 'unknown';
+      hide(acc, 'tee_option');
+      return;
+    }
+    files.push(w);
+  }
+  for (const w of files) {
+    if (isStatic(w) && NO_WRITE_TARGETS.has(w.text)) continue;
+    writeTarget(acc, writeKey(w, cwd), call, 'tee_target');
+  }
+};
+
+const sed = (acc, args, cwd, call) => {
+  const o = sedOptions(args);
+  const scripts = [...o.scripts];
+  const operands = [...o.operands];
+  if (scripts.length === 0 && operands.length > 0) scripts.push(operands.shift());
+  if (o.inplace !== null) {
+    sedInPlace(acc, o, scripts, operands, cwd, call);
+    return;
+  }
+  const { quiet, unparsed } = o;
+  if (operands.length === 0 && !unparsed) return;
+  const m = scripts.length === 1 ? /^(\d+)(?:,(\d+))?p$/.exec(scripts[0].text) : null;
+  if (quiet && !unparsed && m && operands.length > 0) {
     const a = Number(m[1]);
     const b = m[2] === undefined ? a : Number(m[2]);
     if (a >= 1 && b >= a) {

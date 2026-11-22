@@ -262,3 +262,36 @@ Work in small steps: one file per response, short planning before each write, lo
    The finding sentences are the product, so make them plain for someone who has never seen the log: no internal category ids or snake_case in copy, correct singular and plural.
 3. Add the new test files to the package.json test script and tick the tasks you wrote.
 ~~~~
+
+## Run 7: classifier fix and increment B
+
+- Time: 2026-11-22T09:30:50Z to 2026-11-22T09:46:59Z
+- Model: `claude-opus-5.5`
+- Kiro session: `9e4d0982-ef00-45bd-8773-4b1338a7eeb2`
+- Exit code: 0
+- Account meter: 665.32 to 708.26 (42.94 credits)
+
+Files changed:
+- `build-evidence/write-guard.jsonl`
+- `.kiro/specs/session-autopsy/design.md`
+- `.kiro/specs/session-autopsy/tasks.md`
+- `package.json`
+- `src/core/classify.js`
+- `src/core/findings.js`
+- `src/core/lines.js`
+- `src/core/metrics.js`
+- `src/core/timeline.js`
+- `test/findings.test.mjs`
+- `test/gen.mjs`
+- `test/invariants.mjs`
+- `test/lines.test.mjs`
+- `test/metrics.test.mjs`
+- `test/samples-invariants.test.mjs`
+- `test/samples.test.mjs`
+- `test/timeline.test.mjs`
+
+Prompt, verbatim:
+
+~~~~text
+Continue, and do not end your turn until all three jobs are written. "One file per response" meant one fs_write call at a time with short planning between calls: keep making tool calls one after another, design line, classify.js fix, every increment B test and module, package.json, task ticks. Only then summarise briefly.
+~~~~

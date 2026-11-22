@@ -127,6 +127,7 @@ Shell, per segment, with `cwd` starting at `/workspace`:
 | `cat`, `nl` with file operands | request | open from 1 per file |
 | `head` with files | request | `-n N`, `-nN`, `-N`: range 1..N; no count: 1..10; `-c` or unparsed option: unlocated |
 | `sed -n 'A,Bp' F`, `sed -n 'Ap' F` | request | range A..B. Any other `sed`: `unknown`, hiddenEdit |
+| `sed -i`, `-iSUFFIX`, `--in-place[=SUFFIX]` with static file operands; `tee`, `tee -a` with static file operands (also after a pipe) | edit (if a target is in the workspace) | edit attempt on each file operand, never on the sed script (the first operand unless `-e` gave one). A suffix adds an edit attempt on the backup, or hiddenEdit if it holds `*` or `/`. sed `w`, `W`, `e` or a dynamic script: hiddenEdit. Dynamic, glob, `-` or unresolvable operand: edit with `file: null`. Ambiguous forms stay `unknown` with hiddenEdit and hiddenRequest: bare `-i` before `''` or `.SUFFIX`, `-f`, unparsed options, no file operand |
 | `tail`, `wc` with files | request | unlocated |
 | `grep`, `egrep`, `fgrep` | search | without `-r`/`-R`: each file operand unlocated. With `-r`, or no file operand: none. Unparsed option: hiddenRequest, no named files |
 | `rg` | search | hiddenRequest (roots, not files) |

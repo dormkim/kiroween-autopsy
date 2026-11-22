@@ -81,60 +81,60 @@ Tests first, then `parse.js`, `shell.js`, `classify.js`. Commit: "Add log parsin
 
 Tests first, including the sample tests, then the modules. Commit: "Add line counts, repeat requests, time, replay frames and findings with sample tests".
 
-- [ ] B1. Line count tests
+- [x] B1. Line count tests
   - Files: `test/lines.test.mjs`
   - Unit: one range, nested, overlapping, touching (`1..5` and `6..10` stay separate), neighbours with the same active set merged; a range up to `MAX_LINE` yields at most `2r` intervals, never one per line; tie-breaks for `top` (count, then length, then smaller `from`, then path order overall).
   - Properties: P12, P13
   - Requirements: R4.1, R4.2
 
-- [ ] B2. Metrics tests
+- [x] B2. Metrics tests
   - Files: `test/metrics.test.mjs`
   - Unit, on fixtures and small hand-built logs: open and unlocated requests per file and `lowerBound`; `repeat` and `unchecked` marks for each rule in "Repeat requests", including requests before edits within one call; reset only on an edit with that exact file; `firstSource` with `offset` and `share`, and `null` with reason `none_recognised`; `possibleEarlier`; `otherEdits`; intervals call to next call, with notes not splitting them; last call to last valid event; unknown gaps; anomalies `missing`, `out_of_range`, `backwards` from `time-anomalies.jsonl`; `longest` capped at `LONGEST`; `afterRepeats` with its null count; `totals.partial`; exported constants.
   - Properties: P3 (on the whole analysis), P14, P15, P16, P17, P18, P20 (the `partial` part)
   - Requirements: R4.3, R5.1 to R5.3, R6.1 to R6.4, R7.1 to R7.6, R8.5
 
-- [ ] B3. Timeline tests
+- [x] B3. Timeline tests
   - Files: `test/timeline.test.mjs`
   - Checks: one frame per call in order; `fog` exactly when `hiddenEdit` or `hiddenRequest`; `blocked` matches the effect; `cut` on the first source edit attempt only, and on no frame when there is none; `seconds` equals the call's interval, `null` when unknown; `exposuresAt(a, last)` equals `countLines` of every request per file; counts never drop as `k` grows (generated logs).
   - Requirements: R9.4, R7.2
 
-- [ ] B4. Findings tests
+- [x] B4. Findings tests
   - Files: `test/findings.test.mjs`
   - Unit: the three templates rendered word for word from a hand-built analysis; the "No line ranges were requested" and "No source edit attempt recognised" variants; the partial suffix; m:ss rounding and minutes past 59; every number is a traced part; `stateMessage()` text for each state in the States table, with the file name and log lines.
   - Properties: P19 (generated analyses and every `stateMessage()` output), P20 (every broken line number appears in the state output)
   - Requirements: R5.4, R6.3, R8.1 to R8.5, R9.1, R9.2, R9.6
 
-- [ ] B5. Sample tests
+- [x] B5. Sample tests
   - Files: `test/samples.test.mjs`
   - Every value in the `samples.test.mjs` table in design.md, with its log lines, plus the pinned details below the table (`requests-6644` log line 67 not a repeat, `rich-3506` log lines 41 and 42 not overlapping, `rich-3480` log line 172 not a repeat and log line 80 unlocated). Times compared to 1e-3 s, shares to 1e-3. Assertion messages name the sample, the expected value, the log lines it was derived from, and repeat the rule: re-check the log before changing either side.
   - Requirements: R11.3
 
-- [ ] B6. Sample invariant tests
+- [x] B6. Sample invariant tests
   - Files: `test/samples-invariants.test.mjs`
   - Parses each sample with plain `JSON.parse` inside the test, independent of `parse.js`, and checks the call count, blocked count and span against it. Then runs P1, P12, P15, P16, P18 and P20 on each analysis. No number copied from module output.
   - Requirements: R11.4
 
-- [ ] B7. Line counts
+- [x] B7. Line counts
   - Files: `src/core/lines.js` (exports `countLines`, `topInterval`)
   - Requirements: R4.1, R4.2
   - Proof: `test/lines.test.mjs`
 
-- [ ] B8. Analysis
+- [x] B8. Analysis
   - Files: `src/core/metrics.js` (exports `analyse` and every constant listed in design.md)
   - Requirements: R4 to R7, R8.5
   - Proof: `test/metrics.test.mjs`, `test/samples.test.mjs`, `test/samples-invariants.test.mjs`
 
-- [ ] B9. Replay frames
+- [x] B9. Replay frames
   - Files: `src/core/timeline.js` (exports `frames`, `exposuresAt`)
   - Requirements: R9.4
   - Proof: `test/timeline.test.mjs`
 
-- [ ] B10. Findings and state copy
+- [x] B10. Findings and state copy
   - Files: `src/core/findings.js` (exports `findings`, `stateMessage`, `formatTime`)
   - Requirements: R6.3, R8.1 to R8.5, R9.1, R9.6
   - Proof: `test/findings.test.mjs`
 
-- [ ] B11. Test script: add `lines`, `metrics`, `timeline`, `findings`, `samples` and `samples-invariants` to `scripts.test` in `package.json`.
+- [x] B11. Test script: add `lines`, `metrics`, `timeline`, `findings`, `samples` and `samples-invariants` to `scripts.test` in `package.json`.
 
 - [ ] B12. Checkpoint: the reviewer runs all test files, once with another `SEED`. If a sample test fails, the next session re-checks the log text before changing the test or the code. Then commit increment B.
 

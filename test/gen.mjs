@@ -120,3 +120,38 @@ export const limit = (r) => r.pick([1, 2, r.int(1, 300), r.int(1, 20)]);
 
 /** @param {Gen} r @returns {number} epoch seconds in 2026 with a fraction */
 export const time = (r) => 1795200000 + r.int(0, 100000) + r.next();
+
+// ---- generated session logs (increment B) ----
+
+const LOG_FILES = ['a.py', 'pkg/b.py', 'tests/test_c.py', 'docs/d.md'];
+
+/**
+ * Raw JSON lines of a generated session: read_file ranges on a few files (small numbers,
+ * so ranges overlap often), open and unlocated requests, edit attempts, shell runs with
+ * hidden effects, blocked calls and post notes. Times never go backwards.
+ * @param {Gen} r
+ * @param {{ calls?: number, files?: string[] }} [options]
+ * @returns {string[]}
+ */
+export const sessionLines = (r, options = {}) => {
+  const calls = options.calls ?? r.int(1, 25);
+  const files = options.files ?? LOG_FILES;
+  const out = [];
+  let t = time(r);
+  const pre = (fields) => out.push(JSON.stringify({ t, hook: 'pre', allow: true, cmd_truncated: false, paths: [], range: {}, cmd: '', ...fields }));
+  for (let i = 0; i < calls; i += 1) {
+    t += r.pick([0, r.next() * 5, r.int(1, 60)]);
+    const f = r.pick(files);
+    const kind = r.int(0, 11);
+    if (kind <= 4) pre({ tool: 'read_file', paths: [f], range: { offset: r.int(0, 60), limit: r.int(1, 30) } });
+    else if (kind === 5) pre({ tool: 'read_file', paths: [f], range: r.bool() ? {} : { offset: r.int(0, 40) } });
+    else if (kind === 6) pre({ tool: 'execute_bash', cmd: `grep -n x ${f}` });
+    else if (kind === 7) pre({ tool: 'str_replace', paths: [f] });
+    else if (kind === 8) pre({ tool: 'execute_bash', cmd: 'python3 x.py' });
+    else if (kind === 9) pre({ tool: 'execute_bash', cmd: `cat ${f} > ${f}.out`, allow: false });
+    else if (kind === 10) pre({ tool: 'execute_bash', cmd: r.bool() ? 'git status' : `echo x > ${f}` });
+    else pre({ tool: 'execute_bash', cmd: `head -n ${r.int(1, 40)} ${f}` });
+    if (r.bool(0.1)) out.push(JSON.stringify({ t, hook: 'post', scope: {} }));
+  }
+  return out;
+};

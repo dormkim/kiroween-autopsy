@@ -678,3 +678,51 @@ By Claude Code, on the committed tree after run 14.
 - On the first screen at 360 only the primary sample's ending is inside the first 740 px. The other two are next to their buttons, below the photograph.
 - Account meter for the correction: 854.94 to 875.49 (20.55 credits), total for the build 335.72. The per-run meter lags, so the 0 shown for run 14 is not its real cost; the totals here were read afterwards.
 - Still open: inline number buttons are 42 px high and as narrow as 12 px, below the 44 px rule.
+
+## Phase 2 (2026-11-22): recorder hook. Start: commit `a4a597a`, account meter 875.49
+
+Pass criteria were written and committed outside this repository before this phase began. Credit cap for the phase: 300, including test recordings.
+
+### Probe sessions before the spec
+
+Claude Code wrote a small throwaway probe (outside this repository, in a separate test folder) that records only key names, value types, tool names and path kinds of hook input. It ran in harmless sessions with a read and write agent limited to that folder. Outside reads and writes were denied on both engines.
+
+| Measured on Kiro CLI 3.5.0 | V2 | V3 |
+|---|---|---|
+| Event keys | `hook_event_name, cwd, session_id, tool_name, tool_tags, tool_input` | `session_id, hook_event_name, cwd, tool_name, tool_input` |
+| Read | `read`: `operations[]` of `{mode, path, offset, limit}`, several files in one call | `read_file`: `{path, offset, limit}`, null when absent |
+| Create | `write`: `{command: "create", path, content}` | `fs_write`: `{path, text}` |
+| Edit | `write`: `{command: "strReplace", path, oldStr, newStr}` | `str_replace`: `{path, oldStr, newStr, replace_all}` |
+| `offset` | 0-indexed (offset 2 returned line 3) | 0-indexed (offset 2 returned line 3) |
+| preToolUse runs before the permission check | yes, denied attempts reach the hook | yes |
+| preToolUse exit 1 | tool still runs, stderr is not shown | tool still runs, stderr is not shown |
+| Writing to `/dev/tty` from a hook | not shown | not shown |
+| userPromptSubmit exit 0 stdout | reaches the agent's context | reaches the agent's context |
+| stop exit 1 | not shown | stderr starts another agent turn, so it must not be used |
+| Shell tool input | not measured, Kiro gets no shell | not measured, Kiro gets no shell |
+
+Sessions, with workspace:
+- `v2` `91a611b9-9cac-4500-89c8-770a1eea83a3`
+- `v2` `5d49fc5f-e18f-4b8a-948a-8a41f8aa3457`
+- `v2` `7e33c40c-cb76-4185-a4e2-358bbb5f75cd`
+- `v2` `489b26e9-10a6-40a6-984e-cf2a28536104`
+- `v2` `48d64bd9-54d9-4f1d-8687-24a56804578f`
+- `v2` `41cf0351-3d6c-45a2-a172-1cbd63d92e12`
+- `v2` `8cb9f9e2-f543-452d-91bd-2ed5b6405083`
+- `v3` `sess_6bbc52e5-67ef-4b88-85fb-65075b77e80a`
+- `v3` `sess_fac7d158-2bee-43cd-a085-ba17d4764bfa`
+- `v3` `sess_6569054a-d4b9-45e1-b65a-2c50e6dcdbd6`
+- `v3` `sess_eed3920e-37a2-4109-8440-1fd3439154c6`
+
+Prompts of the headless probes, verbatim, with session and account meter:
+
+~~~~text
+* v2-shapes | v2 | probe | --v2 | claude-haiku-5.5 | ### RC=0 ### SESSION 91a611b9-9cac-4500-89c8-770a1eea83a3 ### METER 875.49 -> 875.49  | prompt: Harmless tool-shape test. Make exactly these tool calls one after another, continue if one fails, then say done: 1) read numbered.txt with offset 2 and limit 3; 2) read numbered.txt with only limit 2; 3) read numbered.txt whole; 4) in one read call, two operations: a.py and numbered.txt; 5) list the directory . ; 6) create b.py containing x; 7) replace old with new in a.py; 8) read ../outside.txt ; 9) create ../outside-new.txt containing x. Report for 1) and 2) exactly which LINE numbers came back.
+* v2-fail1 | v2 | probe-fail | --v2 | claude-haiku-5.5 | ### RC=0 ### SESSION 5d49fc5f-e18f-4b8a-948a-8a41f8aa3457 ### METER 875.49 -> 875.52  | prompt: Harmless hook test. Read numbered.txt with limit 1, then say exactly what came back, including any hook message you can see.
+* v2-warn0 | v2 | probe-warn | --v2 | claude-haiku-5.5 | ### RC=0 ### SESSION 7e33c40c-cb76-4185-a4e2-358bbb5f75cd ### METER 875.52 -> 875.52  | prompt: Harmless hook test. Read numbered.txt with limit 1, then say exactly what came back, including any hook message you can see.
+* v2-channels | v2 | probe-channels | --v2 | claude-haiku-5.5 | ### RC=0 ### SESSION 489b26e9-10a6-40a6-984e-cf2a28536104 ### METER 875.52 -> 875.53  | prompt: Harmless hook test. Read numbered.txt with limit 1. Then list word for word every string starting with MARK- that you can see anywhere in your context.
+* v2-stream | v2 | probe-channels | --v2 --output-format stream-json | claude-haiku-5.5 | ### RC=0 ### SESSION 48d64bd9-54d9-4f1d-8687-24a56804578f ### METER 875.53 -> 875.53  | prompt: Harmless hook test. Read numbered.txt with limit 1, then say done.
+* v3-shapes | v3 | probe | --v3 --trust-workspace | claude-haiku-5.5 | ### RC=0 ### SESSION sess_6bbc52e5-67ef-4b88-85fb-65075b77e80a ### METER 875.53 -> 875.53  | prompt: Harmless tool-shape and permission test. Continue if a step fails, one tool call per step: 1) read numbered.txt with offset 2 and limit 3; 2) read a.py; 3) read ../outside.txt ; 4) create ../outside-v3.txt containing x; 5) create b.py containing x; 6) replace old with new in a.py. Finally list the names of every tool you have, and which steps succeeded.
+* v3-channels | v3 | probe-channels | --v3 --trust-workspace | claude-haiku-5.5 | ### RC=0 ### SESSION sess_fac7d158-2bee-43cd-a085-ba17d4764bfa ### METER 875.53 -> 875.58  | prompt: Harmless hook test. Read numbered.txt with limit 1. Then list word for word every string starting with MARK- that you can see anywhere in your context.
+* interactive probes (4 sessions, agents probe-channels and probe-tty on both engines) | prompt: Read numbered.txt with limit 1, then say done.
+~~~~

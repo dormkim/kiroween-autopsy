@@ -292,8 +292,8 @@ Three sessions: E1 to E4 (tests and spec, this run), E5 to E10 (implementation),
   - Changed older assertion: "V2 read with mixed Line and Directory" in "unknown tool names and unknown shapes become unknown_tool" pinned exactly this case as `unknown_tool`. It is removed there and the case now lives in the V2 shapes test with its new expected line. No other assertion changed.
   - Proof: `test/recorder.test.mjs`, run by the reviewer.
 
-- [ ] E10. Checkpoint: the reviewer runs `npm test` and the property seeds, then commits.
-  - Status: BUILD_LOG.md records 282 passing tests before run 17. A run of the property seeds in phase 2 is not recorded, so this stays open.
+- [x] E10. Checkpoint: the reviewer runs `npm test` and the property seeds, then commits.
+  - Status: BUILD_LOG.md records 282 passing tests before run 17. Reviewer ran 282 tests in a fresh copy with the default seed and seeds 7, 12345, 987654321; 0 failed.
 
 - [ ] E11. Live recording on V2 (reviewer): a harmless session in a scratch project with the example agent; the log opens in the page; every line matches the session's tool calls; no content, command or outside name in it.
   - Status: recorded (BUILD_LOG.md, "Live recordings"). The log opened unedited with "Open a log file". Tool calls 5 of 5, read requests 5 of 5 with the same files and order, edit attempts 3 of 3 with the same files, first source edit attempt at call 3 in both.
@@ -306,5 +306,5 @@ Three sessions: E1 to E4 (tests and spec, this run), E5 to E10 (implementation),
 - [x] E13. Record sessions, credits and results in BUILD_LOG.md.
   - Status: in "Live recordings with the recorder", with verbatim prompts, sessions and account meter.
 
-- [ ] E14. Measured limits documented: parallel order and calls missing after `deniedPaths`, in the README, the recorder header, R13.16, R14.3 and design.md. `src/ui/summary.js` adds "Calls sent in parallel may be logged out of order, so the first edit can be another call of the same batch." inside the permission note's paragraph, shown exactly when that note is. `permissionNote` and its tests are unchanged. README has "How Kiro was used"; the older "How it was built" is removed.
-  - Status: written. The reviewer runs `npm test` and checks that the replay stage still fits 1280x800 and 360x740 with a recorder log open.
+- [x] E14. Measured limits documented: parallel order and calls missing after `deniedPaths`, in the README, the recorder header, R13.16, R14.3 and design.md. `src/ui/summary.js` adds "Calls sent in parallel may be logged out of order, so the first edit can be another call of the same batch." inside the permission note's paragraph, shown exactly when that note is. `permissionNote` and its tests are unchanged. README has "How Kiro was used"; the older "How it was built" is removed.
+  - Status: written. The reviewer runs `npm test` and checks that the replay stage still fits 1280x800 and 360x740 with a recorder log open. Reviewer checked at 360, 768 and 1280.

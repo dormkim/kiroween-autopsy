@@ -929,3 +929,45 @@ Last pass of phase 2: documentation of measured limits and "How Kiro was used". 
    Shorten or merge any older "How it was built" section so that nothing is said twice.
 3. README opening: one line saying that you can record your own Kiro CLI session with the bundled hook, and that such a log draws a figure only when the agent requested explicit line ranges (neither live test recording did).
 ~~~~
+
+## Run 19: small README precision fixes
+
+- Time: 2026-11-22T14:04:43Z to 2026-11-22T14:05:34Z
+- Model: `claude-sonnet-5.5`
+- Kiro session: `7ecdbd22-192a-4c47-9615-9514a2548cfc`
+- Exit code: 0
+- Account meter: 1008.90 to 1008.90 (0.0 credits)
+
+Files changed:
+- `build-evidence/write-guard.jsonl`
+- `.kiro/specs/session-autopsy/tasks.md`
+- `README.md`
+
+Prompt, verbatim:
+
+~~~~text
+Tiny documentation fix. Read only the lines involved, make exactly these edits, change nothing else.
+README.md:
+1. "Record your own session": after step 5 add one sentence: "Start it from the project directory. The recorder refuses to record when that directory is /, your home directory or above it, and it was tested on Linux (live sessions) and macOS (test file only)."
+2. "When recording fails", the prompt check bullet: "When the failure file is not empty" becomes "When the log directory is unusable or the failure file is not empty".
+3. "Log format", allow: replace "the call counts as an attempt and is classified as if it ran" with "the call counts as an attempt, its requests and edits are counted as attempted, and the page says that permission is unknown. It is never shown as allowed".
+.kiro/specs/session-autopsy/tasks.md: tick E10 and E14, adding to E10 "reviewer ran 282 tests in a fresh copy with the default seed and seeds 7, 12345, 987654321; 0 failed" and to E14 "reviewer checked at 360, 768 and 1280".
+~~~~
+
+## Run 20: remove a stale task status
+
+- Time: 2026-11-22T14:05:52Z to 2026-11-22T14:06:06Z
+- Model: `claude-sonnet-5.5`
+- Kiro session: `5a7faa7c-8aaa-469b-adac-81caa9a580b4`
+- Exit code: 0
+- Account meter: 1010.32 to 1010.32 (0.0 credits)
+
+Files changed:
+- `build-evidence/write-guard.jsonl`
+- `.kiro/specs/session-autopsy/tasks.md`
+
+Prompt, verbatim:
+
+~~~~text
+In .kiro/specs/session-autopsy/tasks.md, task E10: remove the now false status sentence "A run of the property seeds in phase 2 is not recorded, so this stays open." (and, only if one exists, the same kind of stale sentence in E14 saying it is waiting for the reviewer's check). Change nothing else.
+~~~~

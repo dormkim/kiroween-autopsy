@@ -65,6 +65,8 @@ The recorder is one file, `recorder/session-autopsy-record.mjs`. It runs as a Ki
    kiro-cli chat --agent recorded
    ```
 
+   Start it from the project directory. The recorder refuses to record when that directory is /, your home directory or above it, and it was tested on Linux (live sessions) and macOS (test file only).
+
 6. Afterwards, open `.session-autopsy/<session_id>.events.jsonl` with "Open a log file" on the page.
 
 To record with an agent you already have, add the two hook entries from `examples/recorder-agent.json` to the `hooks` object of your agent file, next to any hooks it has:
@@ -98,7 +100,7 @@ What it never records: commands, file contents, old or new text of an edit, tool
 Kiro does not show the stderr of a failing preToolUse hook. When the recorder fails, it exits with code 1 (never 2, which would block the tool), so the tool still runs and that call is missing from the log. It also appends the time and a failure code to `.session-autopsy/recording-failures.jsonl` when that directory is usable.
 
 - `--check` tells you whether the project, the log directory and the failure file are in order right now. It cannot tell you whether Kiro actually runs the hook, and it cannot see a failure that happens later.
-- The prompt check runs at each prompt. When the failure file is not empty, it asks the agent to begin its reply with `Session Autopsy recorder: RECORDING FAILED (<code>)`. This works only when the agent relays the line, and it cannot see a failure after the last prompt.
+- The prompt check runs at each prompt. When the log directory is unusable or the failure file is not empty, it asks the agent to begin its reply with `Session Autopsy recorder: RECORDING FAILED (<code>)`. This works only when the agent relays the line, and it cannot see a failure after the last prompt.
 - If `node` is missing, the hook cannot run and nothing reports it.
 
 Delete `recording-failures.jsonl` to clear a reported failure.
@@ -131,7 +133,7 @@ One JSON object per line (`*.events.jsonl`), as written by a pre-tool hook:
 
 - `"hook": "pre"` lines are calls. They need a string `tool`. Optional fields: `t` (epoch seconds), `cmd`, `cmd_truncated`, `allow`, `paths`, `range` (`offset`, `limit`) and `ranges`.
 - `tool` is one of the names the page knows: `read_file`, `str_replace`, `list_directory`, `search`, `execute_bash`, `unknown_tool`, and `web_fetch` from the samples. Any other name is a call with unknown effect.
-- `allow` is optional. Absent means the permission was not recorded: the call counts as an attempt and is classified as if it ran. `false` means the recording hook blocked it, and it is shown as blocked. `true` means allowed. Any other value is malformed, and the call's effect is unknown.
+- `allow` is optional. Absent means the permission was not recorded: the call counts as an attempt, its requests and edits are counted as attempted, and the page says that permission is unknown. It is never shown as allowed. `false` means the recording hook blocked it, and it is shown as blocked. `true` means allowed. Any other value is malformed, and the call's effect is unknown.
 - `ranges` is an array with one range per entry of `paths`, for a read of several files in one call. If it is malformed or of another length, the lines of those requests are unknown.
 - `/outside-workspace` stands for a path outside the project. It is never counted as requested lines and is never a source edit.
 - Lines with any other `hook` (for example `"post"`) are notes. They are counted and listed, never treated as calls.

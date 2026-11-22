@@ -298,3 +298,8 @@
 {"time":"2026-11-22T11:01:03.174Z","path":".kiro/specs/session-autopsy/design.md","decision":"allow","rule":"ok"}
 {"time":"2026-11-22T11:01:03.190Z","path":".kiro/specs/session-autopsy/design.md","decision":"allow","rule":"ok"}
 {"time":"2026-11-22T11:01:10.001Z","path":".kiro/specs/session-autopsy/tasks.md","decision":"allow","rule":"ok"}
+{"time":"2026-11-22T11:04:55.740Z","path":"README.md","decision":"allow","rule":"ok"}
+{"time":"2026-11-22T11:04:55.740Z","path":".kiro/steering/product.md","decision":"allow","rule":"ok"}
+{"time":"2026-11-22T11:04:55.741Z","path":"index.html","decision":"allow","rule":"ok"}
+{"time":"2026-11-22T11:04:55.741Z","path":"src/ui/strip.js","decision":"allow","rule":"ok"}
+{"time":"2026-11-22T11:04:55.743Z","path":"src/ui/notes.js","decision":"allow","rule":"ok"}

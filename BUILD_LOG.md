@@ -639,3 +639,31 @@ REQUIRED
 Leave the small inline number buttons as they are; add one line to tasks.md recording them as open (42px high, down to 12px wide, below the 44px rule; enlarging them in running text would overlap neighbouring lines).
 Do not change any computed number, the samples, or the visual design beyond these labels. The stage must still fit its viewport. Finish with the exact on-screen strings in at most 15 lines.
 ~~~~
+
+## Run 14: copy: what links to log lines
+
+- Time: 2026-11-22T11:04:40Z to 2026-11-22T11:05:00Z
+- Model: `claude-sonnet-5.5`
+- Kiro session: `6d312abe-d738-4356-93ae-991aed79f694`
+- Exit code: 0
+- Account meter: 874.81 to 874.81 (0.0 credits)
+
+Files changed:
+- `build-evidence/write-guard.jsonl`
+- `index.html`
+- `.kiro/steering/product.md`
+- `README.md`
+- `src/ui/notes.js`
+- `src/ui/strip.js`
+
+Prompt, verbatim:
+
+~~~~text
+Copy-only follow-up to the sample-endings correction. Make exactly these targeted edits, read only the lines involved, change nothing else:
+1. The ending notes (900 s, exit code, 2 minutes) come from the runner's records, not from log lines, so "every number" claims are now false:
+   - index.html footer: "Reads *.events.jsonl files only. Numbers counted from a log link back to its lines. How a bundled sample ended comes from separate records. MIT license." (keep the existing span markup around *.events.jsonl)
+   - README.md line 12: "Numbers counted from a log link back to its lines. How a bundled sample ended comes from separate records, not from the log."
+   - .kiro/steering/product.md line 63: begin with "Every number counted from a log can be traced to raw log line numbers (the endings of bundled samples are provenance from separate records)."
+   - src/ui/notes.js line 449: "The log lines behind the counted numbers. Open a section to see its rows."
+2. src/ui/strip.js around line 373: "most requested lines of the session" becomes "most requested lines of the recording".
+~~~~

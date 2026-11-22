@@ -60,7 +60,7 @@ Repeated reading is described with counts and line numbers. It is never judged.
 
 ## Traceability
 
-Every number on screen can be traced to raw log line numbers. Focus or click on it and the screen shows the lines, for example "log lines 5, 7, 16". A duration shows the log lines of both ends.
+Every number counted from a log can be traced to raw log line numbers (the endings of bundled samples are provenance from separate records). Focus or click on it and the screen shows the lines, for example "log lines 5, 7, 16". A duration shows the log lines of both ends.
 
 ## Time
 

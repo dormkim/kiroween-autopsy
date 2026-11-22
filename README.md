@@ -9,7 +9,7 @@ It shows:
 - where the time went between logged events;
 - a replay of all of it, one call at a time.
 
-Every number on the page links back to the log lines it was counted from.
+Numbers counted from a log link back to its lines. How a bundled sample ended comes from separate records, not from the log.
 
 ## What it does not claim
 

@@ -370,7 +370,7 @@ export function stage(ctx, width) {
   const how = el('details', { class: 'how' },
     el('summary', {}, 'How to read the replay'),
     el('div', { class: 'how-body' },
-      el('p', {}, 'The photograph shows the most requested lines of the session. Each request of those lines adds one offset exposure to the figure, so it is invisible before the first request and denser with each one. The column on its left is the file, lines from top to bottom; the bright band is where the figure comes from.'),
+      el('p', {}, 'The photograph shows the most requested lines of the recording. Each request of those lines adds one offset exposure to the figure, so it is invisible before the first request and denser with each one. The column on its left is the file, lines from top to bottom; the bright band is where the figure comes from.'),
       el('p', {}, 'Each frame of the strip is one call. Frame width is the time until the next call. Edge codes: call number above, log line (L) below. Arrow keys on the slider step one call, Home and End jump to the ends, Space plays and pauses.'),
       legend()));
   section.append(

@@ -446,6 +446,6 @@ const linesSection = (ctx) => {
 export function evidence(ctx) {
   return el('section', { class: 'evidence', 'aria-labelledby': 'evidence-head' },
     el('h2', { class: 'section-head', id: 'evidence-head' }, 'Evidence'),
-    el('p', { class: 'section-note' }, 'The log lines behind every number. Open a section to see its rows.'),
+    el('p', { class: 'section-note' }, 'The log lines behind the counted numbers. Open a section to see its rows.'),
     repeatedTable(ctx), countsSection(ctx), timeSection(ctx), editsSection(ctx), linesSection(ctx));
 }

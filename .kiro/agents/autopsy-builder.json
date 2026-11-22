@@ -1,0 +1,39 @@
+{
+  "name": "autopsy-builder",
+  "description": "Writes this project. No shell, no web, no MCP. File access limited to the workspace.",
+  "tools": [
+    "fs_read",
+    "fs_write"
+  ],
+  "allowedTools": [],
+  "toolsSettings": {
+    "fs_read": {
+      "allowedPaths": [
+        "./**"
+      ],
+      "deniedPaths": [
+        "./.git/**"
+      ]
+    },
+    "fs_write": {
+      "allowedPaths": [
+        "./**"
+      ],
+      "deniedPaths": [
+        "./.git/**",
+        "./.kiro/agents/**",
+        "./BUILD_LOG.md",
+        "./DISCLOSURE.md",
+        "./.kiro/settings/**",
+        "./.kiro/hooks/**",
+        "./AGENTS.md",
+        "./.envrc",
+        "./samples/*.events.jsonl"
+      ]
+    }
+  },
+  "resources": [
+    "file://.kiro/steering/**/*.md"
+  ],
+  "includeMcpJson": false
+}

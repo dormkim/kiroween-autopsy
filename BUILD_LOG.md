@@ -1078,3 +1078,13 @@ Account meter: 1030.62, so 155.13 credits for phase 2 and 490.85 for the build.
 ## 2026-11-23: author e-mail rewritten before publishing
 
 Before the first push, every commit's author and committer e-mail was changed to the GitHub noreply address with git-filter-repo. Content, messages, dates and the Claude trailers are unchanged; only commit ids changed. Commit ids cited above were updated to the new ids (in this file and in `.kiro/specs/session-autopsy/tasks.md`). Run 22 was commit `589818b` before the rewrite and is `5869f19` after it.
+
+## 2026-11-23: filming runs for the demo video (not part of the build)
+
+Three runs of the bundled `recorded` agent (`kiro-cli chat --v2 --no-interactive --agent recorded`, Kiro CLI 3.5.0, default model) in a throwaway folder outside this repository, with the recorder installed as the README describes. The prompt each time: `format_duration(90) in units.py should return '1m 30s'. Fix it.` Each run made three tool calls (list, read, edit) and the recorder wrote three lines.
+
+- Take 1, session `1736e431-e549-45b9-ad9a-d967f49f5080`: Kiro finished; the terminal recording then stopped at a `git diff` pager prompt, so it was not used.
+- Take 2, session `536b34f6-5eef-4ed1-93d6-5487b5a0b57c`: clean, but the on-screen agent file excerpt cut off the tool list.
+- Take 3, session `7f0de166-e249-4cd5-b0f7-cdcc7b718573`: used in the video.
+
+Account meter 1030.62 before, 1030.89 after the three runs (0.27 credits). The terminal was recorded with asciinema and is replayed in the video at recorded speed, with pauses over 1.5 s shortened.

@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="dark">
+<title>Session Autopsy</title>
+<link rel="stylesheet" href="./src/styles/tokens.css">
+<link rel="stylesheet" href="./src/styles/app.css">
+</head>
+<body>
+<svg id="defs" class="defs" aria-hidden="true" focusable="false" width="0" height="0">
+  <defs>
+    <pattern id="fog" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect class="fog-line" x="0" y="0" width="1.5" height="6"></rect>
+    </pattern>
+    <filter id="grain" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"></feTurbulence>
+      <feColorMatrix type="saturate" values="0"></feColorMatrix>
+    </filter>
+  </defs>
+</svg>
+
+<a class="skip" href="#content">Skip to content</a>
+
+<header class="masthead">
+  <h1 class="title">Session Autopsy</h1>
+  <p class="purpose">Develops the recording of a finished coding-agent session like a spirit photograph. Lines that were requested again come out brighter each time.</p>
+  <p class="limit" id="limit">In three comparisons of interventions we did not confirm more issues solved, so this only reads recordings after a session ends. It never intervenes.</p>
+</header>
+
+<main id="content" class="page">
+  <section class="open" id="open" aria-labelledby="open-head">
+    <h2 class="visually-hidden" id="open-head">Open a session</h2>
+    <div class="open-row">
+      <input class="file-input" id="file" type="file" accept=".jsonl,.json,.txt,application/x-ndjson,application/json,text/plain">
+      <label class="button button-primary" for="file">Open a log file</label>
+      <p class="open-or">or open a recorded session:</p>
+      <div class="samples" id="samples"></div>
+    </div>
+    <p class="privacy">A file you open stays in this browser. Nothing is uploaded or stored.</p>
+  </section>
+
+  <section class="specimen" id="specimen" aria-labelledby="specimen-head" hidden>
+    <h2 class="caption-head" id="specimen-head">A spirit photograph made from a log</h2>
+    <div id="specimen-body"></div>
+  </section>
+
+  <section class="status" id="status" aria-live="polite" hidden></section>
+
+  <div class="autopsy" id="autopsy" hidden></div>
+</main>
+
+<footer class="colophon">
+  <p>Reads <span class="data">*.events.jsonl</span> files only. Every number links back to its log lines. MIT license.</p>
+</footer>
+
+<script type="module" src="./src/ui/main.js"></script>
+</body>
+</html>

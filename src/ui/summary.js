@@ -1,0 +1,104 @@
+// Case line, the three findings and the exposure meter.
+
+import { findings, formatTime, stateMessage } from '../core/findings.js';
+import { el, setVar } from './dom.js';
+import { renderParts, tracedButton } from './notes.js';
+
+/** Fixed order and words for the meter. Keys come from the analysis, classes from this table only. */
+const METER = [
+  ['request', 'file requests', 'seg-request'],
+  ['search', 'searches', 'seg-search'],
+  ['edit', 'edit attempts', 'seg-edit'],
+  ['test', 'test runs', 'seg-test'],
+  ['run', 'code runs', 'seg-run'],
+  ['vcs', 'version control calls', 'seg-vcs'],
+  ['other', 'other calls', 'seg-other'],
+  ['blocked', 'blocked calls', 'seg-blocked'],
+  ['unknown', 'calls with unknown effect', 'seg-unknown'],
+  ['unknown_time', 'unknown times between calls', 'seg-gap'],
+];
+
+/** Session name: the file name without .events.jsonl or .jsonl. */
+export const sessionName = (name) => name.replace(/\.events\.jsonl$|\.jsonl$/i, '') || name;
+
+/**
+ * Heading and case line: file, calls, duration plus unknown tail, broken lines.
+ * @param {object} ctx
+ */
+export function caseLine(ctx) {
+  const a = ctx.analysis;
+  const callLines = a.calls.map((e) => e.call.n);
+  const calls = { value: callLines.length, lines: callLines, reason: null };
+  const span = a.time.span;
+  const broken = a.totals.broken.map((b) => b.n);
+  const parts = [
+    'Developed from ', el('span', { class: 'data' }, ctx.name), ': ',
+    tracedButton(ctx, String(calls.value), calls, 'Calls in this session'), calls.value === 1 ? ' call over ' : ' calls over ',
+    span.value === null ? 'an unknown time' : tracedButton(ctx, formatTime(span.value), span, 'Time from the first call to the last valid event'),
+    ' plus an unknown tail; ',
+    broken.length === 0 ? '0' : tracedButton(ctx, String(broken.length), { value: broken.length, lines: broken, reason: null }, 'Log lines that could not be read'),
+    broken.length === 1 ? ' broken log line.' : ' broken log lines.',
+  ];
+  const head = el('h2', { class: 'case-name', tabindex: '-1', id: 'case-head' }, sessionName(ctx.name));
+  const out = el('header', { class: 'case' }, head, el('p', { class: 'case-line' }, parts));
+  if (a.totals.partial) {
+    const msg = stateMessage({ state: 'partial', name: ctx.name, broken: a.totals.broken });
+    out.append(el('p', { class: 'partial-banner', role: 'note' }, renderParts(ctx, msg, 'Log lines that could not be read'),
+      ' Every result below comes from the other lines.'));
+  }
+  return out;
+}
+
+const FINDING_LABELS = ['Most requested lines', 'First source edit attempt', 'Where the time went'];
+
+/**
+ * The three findings as large sentences. Every number is a traced button.
+ * @param {object} ctx
+ */
+export function findingsBlock(ctx) {
+  const sentences = findings(ctx.analysis);
+  const fog = ctx.frames.filter((f) => f.fog).map((f) => f.n);
+  return el('section', { class: 'findings-block', 'aria-label': 'Findings' },
+    el('ul', { class: 'findings' }, sentences.map((parts, i) => el('li', { class: 'finding' }, renderParts(ctx, parts, FINDING_LABELS[i])))),
+    el('p', { class: 'finding-note' },
+      'Calls with unknown effect may have requested or changed files that are not counted: ',
+      tracedButton(ctx, String(fog.length), { value: fog.length, lines: fog, reason: null }, 'Calls with unknown effect'),
+      fog.length === 1 ? ' call. ' : ' calls. ',
+      'Choose any underlined number to see its log lines.'));
+}
+
+/**
+ * Exposure meter: one bar, a segment per category with length proportional to seconds,
+ * then the unknown tail with no width claim. The list below carries the same numbers as text.
+ * @param {object} ctx
+ */
+export function meter(ctx) {
+  const a = ctx.analysis;
+  const span = a.time.span;
+  const bar = el('div', { class: 'meter-bar', 'aria-hidden': 'true' });
+  const list = el('ul', { class: 'meter-list' });
+  for (const [key, words, cls] of METER) {
+    const t = a.time.byCategory.get(key);
+    if (t === undefined) continue;
+    if (t.value > 0) {
+      const seg = el('div', { class: `meter-seg ${cls}` });
+      setVar(seg, '--w', t.value);
+      bar.append(seg);
+    }
+    const share = span.value !== null && span.value > 0 ? ` (${Math.round((t.value / span.value) * 100)}%)` : '';
+    list.append(el('li', { class: 'meter-item' },
+      el('span', { class: `swatch ${cls}`, 'aria-hidden': 'true' }),
+      el('span', {}, `${words}: `, tracedButton(ctx, formatTime(t.value), t, `Time after ${words}`), share)));
+  }
+  bar.append(el('div', { class: 'meter-tail' }));
+  list.append(el('li', { class: 'meter-item' },
+    el('span', { class: 'swatch meter-tail', 'aria-hidden': 'true' }),
+    el('span', {}, 'after the last event: unknown tail')));
+  const body = span.value === null
+    ? [el('p', { class: 'section-note' }, 'No call has a usable time, so where the time went is unknown.')]
+    : [bar, list];
+  return el('section', { class: 'meter', 'aria-labelledby': 'meter-head' },
+    el('h2', { class: 'section-head', id: 'meter-head' }, 'Exposure meter'),
+    el('p', { class: 'section-note' }, 'Where the time went, by the kind of call before it. Each part is the time until the next call (tool, model and waiting together).'),
+    ...body);
+}

@@ -1,0 +1,46 @@
+/* Design tokens from .kiro/steering/design.md. Nothing else lives here. */
+:root {
+  /* color: fixer black ground, ectoplasm data, one amber safelight accent */
+  --c-ground: #0d0f0c;
+  --c-plate: #161a15;
+  --c-rebate: #050605;
+  --c-rule: #2d332b;
+  --c-text: #e6eae1;
+  --c-text-dim: #a3ab9c;
+  --c-accent: #f0a93b;
+
+  /* semantic, separate from the accent */
+  --c-exposure: #dcefe2;
+  --c-exposure-edge: #7f9886;
+  --c-edit: #7fd0e6;
+  --c-unknown: #b4b8c9;
+  --c-blocked: #c7c2b0;
+  --c-error: #ff8f80;
+
+  /* spacing: 4px scale */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --s-12: 48px;
+  --s-16: 64px;
+
+  /* shape */
+  --radius-control: 2px;
+  --border: 1px solid var(--c-rule);
+  --focus: 2px solid var(--c-accent);
+  --target: 44px;
+
+  /* type */
+  --font-display: ui-serif, "New York", "Iowan Old Style", Georgia, Cambria, "Times New Roman", serif;
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-data: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  --t-display: 40px;
+  --t-heading: 28px;
+  --t-caption: 20px;
+  --t-body: 16px;
+  --t-small: 14px;
+  --t-data: 12px;
+}

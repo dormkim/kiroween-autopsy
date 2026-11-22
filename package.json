@@ -9,6 +9,6 @@
     "node": ">=22.13"
   },
   "scripts": {
-    "test": "node --permission --allow-fs-read=. test/write-guard.test.mjs && node --permission --allow-fs-read=. test/parse.test.mjs && node --permission --allow-fs-read=. test/shell.test.mjs && node --permission --allow-fs-read=. test/classify.test.mjs && node --permission --allow-fs-read=. test/classify.property.test.mjs && node --permission --allow-fs-read=. test/lines.test.mjs && node --permission --allow-fs-read=. test/metrics.test.mjs && node --permission --allow-fs-read=. test/timeline.test.mjs && node --permission --allow-fs-read=. test/findings.test.mjs && node --permission --allow-fs-read=. test/samples.test.mjs && node --permission --allow-fs-read=. test/samples-invariants.test.mjs"
+    "test": "node --permission --allow-fs-read=. test/write-guard.test.mjs && node --permission --allow-fs-read=. test/parse.test.mjs && node --permission --allow-fs-read=. test/shell.test.mjs && node --permission --allow-fs-read=. test/classify.test.mjs && node --permission --allow-fs-read=. test/classify.property.test.mjs && node --permission --allow-fs-read=. test/lines.test.mjs && node --permission --allow-fs-read=. test/metrics.test.mjs && node --permission --allow-fs-read=. test/timeline.test.mjs && node --permission --allow-fs-read=. test/findings.test.mjs && node --permission --allow-fs-read=. test/samples.test.mjs && node --permission --allow-fs-read=. test/samples-invariants.test.mjs && node --permission --allow-fs-read=. test/boundaries.test.mjs"
   }
 }

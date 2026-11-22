@@ -323,3 +323,46 @@ All sample numbers matched the reviewer's independent count from the original lo
 
 Keep making tool calls until all are written, then summarise in at most five lines.
 ~~~~
+
+## Run 9: increment C: static site and README
+
+- Time: 2026-11-22T09:49:47Z to 2026-11-22T10:16:26Z
+- Model: `claude-opus-5.5`
+- Kiro session: `93188b46-cd87-4156-9617-9f1ace94b864`
+- Exit code: 0
+- Account meter: 716.21 to 768.25 (52.04 credits)
+
+Files changed:
+- `build-evidence/write-guard.jsonl`
+- `index.html`
+- `.kiro/specs/session-autopsy/tasks.md`
+- `package.json`
+- `README.md`
+- `src/styles/app.css`
+- `src/styles/tokens.css`
+- `src/ui/dom.js`
+- `src/ui/main.js`
+- `src/ui/notes.js`
+- `src/ui/plates.js`
+- `src/ui/strip.js`
+- `src/ui/summary.js`
+- `test/boundaries.test.mjs`
+
+Prompt, verbatim:
+
+~~~~text
+Read .kiro/steering (especially design.md), the spec in .kiro/specs/session-autopsy and the core modules' exports. Increments A and B are done: 211 tests pass and sample numbers were verified against the original logs.
+
+Implement increment C: index.html, the styles, the ui modules, boundaries.test.mjs, package.json, README.md, task ticks. Keep making tool calls until everything is written. Plan briefly before each write, one file per tool call, and split long files into several writes, so that no single step runs out of output.
+
+This screen is the product and it competes in Costume Contest ("a haunting user interface that's polished and unforgettable", spooky elements that enhance the function):
+- Before loading, the first screen must already look haunted and specific: a real spirit photograph made from data, not a blank form. A judge reaches an autopsy in one click. Keep the limit statement short and visible: "In three comparisons of interventions we did not confirm more issues solved, so this only reads recordings after a session ends. It never intervenes."
+- After loading, within 20 seconds a newcomer understands: the three findings as large readable sentences; the replay with a clear Play button that starts at the beginning and runs to the end, ghosts appearing and intensifying on the requested lines, a live line saying what is happening at this call (time, plain action, file, count); then the evidence. Spend the craft on the ghost: photographic, pale, layered, eerie, with SVG and CSS only, and still exact. It must not read as a grey bar chart on a dark dashboard. The file with the most repeated lines is the hero plate; files requested once must not take equal space.
+- Plates: lines that were never requested stay empty, and a small band (4 lines in 1,100) must still be visible and labelled with its real line numbers.
+- 360px is a first-class layout: no page-level horizontal scroll, nothing unreadably small, SVG text must not shrink with the viewBox.
+- A phone user does not read log lines: put raw evidence behind the numbers (the traced buttons) and in tables that can be collapsed, not a wall of rows.
+- A malformed log, an empty file and a failed fetch each show their own state. A pasted `<img src=x onerror=...>` in a path or cmd shows as text.
+- Strict CSP meta with no unsafe-inline for scripts; everything works from `python3 -m http.server` under the repo root and under a subpath. Do not depend on inline style attributes if your CSP forbids them.
+
+README.md: plain English, short. What it is, what it does not claim (in the same honest words), run and test commands, log format it accepts, privacy, limits, MIT license, a link to DISCLOSURE.md and BUILD_LOG.md, and one paragraph "How it was built": Claude Code directed and verified, Kiro CLI wrote the code. No invented numbers and no personal paths.
+~~~~

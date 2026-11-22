@@ -142,60 +142,60 @@ Tests first, including the sample tests, then the modules. Commit: "Add line cou
 
 Boundary test first, then the page. UI code is not imported by tests. It is proven by the boundary test and by increment D. Commit: "Add the autopsy page, boundary test and README".
 
-- [ ] C1. Boundary test
+- [x] C1. Boundary test
   - Files: `test/boundaries.test.mjs`
   - Reads `index.html`, `src/` and `package.json` as text and asserts: `src/core/` has no DOM globals, `fetch`, storage APIs, `node:` imports, `Date`, `Math.random` or `performance`; `core` never imports `ui`; `ui` imports only relative paths; no site file contains the sinks banned in tech.md; no `export default`; `index.html` has the exact CSP from tech.md, one `<script type="module" src="./src/ui/main.js">`, no inline script, no `<style>` and no `style=` attribute; every `href` and `src` is relative; the only `fetch` URL prefix is `./samples/`; no storage, cookie or service worker API; `package.json` has no `dependencies` or `devDependencies`.
   - Requirements: R1.5, R10.1, R10.2, R11.1
 
-- [ ] C2. Page shell and styles
+- [x] C2. Page shell and styles
   - Files: `index.html`, `src/styles/tokens.css` (tokens from steering design.md, nothing else), `src/styles/app.css`
   - First screen: title, one-line purpose, the limit statement from product.md, file input with label, one button per sample. Breakpoints 360, 768 and 1280, `min-width: 0` on grid children, focus ring, 44px targets, reduced-motion rules.
   - Requirements: R1.1, R1.5, R9.3, R9.5, R10.2
   - Proof: `test/boundaries.test.mjs`, D3
 
-- [ ] C3. DOM helper
-  - Files: `src/ui/dom.js` (exports `el`, `svg`)
+- [x] C3. DOM helper
+  - Files: `src/ui/dom.js` (exports `el`, `svg`, `setVar`, `replace`, `grouped`)
   - Text only through `textContent`. Attribute names come from a fixed allowlist in the module, never from log content.
   - Requirements: R10.1
   - Proof: `test/boundaries.test.mjs`
 
-- [ ] C4. Entry point and states
+- [x] C4. Entry point and states
   - Files: `src/ui/main.js`
   - Fixed sample name array; fetch `./samples/` plus a name from it; file input read in the browser; size check against `MAX_BYTES` before reading; parse in chunks of 2,000 lines with "Developing: X of Y log lines" between chunks; state machine for loading, load error, empty file, not a log, no calls, partial and normal, each non-normal state with "Open another file".
   - Requirements: R1.2 to R1.6, R8.1 to R8.5, R8.7
   - Proof: `test/boundaries.test.mjs`, D3 and the state screenshots
 
-- [ ] C5. Case line, findings and exposure meter
+- [x] C5. Case line, findings and exposure meter
   - Files: `src/ui/summary.js`
   - Case line, the three findings with every traced part as a `<button>`, the meter with per-category segments, the unknown gaps and the unknown tail.
   - Requirements: R7.2, R7.3, R9.1, R9.2
   - Proof: D2, D3
 
-- [ ] C6. Contact strip and playhead
+- [x] C6. Contact strip and playhead
   - Files: `src/ui/strip.js`
   - Frames with width from `seconds` (minimum 4px), edge codes, fog, unexposed frames with a cross, cut mark, ectoplasm threads from `RepeatMark.earlier`, fogged unknown tail; the range input as the one tab stop, with arrow keys, Home, End and Space; 120ms per frame; no autoplay or transitions under `prefers-reduced-motion: reduce`.
   - Requirements: R7.2, R9.3, R9.4, R9.5
   - Proof: D3
 
-- [ ] C7. Plates
+- [x] C7. Plates
   - Files: `src/ui/plates.js`
   - One SVG plate per file with its cabinet-card caption, exposure bands with the steering opacity formula, misregistration outlines, apparition caption, overexposed edge for open requests, lower-bound note when the file has open or unlocated requests. Clicking a band selects its table row.
   - Requirements: R4.1 to R4.3, R9.3
   - Proof: D3
 
-- [ ] C8. Evidence panel
+- [x] C8. Evidence panel
   - Files: `src/ui/notes.js`
   - Log lines for the selected traced value; the repeated-requests table as the keyboard path to bands and frames; request, repeat and unchecked counts (R5.3) with the unknown-effect statement (R5.4); the five longest intervals with both log lines; time after repeat-request calls; other edit attempts by class; broken lines, blank lines, notes and time anomalies by log line; "Partial" markers.
   - Requirements: R5.3, R5.4, R6.4, R7.4 to R7.6, R8.5, R9.2
   - Proof: D2, D3
 
-- [ ] C9. README
+- [x] C9. README
   - Files: `README.md`
   - What the page shows, the limit statement, how to open a log (`file://` with the file picker, or any static server for the sample buttons), privacy (nothing leaves the browser), how to run the tests, the repo layout. Steering words only, no banned words, no em dashes, no exclamation marks.
   - Requirements: R1.5, R9.6
   - Proof: D4
 
-- [ ] C10. Test script: add `boundaries` to `scripts.test` in `package.json`.
+- [x] C10. Test script: add `boundaries` to `scripts.test` in `package.json`.
 
 - [ ] C11. Checkpoint: the reviewer runs all test files, then commits increment C.
 

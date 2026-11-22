@@ -20,15 +20,24 @@
 // - preToolUse runs before the permission check, so the log holds attempts. It cannot say whether
 //   a call was allowed, denied or ran, and no permission field is written. The log can include
 //   denied calls, and some rejected calls never appear: a call rejected by the agent's deniedPaths
-//   never reaches this hook, and other calls of the same response can be cancelled before their
-//   hooks run.
+//   never reaches this hook, other calls of the same response can be cancelled before their
+//   hooks run, and a call to a tool the agent does not have ("is not available") never reaches
+//   this hook either. Call numbers in the log can therefore differ from the session.
 // - Calls sent in parallel in one response are logged in the order their hooks happened to start.
 //   Inside such a batch the log order, including which file is the first source edit, can differ
 //   from the session. The hook input has no sequence number, so this cannot be fixed here. It made
 //   the live first-source-edit check fail (BUILD_LOG.md, "Live recordings").
 // - Kiro does not show a preToolUse hook's stderr. A failure exits 1 (never 2, which would block
 //   the tool), prints one fixed line on stderr and appends {time, code} to
-//   .session-autopsy/recording-failures.jsonl.
+//   .session-autopsy/recording-failures.jsonl when it can.
+// - --check and --prompt-check create and write nothing. They report a failure when the project
+//   is unsafe, the log directory is unsafe, not writable or not searchable, the project is not
+//   writable while the log directory is missing, statfs shows no available blocks, or the
+//   failure file exists. An empty failure file is reported with code unknown: it is what
+//   remains when the failure line could not be written.
+// - Not every failure is reported. A failure that leaves no file and has cleared, or that these
+//   checks cannot see (quota, inode limit, file size limit before the file could be created,
+//   a transient error), can be missed.
 // - --prompt-check asks the agent, at the next prompt, to begin its reply with the failure line.
 //   That works only when the agent relays it, and it cannot see a failure after the last prompt.
 // - If node is missing, the hook cannot run and cannot report itself.
@@ -38,7 +47,7 @@
 // directory through node:os.
 
 import {
-  closeSync, constants, fstatSync, lstatSync, mkdirSync, openSync, readSync, realpathSync, writeSync,
+  accessSync, closeSync, constants, fstatSync, lstatSync, mkdirSync, openSync, readSync, realpathSync, statfsSync, writeSync,
 } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
@@ -226,28 +235,53 @@ const lastCode = (text) => {
 };
 
 /**
- * null when healthy, else a failure code. Reads no stdin and writes nothing.
- * Healthy: a safe project, a log directory that is missing or a real directory, and a failure
- * file that is missing or empty.
+ * null when dir looks writable for record mode, else 'write_failed'. Creates and writes nothing.
+ * dir must be writable and searchable. A file system with zero available blocks fails; if
+ * statfs itself throws, that check is skipped.
+ */
+const writable = (dir) => {
+  try {
+    accessSync(dir, constants.W_OK | constants.X_OK);
+  } catch {
+    return 'write_failed';
+  }
+  try {
+    const fsStat = statfsSync(dir);
+    if (fsStat.blocks > 0 && fsStat.bavail === 0) return 'write_failed';
+  } catch {
+    // ignored: statfs is not available or failed, so free space is not checked
+  }
+  return null;
+};
+
+/**
+ * null when healthy, else a failure code. Reads no stdin and creates or writes nothing.
+ * Healthy: a safe project; when the log directory is missing, a writable project; else a real
+ * log directory that is writable and searchable; enough free space by statfs; and no failure
+ * file. An empty failure file is a failure with code unknown: it is what remains when the
+ * failure line could not be written. A failure that leaves no file and has cleared, or that
+ * these checks cannot see (quota, inode limit, file size limit, a transient error), is missed.
  */
 const health = () => {
   let project;
+  let present;
   try {
     project = safeProject();
-    if (!enterLogDir(project, false)) return null;
+    present = enterLogDir(project, false);
   } catch (err) {
     return codeOf(err);
   }
+  if (!present) return writable(project);
   let fd;
   try {
     fd = openSync(FAILURES, READ_FLAGS);
   } catch (err) {
-    return errno(err) === 'ENOENT' ? null : 'log_file_unsafe';
+    return errno(err) === 'ENOENT' ? writable('.') : 'log_file_unsafe';
   }
   try {
     const st = fstatSync(fd);
     if (!st.isFile() || st.nlink !== 1) return 'log_file_unsafe';
-    if (st.size === 0) return null;
+    if (st.size === 0) return 'unknown';
     const len = Math.min(st.size, MAX_FAILURE_READ);
     const buf = Buffer.alloc(len);
     const n = readSync(fd, buf, 0, len, st.size - len);

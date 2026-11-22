@@ -1008,3 +1008,46 @@ By Claude Code. Results against the five criteria written before the phase:
 - Chromium at 360, 768 and 1280: no console error, external request or page overflow, for the samples and both recorded logs.
 - Not verified: live shell, search and MCP input, deleting and the code tool on V3, other Kiro versions, Windows, other browsers, real phones, use by another person.
 - Per-run meters lag and show 0 for short runs; the totals above were read at the end.
+
+## Run 22: independent check corrections
+
+- Time: 2026-11-22T14:22:35Z to 2026-11-22T14:27:53Z
+- Model: `claude-opus-5.5`
+- Kiro session: `8e7845e0-5f42-43c9-bffe-c52c727c5961`
+- Exit code: 0
+- Account meter: 1011.41 to 1030.60 (19.19 credits)
+
+Files changed:
+- `build-evidence/write-guard.jsonl`
+- `examples/recorder-agent.json`
+- `.kiro/specs/session-autopsy/design.md`
+- `.kiro/specs/session-autopsy/requirements.md`
+- `.kiro/specs/session-autopsy/tasks.md`
+- `README.md`
+- `recorder/session-autopsy-record.mjs`
+- `src/core/findings.js`
+- `src/ui/summary.js`
+- `test/findings.test.mjs`
+- `test/recorder.test.mjs`
+
+Prompt, verbatim:
+
+~~~~text
+Correction pass after an independent check found four defects. No new feature. Read only what you need, change tests first, one file per tool call, short planning before each write, keep going until all are done. Do not weaken any other test. The numbers and sentences of the three bundled samples must not change.
+
+1. SILENT RECORDING FAILURE. Reproduced: with .session-autopsy not writable, with the project not writable and no log directory yet, and with writes failing after the empty failure file was created, record mode exits 1 but --check prints OK and --prompt-check is silent. Fix health() only, still creating and writing nothing:
+   - the log directory must be writable and searchable (accessSync W_OK|X_OK), else write_failed; when it is missing, the project directory must be, else write_failed;
+   - zero available blocks on that file system (statfsSync bavail === 0 with blocks > 0) gives write_failed; if statfs itself throws, go on;
+   - an existing EMPTY failure file is a failure with code unknown, because it is what remains when the failure line could not be written. This deliberately reverses the old "an empty failure file is healthy" test: change that test and say so in a comment. Deleting the file still clears it.
+   Keep the rule that the hook never exits 2. Add tests for the unwritable directory and unwritable project in both check modes (skip when running as root). Update R13.14, R13.15, design.md (health definition) and the header comment.
+   Document what stays open: a failure that leaves no file and has cleared or is not visible to these checks (quota, inode limit, file size limit before the file could be created, a transient error) can still be missed. So never write that every failure is reported.
+
+2. WRONG V3 RESULT. Kiro's session store has 14 tool calls, the log 13; the first edit is call 12 in the session and call 11 in the log. The missing one was a call to a tool the agent does not have (generate_codebase_overview, "is not available"): it never reaches preToolUse. Correct tasks.md (the "13 of 13" status) and add this third kind of missing call to the recorder header, README ("What it records", Limits), R13 and design.md next to the deniedPaths limit. In README Limits say that call numbers can therefore differ from the session too. (The reviewer corrects BUILD_LOG.md, do not touch it.)
+
+3. UNSAFE DEFAULT IN THE INSTRUCTIONS. Interactive kiro-cli defaults to V3, which expands this agent to more tools including delete_file. README step 5 must be `kiro-cli chat --v2 --agent recorded`, and the later V3 paragraph must agree. State before step 5, plainly: the example agent writes files inside the project without asking (allowedPaths pre-approves them), and reads them without asking; use it only in a project under version control, or add the hooks to your own agent. In examples/recorder-agent.json change only the description: say reads and writes inside this project without asking, meant for --v2, no shell, no web, no MCP.
+
+4. FALSE "100%". In a live recording the first edit at 8.733 of 8.736 seconds showed "100% of the recording had passed before". Add one exported pure helper in src/core/findings.js for share text and use it at every place a share becomes a percent (findings.js, src/ui/summary.js): exactly Math.round as today, except that a share below 1 which rounds to 100 is "over 99%". A share of exactly 1 stays "100%". Test 0.9996, 0.995, 0.99499, 1, 0.9026, 0.389, and end to end with a log whose first edit is just before its end. Sentences must still read correctly with it.
+
+README also: in "When recording fails" make every sentence true after item 1; in "What failed" add one line saying an independent check found failures the recorder hid and a wrong live-result count, fixed in run 22 as far as stated in Limits; the acceptance criteria about first-edit equality and about never hiding a failure are both NOT met. Do not call either of them met or partly met anywhere; tick no new task for them.
+Finish with a short list: item, files changed.
+~~~~

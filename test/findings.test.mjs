@@ -7,7 +7,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { parse } from '../src/core/parse.js';
 import { analyse } from '../src/core/metrics.js';
-import { findings, headlines, stateMessage, formatTime } from '../src/core/findings.js';
+import { findings, headlines, stateMessage, formatTime, shareText } from '../src/core/findings.js';
 import { readFileSync } from 'node:fs';
 import { check, sessionLines } from './gen.mjs';
 
@@ -312,6 +312,42 @@ test('headlines contain no banned words, em dashes or exclamation marks', () => 
   const variants = [base(), base({ firstSource: tr(null, [], 'none_recognised') }), base({ top: tr(null, [], 'no_ranges') }),
     withTime({ span: tr(null, [], 'no_time'), byCategory: new Map(), longest: [] })];
   for (const a of variants) for (const t of heads(a)) assert.ok(!banned.test(t), `"${t}" breaks the copy rules in product.md`);
+});
+
+// ---- share text: a share below 1 is never shown as 100% ----
+
+test('shareText: Math.round of the percent, except that a share below 1 which rounds to 100 is "over 99%"', () => {
+  const cases = [
+    [0.9996, 'over 99%', '99.96 rounds to 100, but the share is below 1'],
+    [0.995, 'over 99%', '0.995 * 100 is 99.5 in floating point, Math.round gives 100, and the share is below 1'],
+    [0.99499, '99%', '99.499 rounds to 99'],
+    [1, '100%', 'a share of exactly 1 is the whole recording'],
+    [0.9026, '90%', '90.26 rounds to 90'],
+    [0.389, '39%', 'requests-6644: 38.9 rounds to 39, as before'],
+  ];
+  for (const [share, expected, why] of cases) assert.equal(shareText(share), expected, `share ${share}: expected "${expected}" because ${why}`);
+});
+
+test('a share above 99% reads correctly in the time finding and its headline', () => {
+  const a = withTime({ byCategory: new Map([['run', tr(456.9, [1, 2])]]) });
+  assert.equal(heads(a)[2], 'Over 99% of the recorded time came after code runs', '456.9 of 456.932 s is below 1, so not "100%"; the headline starts with a capital');
+  assert.ok(findings(a)[2].some((p) => typeof p !== 'string' && p.text === '(over 99%)'), 'the sentence shows "(over 99%)" as one value part');
+});
+
+test('end to end: a first source edit just before the end of the recording reads "over 99%", never "100%"', () => {
+  const log = [
+    { t: 1795000000, hook: 'pre', tool: 'read_file', paths: ['src/a.py'], range: { offset: 0, limit: 5 }, allow: true },
+    { t: 1795000008.733, hook: 'pre', tool: 'str_replace', paths: ['src/a.py'], allow: true },
+    { t: 1795000008.736, hook: 'pre', tool: 'read_file', paths: ['src/a.py'], range: { offset: 0, limit: 5 }, allow: true },
+  ].map((o) => JSON.stringify(o)).join('\n');
+  const a = analyse(parse(log));
+  const fs = a.firstSource.value;
+  assert.ok(fs !== null && fs.call === 2, 'test setup: call 2, an edit attempt on src/a.py, is the first source edit attempt');
+  assert.ok(fs.share > 0.999 && fs.share < 1, `test setup: 8.733 of 8.736 s is a share just below 1, got ${fs.share}`);
+  assert.equal(heads(a)[1], 'Over 99% of the recording had passed before the first recognised source edit attempt',
+    'measured in a live recording: this showed "100%" although 0.003 s of the recording came after the edit attempt');
+  assert.equal(sentences(a)[1], 'First recognised source edit attempt: call 2 at 0:09, over 99% into the recording (log line 2). 0 earlier calls could have changed files.',
+    'the sentence uses the same share text');
 });
 
 test('the share keeps its brackets in one value part, so "(" never wraps away from the number', () => {

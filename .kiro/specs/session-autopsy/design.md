@@ -311,7 +311,7 @@ Input facts come only from the "Phase 2" section of BUILD_LOG.md. Shapes not lis
 | Topic | Decision | Why |
 |---|---|---|
 | New folders | `recorder/` holds the one file a user copies. `examples/` holds `recorder-agent.json`. Neither is loaded by the page. | R13.1. The recorder runs in a user's project, so it cannot live in `scripts/` (development only) or `src/` (site). |
-| No `allow` | The recorder never writes `allow`. | preToolUse runs before the permission check on both engines, and denied attempts reach the hook (measured). Calls rejected by `deniedPaths` do not, and can cancel other calls of the same response (live recordings). |
+| No `allow` | The recorder never writes `allow`. | preToolUse runs before the permission check on both engines, and denied attempts reach the hook (measured). Calls rejected by `deniedPaths` do not, and can cancel other calls of the same response (live recordings). Calls to a tool the agent does not have do not reach it either (V3 live recording). |
 | Parallel order | Lines are written in the order the hooks start. No reordering. | The hook input has no sequence number (live recordings), so the order inside a batch of parallel calls can differ from the session. Open. |
 | Absent `allow` | Parsed as permission `not_recorded`, classified like an allowed call, counted and stated on screen. | Phase 1 treated absent like malformed (unknown, hidden effects). That would make every recorder call unknown. Malformed stays unknown. |
 | Tool names | Mapped to a fixed set by the table below. Never copied. | Tool names are text from the event and can be anything. |
@@ -341,7 +341,17 @@ Fixed text, with `<code>` from the failure codes:
 - `--check` on failure, stdout: the same line.
 - `--prompt-check` when unhealthy, stdout, one line: `Session Autopsy recorder: recording of this session failed (<code>), so its log is incomplete. Begin your reply with this exact line: Session Autopsy recorder: RECORDING FAILED (<code>)`
 
-Healthy for both checks: the project is safe, the log directory is missing or is a real directory (not a symlink) inside the project, and `recording-failures.jsonl` is missing or empty. A missing directory is healthy because the first prompt comes before the first tool call. When the failure file is not empty, `<code>` is the code of its last line if that is a known code, else `unknown`. The failure file is read only after the same checks as a log file (not a symlink, regular, one link). A user clears the state by deleting `recording-failures.jsonl`.
+Healthy for both checks, which create and write nothing:
+
+- the project is safe;
+- when the log directory is missing: the project directory passes `accessSync(W_OK|X_OK)`, else `write_failed`. A missing log directory is otherwise healthy, because the first prompt comes before the first tool call;
+- when it exists: it is a real directory (not a symlink) inside the project, else `log_dir_unsafe`, and it passes `accessSync(W_OK|X_OK)`, else `write_failed`;
+- `statfsSync` on that directory does not show `bavail === 0` with `blocks > 0`, else `write_failed`. If `statfsSync` throws, this check is skipped;
+- `recording-failures.jsonl` does not exist. An existing empty failure file is a failure with code `unknown`: it is what remains when the file was created but the failure line could not be written. (Until run 22 an empty file counted as healthy; that was reversed.)
+
+When the failure file is not empty, `<code>` is the code of its last line if that is a known code, else `unknown`. The failure file is read only after the same checks as a log file (not a symlink, regular, one link). A user clears the state by deleting `recording-failures.jsonl`.
+
+Not every failure is reported. A failure that leaves no file and has cleared, or that these checks cannot see (quota, inode limit, a file size limit before the file could be created, a transient error), can be missed. The criterion that the recorder never hides a failure is NOT met.
 
 ### Failure codes
 
@@ -403,8 +413,9 @@ File names inside the project are written to the log. A file named `outside-work
 - The prompt check works only when the agent relays the instruction, and cannot see a failure after the last prompt.
 - If `node` is missing, the hook cannot run and cannot report itself.
 - The log records attempts. It cannot say whether a call was allowed, denied or ran.
-- The log can include denied calls, and some rejected calls never appear. A call rejected by the agent's `deniedPaths` never reaches preToolUse, and other calls of the same response can be cancelled before their hooks run (measured in the live recordings).
-- Calls sent in parallel in one response are logged in the order their hooks happened to start, so the order inside such a batch, including which file is the first source edit, can differ from the session. The hook input has no call id or sequence number, so preToolUse cannot restore it. Open. The live first-source-edit check failed for this reason (BUILD_LOG.md, "Live recordings").
+- The log can include denied calls, and some rejected calls never appear. A call rejected by the agent's `deniedPaths` never reaches preToolUse, and other calls of the same response can be cancelled before their hooks run (measured in the live recordings). A call to a tool the agent does not have ("is not available") never reaches preToolUse either: in the V3 live recording Kiro's session store has 14 tool calls and the log 13, the missing one a call to `generate_codebase_overview`, so the first source edit is call 12 in the session and call 11 in the log. Call numbers in the log can therefore differ from the session.
+- Calls sent in parallel in one response are logged in the order their hooks happened to start, so the order inside such a batch, including which file is the first source edit, can differ from the session. The hook input has no call id or sequence number, so preToolUse cannot restore it. Open. The live first-source-edit check failed for this reason (BUILD_LOG.md, "Live recordings"); that criterion is NOT met.
+- Not every recording failure is reported (see "Modes"). The criterion that the recorder never hides a failure is NOT met.
 - File names inside the project are recorded. Commands, contents and outside names are not.
 
 ## Reading recorder logs

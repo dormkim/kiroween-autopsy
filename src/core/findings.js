@@ -25,6 +25,20 @@ export function formatTime(seconds) {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 }
 
+/**
+ * A share (0 to 1) as percent text: Math.round of the percent, except that a share below 1
+ * which rounds to 100 is "over 99%", so a share that is not the whole recording never reads "100%".
+ * @param {number} share
+ * @returns {string}
+ */
+export function shareText(share) {
+  const pct = Math.round(share * 100);
+  return pct >= 100 && share < 1 ? 'over 99%' : `${pct}%`;
+}
+
+/** Headlines start a sentence: "over 99%" becomes "Over 99%". */
+const capital = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+
 const LABELS = {
   request: 'file requests',
   search: 'searches',
@@ -69,7 +83,7 @@ const firstEdit = (a) => {
   let when = [' at an unknown time'];
   if (fs.offset !== null) {
     when = [' at ', val(formatTime(fs.offset), a.firstSource)];
-    if (fs.share !== null) when.push(', ', val(`${Math.round(fs.share * 100)}%`, a.firstSource), ' into the recording');
+    if (fs.share !== null) when.push(', ', val(shareText(fs.share), a.firstSource), ' into the recording');
   }
   return ['First recognised source edit attempt: call ', val(fs.call, a.firstSource), ...when, ' (log line ', val(fs.n, a.firstSource), ').', ...could('earlier ')];
 };
@@ -93,7 +107,7 @@ const timeSpent = (a) => {
     parts.push('The time until the next call is unknown for every call.');
   } else {
     const [key, t] = best;
-    const pct = span.value > 0 ? `${Math.round((t.value / span.value) * 100)}%` : 'unknown';
+    const pct = span.value > 0 ? shareText(t.value / span.value) : 'unknown';
     parts.push('The largest share of the recording, ', val(formatTime(t.value), t), ' of ', val(formatTime(span.value), span), ' ', val(`(${pct})`, t),
       `, came after ${LABELS[key]}. That includes the tool, the model and waiting.`);
   }
@@ -156,7 +170,7 @@ export function headlines(a) {
   } else if (fs.share === null) {
     out.push({ text: `First recognised source edit attempt at call ${fs.call}, time unknown`, traced: a.firstSource, label: 'First recognised source edit attempt' });
   } else {
-    out.push({ text: `${Math.round(fs.share * 100)}% of the recording had passed before the first recognised source edit attempt`, traced: a.firstSource, label: 'First recognised source edit attempt' });
+    out.push({ text: `${capital(shareText(fs.share))} of the recording had passed before the first recognised source edit attempt`, traced: a.firstSource, label: 'First recognised source edit attempt' });
   }
 
   const span = a.time.span;
@@ -165,7 +179,7 @@ export function headlines(a) {
     out.push({ text: 'Where the time went is unknown', traced: span, label: 'Time from the first call to the last valid event' });
   } else {
     const [key, t] = best;
-    out.push({ text: `${Math.round((t.value / span.value) * 100)}% of the recorded time came after ${LABELS[key]}`, traced: t, label: `Time after ${LABELS[key]}` });
+    out.push({ text: `${capital(shareText(t.value / span.value))} of the recorded time came after ${LABELS[key]}`, traced: t, label: `Time after ${LABELS[key]}` });
   }
   return out;
 }

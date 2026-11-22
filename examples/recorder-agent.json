@@ -1,6 +1,6 @@
 {
   "name": "recorded",
-  "description": "Reads and writes files inside this project and records each tool call for Session Autopsy. No shell, no web, no MCP.",
+  "description": "Reads and writes files inside this project without asking, and records each tool call for Session Autopsy. Meant for kiro-cli chat --v2. No shell, no web, no MCP.",
   "tools": [
     "fs_read",
     "fs_write"

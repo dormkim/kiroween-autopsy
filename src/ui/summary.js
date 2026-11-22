@@ -1,6 +1,6 @@
 // Case line, the three findings and the exposure meter.
 
-import { findings, headlines, formatTime, permissionNote, stateMessage } from '../core/findings.js';
+import { findings, headlines, formatTime, permissionNote, shareText, stateMessage } from '../core/findings.js';
 import { el, setVar } from './dom.js';
 import { renderParts, tracedButton } from './notes.js';
 
@@ -117,7 +117,7 @@ export function meter(ctx) {
       setVar(seg, '--w', t.value);
       bar.append(seg);
     }
-    const share = span.value !== null && span.value > 0 ? `(${Math.round((t.value / span.value) * 100)}%)` : null;
+    const share = span.value !== null && span.value > 0 ? `(${shareText(t.value / span.value)})` : null;
     list.append(el('li', { class: 'meter-item' },
       el('span', { class: `swatch ${cls}`, 'aria-hidden': 'true' }),
       el('span', {}, `${words}: `, el('span', { class: 'nowrap' }, tracedButton(ctx, formatTime(t.value), t, `Time after ${words}`), share === null ? null : `\u00a0${share}`))));

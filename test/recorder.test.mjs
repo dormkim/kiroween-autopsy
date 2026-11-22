@@ -978,6 +978,40 @@ test('an unwritable log directory gives the fixed failure line with no path or e
   }
 });
 
+test('an unwritable log directory, or an unwritable project with no log directory yet, fails record mode and is reported by both check modes, which write nothing (R13.14, R13.15)', NOT_ROOT, async () => {
+  const cases = [
+    ['an unwritable log directory', (b) => {
+      mkdirSync(b.logDir, { mode: 0o700 });
+      chmodSync(b.logDir, 0o500);
+      return [b.logDir, 0o700];
+    }],
+    ['an unwritable project with no log directory', (b) => {
+      chmodSync(b.project, 0o500);
+      return [b.project, 0o755];
+    }],
+  ];
+  for (const [what, setup] of cases) {
+    const box = sandbox();
+    const [dir, restore] = setup(box);
+    try {
+      const before = snapshot(box.root);
+      const r = await record(box, v3(box, 'read_file', { path: 'a.py', offset: null, limit: null }));
+      assertFailed(r, 'write_failed', `${what}: record mode`);
+      assertNothingChanged(box, before, `${what}: record mode cannot write there, not even the failure file`);
+      const p = await run(box, ['--prompt-check'], { keepOpen: true });
+      assert.deepEqual([p.code, p.stdout, p.stderr], [0, instruction('write_failed'), ''],
+        `${what}: --prompt-check must print the write_failed instruction, because record mode cannot write there (R13.14)`);
+      const c = await run(box, ['--check'], { keepOpen: true });
+      assert.deepEqual([c.code, c.stdout, c.stderr], [1, failLine('write_failed'), ''],
+        `${what}: --check must not print OK, because record mode cannot write there (R13.15)`);
+      assertNothingChanged(box, before, `${what}: the check modes create and write nothing`);
+      assertNoLeak(box, [r, p, c], what);
+    } finally {
+      chmodSync(dir, restore);
+    }
+  }
+});
+
 // ---- failure file and check modes ----
 
 test('a failure appends {time, code} to recording-failures.jsonl and both check modes report it without reading stdin (R13.13 to R13.15)', POSIX, async () => {
@@ -1026,9 +1060,12 @@ test('a failure appends {time, code} to recording-failures.jsonl and both check 
   assert.equal(p3.stdout, instruction('cwd_mismatch'), 'the code of the last line is reported');
 });
 
-test('the check modes report the last code only when it is known, and an empty failure file is healthy (R13.14, R13.15)', POSIX, async () => {
+test('the check modes report the last code only when it is known, and an empty failure file is a failure with code unknown (R13.14, R13.15)', POSIX, async () => {
   const cases = [
-    ['an empty failure file', '', null],
+    // Deliberately reversed in run 22: this case used to be healthy. An empty failure file is
+    // what remains when the failure file was created but its line could not be written, so it
+    // now reports a failure with code unknown. Deleting the file still clears it.
+    ['an empty failure file', '', 'unknown'],
     ['a broken line', 'garbage\n', 'unknown'],
     ['a known code', '{"time":"2026-11-22T12:00:00.000Z","code":"write_failed"}\n', 'write_failed'],
     ['an unknown code', '{"time":"2026-11-22T12:00:00.000Z","code":"not_a_known_code"}\n', 'unknown'],

@@ -300,11 +300,21 @@ Three sessions: E1 to E4 (tests and spec, this run), E5 to E10 (implementation),
   - NOT met: the first source edit file. The session's was `orchard/units.py`, the log's is `orchard/report.py`. Three edits were sent in one response, and Kiro started their hooks in parallel, 3 ms apart, in another order. A probe of 8 parallel writes in each of three sessions gave a log order different from the session order in all three. The hook input has no call id or sequence number, so preToolUse cannot restore the order. Open, not fixable in the recorder. Stated in the README ("What it records", "Limits"), the recorder header, R13.16 and design.md, and on screen after the permission note.
   - Also measured: a call rejected by `deniedPaths` never reaches the hook and cancelled the other calls of its response before their hooks ran, so neither is in the log.
 
-- [x] E12. Live recording on V3 (reviewer): the same, plus one forced failure (for example a symlinked `.session-autopsy`) and a check that the next prompt's reply begins with the failure line.
-  - Status: V3 tool calls 13 of 13, reads 7 of 7 in the same order, edits 3 of 3, first source edit attempt call 11 and `orchard/units.py` in both. This equal result is not evidence that order is kept. With the log path made unusable, both engines ran the tool and the reply began "Session Autopsy recorder: RECORDING FAILED (log_dir_unsafe)"; `--check` exited 1.
+- [ ] E12. Live recording on V3 (reviewer): the same, plus one forced failure (for example a symlinked `.session-autopsy`) and a check that the next prompt's reply begins with the failure line.
+  - Status, corrected in run 22 after an independent check: Kiro's session store has 14 tool calls, the log 13. The missing call was to a tool the agent does not have (`generate_codebase_overview`, "is not available"), which never reaches preToolUse. Reads 7 of 7 in the same order and edits 3 of 3 with the same files. The first source edit attempt is `orchard/units.py` in both, but it is call 12 in the session and call 11 in the log. The earlier status "13 of 13" and "call 11 in both" was wrong. Unticked because the log does not match the session's tool calls.
+  - NOT met: the log names the same first source edit as the session (call number differs here, file differs on V2, see E11).
+  - Forced failure: with the log path made unusable, both engines ran the tool and the reply began "Session Autopsy recorder: RECORDING FAILED (log_dir_unsafe)"; `--check` exited 1.
 
 - [x] E13. Record sessions, credits and results in BUILD_LOG.md.
   - Status: in "Live recordings with the recorder", with verbatim prompts, sessions and account meter.
 
 - [x] E14. Measured limits documented: parallel order and calls missing after `deniedPaths`, in the README, the recorder header, R13.16, R14.3 and design.md. `src/ui/summary.js` adds "Calls sent in parallel may be logged out of order, so the first edit can be another call of the same batch." inside the permission note's paragraph, shown exactly when that note is. `permissionNote` and its tests are unchanged. README has "How Kiro was used"; the older "How it was built" is removed.
   - Status: written. The reviewer runs `npm test` and checks that the replay stage still fits 1280x800 and 360x740 with a recorder log open. Reviewer checked at 360, 768 and 1280.
+
+- [ ] E15. Correction pass, run 22, after an independent check.
+  - Silent recording failure: `health()` now reports `write_failed` for a log directory that is not writable or searchable, for an unwritable project when the log directory is missing, and for zero available blocks by `statfsSync`; an empty failure file reports `unknown`. The old test "an empty failure file is healthy" is deliberately reversed, with a comment. New test for an unwritable log directory and an unwritable project in both check modes (skipped as root). R13.14, R13.15, R13.15a, design.md "Modes" and the recorder header updated.
+  - Calls to a tool the agent does not have never reach preToolUse: in the recorder header, README, R13.16 and design.md.
+  - README step 5 and the V3 paragraph use `kiro-cli chat --v2 --agent recorded`; the example agent's description says it reads and writes inside the project without asking.
+  - `shareText()` in `findings.js`: a share below 1 that rounds to 100 is "over 99%"; used in `findings.js` and `src/ui/summary.js`, with tests in `test/findings.test.mjs`.
+  - Still NOT met: the log names the same first source edit as the session; the recorder never hides a failure.
+  - Status: written. The reviewer runs `npm test` and the property seeds.

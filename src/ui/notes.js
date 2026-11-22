@@ -218,7 +218,7 @@ const callDetail = (ctx, index) => {
       el('span', { class: 'data' }, e.file === null ? 'an unknown target' : e.file), ` (${wordFor(CLASS_WORDS, e.cls)}).`));
   }
   const first = ctx.analysis.firstSource.value;
-  if (first !== null && first.call === index) out.push(el('p', { class: 'notes-text' }, 'This is the first source edit attempt.'));
+  if (first !== null && first.call === index) out.push(el('p', { class: 'notes-text' }, 'This is the first recognised source edit attempt. Earlier calls with unknown effect might also have changed files.'));
   if (effect.category === 'blocked') out.push(el('p', { class: 'notes-text' }, 'The recording hook blocked this call, so it did not run.'));
   if (effect.hiddenEdit) out.push(el('p', { class: 'notes-text notes-dim' }, 'This call could have changed files that the log does not show.'));
   if (effect.hiddenRequest) out.push(el('p', { class: 'notes-text notes-dim' }, 'It could have requested files that the log does not show.'));
@@ -243,7 +243,7 @@ const intervalDetail = (ctx, sel) => {
   const f = ctx.analysis.files.get(sel.file);
   const lower = f !== undefined && f.lowerBound;
   const body = [
-    el('p', { class: 'notes-text' }, `Requested ${lower ? 'at least ' : ''}${sel.count} ${sel.count === 1 ? 'time' : 'times'}, by ${linesLabel(sel.lines)}.`),
+    el('p', { class: 'notes-text' }, `Requested ${lower ? 'at least ' : ''}${sel.count === 1 ? 'once' : `${sel.count} times`}, by ${linesLabel(sel.lines)}.`),
     lineRows(ctx, sel.lines),
   ];
   if (lower) {
@@ -396,7 +396,7 @@ const editsSection = (ctx) => {
   const fs = a.firstSource.value;
   if (fs === null) body.push(el('p', {}, 'No source edit attempt recognised.'));
   else {
-    body.push(el('p', {}, 'First source edit attempt: call ', tracedButton(ctx, String(fs.call), a.firstSource, 'First source edit attempt'),
+    body.push(el('p', {}, 'First recognised source edit attempt: call ', tracedButton(ctx, String(fs.call), a.firstSource, 'First recognised source edit attempt'),
       ' on ', el('span', { class: 'data' }, fs.file), '.'));
   }
   body.push(el('p', {}, 'Earlier calls that could have changed files: ',

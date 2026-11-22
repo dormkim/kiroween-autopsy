@@ -71,7 +71,7 @@ const firstEdit = (a) => {
     when = [' at ', val(formatTime(fs.offset), a.firstSource)];
     if (fs.share !== null) when.push(', ', val(`${Math.round(fs.share * 100)}%`, a.firstSource), ' into the session');
   }
-  return ['First source edit attempt: call ', val(fs.call, a.firstSource), ...when, ' (log line ', val(fs.n, a.firstSource), ').', ...could('earlier ')];
+  return ['First recognised source edit attempt: call ', val(fs.call, a.firstSource), ...when, ' (log line ', val(fs.n, a.firstSource), ').', ...could('earlier ')];
 };
 
 /** The category with the most time after it, as [key, traced], or null. */
@@ -154,9 +154,9 @@ export function headlines(a) {
   if (fs === null) {
     out.push({ text: 'No source edit attempt recognised', traced: a.possibleEarlier, label: 'Calls that could have changed files' });
   } else if (fs.share === null) {
-    out.push({ text: `First source edit attempt at call ${fs.call}, time unknown`, traced: a.firstSource, label: 'First source edit attempt' });
+    out.push({ text: `First recognised source edit attempt at call ${fs.call}, time unknown`, traced: a.firstSource, label: 'First recognised source edit attempt' });
   } else {
-    out.push({ text: `${Math.round(fs.share * 100)}% of the session passed before the first source edit attempt`, traced: a.firstSource, label: 'First source edit attempt' });
+    out.push({ text: `${Math.round(fs.share * 100)}% of the session passed before the first recognised source edit attempt`, traced: a.firstSource, label: 'First recognised source edit attempt' });
   }
 
   const span = a.time.span;

@@ -25,10 +25,10 @@ No mascots, bats, cobwebs, skulls, dripping type or glow effects. A ghost or fig
 | Fogged frame | category or file effect unknown | diagonal hatch in `--c-unknown` | "unknown" |
 | Unexposed frame | `allow: false`, blocked by the recording hook | solid `--c-rebate` frame with a cross | "blocked" |
 | Torn frame | broken log line | notch cut through the strip | "log line 37 could not be read" |
-| Cut mark | first edit attempt | full-height line across strip and plates in `--c-edit` | "First edit attempt: call 46, log line 46" plus the unknown count before it |
+| Cut mark | first edit attempt | full-height line across strip and plates in `--c-edit` | "First recognised source edit attempt: call 46, log line 46" plus the unknown count before it; "first recognised edit" on the strip |
 | Exposure meter | time per category | one horizontal bar, segment length proportional to seconds | label with seconds and share; table |
 | Playhead | replay position | accent line over the strip | native range input with value text |
-| Apparition | requests (with an explicit range) covering the most requested lines, up to the playhead | one veiled figure per request, each at opacity 0.17, skewed further back the older it is; shared hollow eyes darken as copies stack | caption "The figure is 8 superimposed exposures, one per request of lines 1007 to 1010 so far", plus "requested at least" when the file has open-ended requests |
+| Apparition | requests (with an explicit range) covering the most requested lines, up to the playhead | one veiled figure per request (elongated head under a draped veil, sunken eye sockets, cheek shadow, torn hem, no mouth), each at opacity 0.17; older copies are skewed further back and displaced sideways, alternating left and right, so double exposures separate as the count grows | caption "The figure is 8 superimposed exposures, one per request of lines 1007 to 1010 so far", plus "requested at least" when the file has open-ended requests |
 | Strand | one exposure of the apparition | pale curve from that request's range on the line plate into the figure | the same caption |
 | Headline | one finding | 28px plain answer above the exact sentence, computed by `headlines()` in `findings.js` | the sentence and a "Show log lines" button |
 

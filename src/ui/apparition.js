@@ -12,11 +12,16 @@ const FIG_W = 120;
 const FIG_H = 240;
 const HEAD_X = 60;
 const HEAD_Y = 46;
-const VEIL = 'M60 10 C41 10 33 27 35 50 C29 77 23 110 17 150 C11 188 5 218 0 240 L120 240 C115 218 109 188 103 150 C97 110 91 77 85 50 C87 27 79 10 60 10 Z';
-const SHOULDERS = 'M36 72 C20 84 14 104 22 124 C34 112 42 98 48 86 Z M84 72 C100 84 106 104 98 124 C86 112 78 98 72 86 Z';
+// A draped veil over an elongated head, falling past the shoulders to a torn, uneven hem.
+const VEIL = 'M60 6 C47 6 40 18 40 34 C40 52 42 66 40 78 C30 86 22 100 20 122 C16 150 14 180 10 206 '
+  + 'L16 214 L12 226 L22 218 L26 234 L34 220 L40 238 L48 222 L56 236 L62 220 L70 232 L76 218 L84 236 L90 220 L98 230 L102 214 L110 210 '
+  + 'C106 180 104 150 100 122 C98 100 90 86 80 78 C78 66 80 52 80 34 C80 18 73 6 60 6 Z';
+// Folds of the veil, drawn as faint lines inside each exposure.
+const FOLDS = 'M46 82 C40 120 34 170 30 220 M58 88 C56 130 54 180 52 228 M70 86 C74 128 80 176 86 226 M82 92 C90 130 96 170 100 212';
 const COPY_OPACITY = 0.17;
-const SKEW = 2.6;
-const DRIFT = 0.6;
+const SKEW = 2.2;
+/** Sideways displacement per step of age, alternating left and right, so stacked exposures separate. */
+const DISPLACE = 2.4;
 
 let seq = 0;
 
@@ -95,7 +100,9 @@ export function apparition(a, opts) {
     figureLayer,
     svg('rect', { fill: 'url(#vignette)', x: g.win.x, y: g.win.y, width: g.win.w, height: g.win.h }),
     svg('rect', { class: 'grain photo-grain', x: g.win.x, y: g.win.y, width: g.win.w, height: g.win.h, filter: 'url(#grain)' }));
-  const name = opts.name.length > 30 ? `${opts.name.slice(0, 29)}...` : opts.name;
+  const short = opts.name.replace(/\.events\.jsonl$|\.jsonl$/i, '') || opts.name;
+  const fit = Math.max(8, Math.floor((W - g.cardX - 16) / 7.5) - 'Developed from '.length);
+  const name = short.length > fit ? `${short.slice(0, fit - 3)}...` : short;
   const card = svg('g', {}, mount, clip, windowLayer,
     svg('path', { class: 'window-edge', d: archPath(g.win, g.arch) }),
     svg('text', { class: 'imprint', x: g.cardX + (W - g.cardX) / 2, y: H - 9, 'text-anchor': 'middle' }, `Developed from ${name}`));
@@ -149,15 +156,16 @@ export function apparition(a, opts) {
     replace(figureLayer);
     for (let age = n - 1; age >= 0; age -= 1) {
       const r = live[n - 1 - age];
+      const dx = age === 0 ? 0 : (age % 2 === 1 ? -1 : 1) * Math.ceil(age / 2) * DISPLACE;
       const copy = svg('g', {
         class: r.call === k ? 'exposure fresh' : 'exposure',
         opacity: COPY_OPACITY,
         mask: 'url(#hollow)',
-        transform: `translate(${HEAD_X} ${HEAD_Y}) skewX(${(-age * SKEW).toFixed(2)}) translate(${-HEAD_X - age * DRIFT} ${-HEAD_Y})`,
+        transform: `translate(${dx.toFixed(2)} ${(-age * 0.5).toFixed(2)}) translate(${HEAD_X} ${HEAD_Y}) skewX(${(-age * SKEW).toFixed(2)}) translate(${-HEAD_X} ${-HEAD_Y})`,
       },
       svg('path', { fill: 'url(#ecto)', d: VEIL }),
-      svg('path', { class: 'shoulders', fill: 'url(#ecto)', d: SHOULDERS }),
-      svg('ellipse', { class: 'face', cx: HEAD_X, cy: HEAD_Y + 2, rx: 15, ry: 21 }));
+      svg('path', { class: 'fold', d: FOLDS }),
+      svg('ellipse', { class: 'face', cx: HEAD_X, cy: HEAD_Y, rx: 11, ry: 21 }));
       figureLayer.append(copy);
     }
 
@@ -179,7 +187,7 @@ export function apparition(a, opts) {
       caption.textContent = `No exposure yet: ${range} ${top.from === top.to ? 'has' : 'have'} not been requested at this call.`;
     } else {
       const noun = n === 1 ? 'exposure' : 'exposures';
-      const bound = lower ? ` Requested at least ${n} ${n === 1 ? 'time' : 'times'}; open-ended requests are not drawn.` : '';
+      const bound = lower ? ` Requested at least ${n === 1 ? 'once' : `${n} times`}; open-ended requests are not drawn.` : '';
       caption.textContent = `The figure is ${n} superimposed ${noun}, one per request of ${range} so far.${bound}`;
     }
     root.setAttribute('aria-label', `Spirit photograph of ${range} of ${file}: ${n} superimposed ${n === 1 ? 'exposure' : 'exposures'}.`);

@@ -191,7 +191,7 @@ Time on screen is m:ss from `start`, rounded to the nearest second; minutes can 
 `findings(analysis)` returns three sentences, each a list of parts: either a string or `{ text, traced }`. Templates, with every number as a traced part:
 
 1. "Lines {from} to {to} of {file} were requested {count} times. {repeats} of {requests} requests asked again for lines already requested since the last edit attempt on that file; {unchecked} could not be checked." When that file has open-ended or unlocated requests, its count is a lower bound: "were requested at least {count} times". When no explicit range exists: "No line ranges were requested. {requests} requests had unknown or open-ended lines."
-2. "First source edit attempt: call {call} at {m:ss}, {share}% into the session (log line {n}). {k} earlier calls might also have changed files; the log cannot tell." When there is none: "No source edit attempt recognised. {k} calls might have changed files; the log cannot tell." When {k} is 0: "0 earlier calls could have changed files."
+2. "First recognised source edit attempt: call {call} at {m:ss}, {share}% into the session (log line {n}). {k} earlier calls might also have changed files; the log cannot tell." When there is none: "No source edit attempt recognised. {k} calls might have changed files; the log cannot tell." When {k} is 0: "0 earlier calls could have changed files."
 3. "The largest share of the session, {m:ss} of {span} ({pct}%), came after {category}. That includes the tool, the model and waiting. The longest time until the next call was {m:ss}, after call {call} (log lines {a} and {b})."
 
 Singular forms ("1 time", "1 request", "1 earlier call") are used for a count of 1. Category names on screen are plain words: file requests, searches, edit attempts, test runs, code runs, version control calls, other calls, blocked calls, calls with unknown effect.
@@ -201,7 +201,7 @@ When `totals.partial` is true, each sentence ends with "Partial: {b} log lines c
 `headlines(analysis)` returns the plain answer that leads each finding, with the traced value its "Show log lines" control opens. Same numbers as the sentences:
 
 1. "{count} requests for the same {n} lines" ("the same line" for one line), "At least {count} requests..." when the file's count is a lower bound, "No line was requested twice" when the top count is 1, "No line ranges requested" or "No file requests recognised" when there is no explicit range.
-2. "{share}% of the session passed before the first source edit attempt"; "First source edit attempt at call {call}, time unknown" when the share is unknown; "No source edit attempt recognised" (traced to the calls that could have changed files).
+2. "{share}% of the session passed before the first recognised source edit attempt"; "First recognised source edit attempt at call {call}, time unknown" when the share is unknown; "No source edit attempt recognised" (traced to the calls that could have changed files).
 3. "{pct}% of the time came after {category}"; "Where the time went is unknown" when the span is unknown or 0.
 
 ## Screen

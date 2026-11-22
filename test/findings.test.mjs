@@ -38,7 +38,7 @@ const sentences = (a) => findings(a).map(text);
 test('the three findings, word for word', () => {
   assert.deepEqual(sentences(base()), [
     'Lines 81 to 100 of src/requests/models.py were requested 3 times. 1 of 13 requests asked again for lines already requested since the last edit attempt on that file; 6 could not be checked.',
-    'First source edit attempt: call 46 at 2:58, 39% into the session (log line 46). 13 earlier calls might also have changed files; the log cannot tell.',
+    'First recognised source edit attempt: call 46 at 2:58, 39% into the session (log line 46). 13 earlier calls might also have changed files; the log cannot tell.',
     'The largest share of the session, 4:10 of 7:37 (55%), came after code runs. That includes the tool, the model and waiting. The longest time until the next call was 1:09, after call 65 (log lines 66 and 67).',
   ]);
 });
@@ -74,7 +74,7 @@ test('singular forms', () => {
   });
   const s = sentences(a);
   assert.equal(s[0], 'Line 5 of a.py was requested 1 time. 0 of 1 request asked again for lines already requested since the last edit attempt on that file; 1 could not be checked.');
-  assert.equal(s[1], 'First source edit attempt: call 46 at 2:58, 39% into the session (log line 46). 1 earlier call might also have changed files; the log cannot tell.');
+  assert.equal(s[1], 'First recognised source edit attempt: call 46 at 2:58, 39% into the session (log line 46). 1 earlier call might also have changed files; the log cannot tell.');
 });
 
 test('no explicit range: open-ended or unknown lines, or no request at all', () => {
@@ -95,13 +95,13 @@ test('no source edit attempt recognised, never "did not edit"', () => {
   assert.equal(sentences(base({ firstSource: none, possibleEarlier: tr(0, [1, 2]) }))[1],
     'No source edit attempt recognised. 0 calls could have changed files.');
   assert.equal(sentences(base({ possibleEarlier: tr(0, [46]) }))[1],
-    'First source edit attempt: call 46 at 2:58, 39% into the session (log line 46). 0 earlier calls could have changed files.');
+    'First recognised source edit attempt: call 46 at 2:58, 39% into the session (log line 46). 0 earlier calls could have changed files.');
 });
 
 test('first source edit attempt with an unknown time', () => {
   const fs = tr({ call: 2, n: 2, file: 'a.py', offset: null, share: null }, [2]);
   assert.equal(sentences(base({ firstSource: fs, possibleEarlier: tr(0, [1]) }))[1],
-    'First source edit attempt: call 2 at an unknown time (log line 2). 0 earlier calls could have changed files.');
+    'First recognised source edit attempt: call 2 at an unknown time (log line 2). 0 earlier calls could have changed files.');
 });
 
 test('time: one-line longest, unknown gaps, unknown span, unknown effect category', () => {
@@ -253,7 +253,7 @@ const heads = (a) => headlines(a).map((h) => h.text);
 test('headlines, word for word, from the hand-built analysis', () => {
   assert.deepEqual(heads(base()), [
     '3 requests for the same 20 lines',
-    '39% of the session passed before the first source edit attempt',
+    '39% of the session passed before the first recognised source edit attempt',
     '55% of the time came after code runs',
   ], 'lines 81 to 100 are 20 lines; share 0.389 rounds to 39%; 250.4 of 456.932 s rounds to 55%, the same numbers as the sentences');
 });
@@ -274,7 +274,7 @@ test('headlines for unknown and missing values never show 0 as a stand-in', () =
   assert.equal(heads(none)[1], 'No source edit attempt recognised', 'never "did not edit"');
   assert.deepEqual(headlines(none)[1].traced.lines, [5, 9], 'it opens the calls that could have changed files');
   const fs = tr({ call: 2, n: 2, file: 'a.py', offset: null, share: null }, [2]);
-  assert.equal(heads(base({ firstSource: fs }))[1], 'First source edit attempt at call 2, time unknown');
+  assert.equal(heads(base({ firstSource: fs }))[1], 'First recognised source edit attempt at call 2, time unknown');
   assert.equal(heads(withTime({ span: tr(null, [], 'no_time'), byCategory: new Map(), longest: [] }))[2], 'Where the time went is unknown');
   assert.equal(heads(withTime({ span: tr(0, [1, 1]), byCategory: new Map([['run', tr(0, [1])]]) }))[2], 'Where the time went is unknown', 'a span of 0 gives no share');
 });
@@ -293,8 +293,8 @@ test('sample headlines match the hand-derived values in design.md', () => {
   const h = heads(r3480);
   const lower = r3480.files.get('rich/text.py').lowerBound;
   assert.equal(h[0], `${lower ? 'At least ' : ''}8 requests for the same 4 lines`, 'rich-3480: rich/text.py 1007 to 1010 (4 lines) requested 8 times, per the design.md table');
-  assert.equal(h[1], '90% of the session passed before the first source edit attempt', 'rich-3480: share 0.903 per the design.md table');
-  assert.equal(heads(load('requests-6644'))[1], '39% of the session passed before the first source edit attempt', 'requests-6644: share 0.389 per the design.md table');
+  assert.equal(h[1], '90% of the session passed before the first recognised source edit attempt', 'rich-3480: share 0.903 per the design.md table');
+  assert.equal(heads(load('requests-6644'))[1], '39% of the session passed before the first recognised source edit attempt', 'requests-6644: share 0.389 per the design.md table');
   assert.equal(heads(load('rich-3506'))[1], 'No source edit attempt recognised', 'rich-3506: none recognised per the design.md table');
 });
 

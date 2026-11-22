@@ -48,6 +48,8 @@ button, input, select { font: inherit; color: inherit; }
 
 .link { color: var(--c-exposure); text-underline-offset: 3px; }
 .link:hover { color: var(--c-text); }
+.samples-note .link { display: inline-flex; align-items: center; min-height: var(--target); }
+.nowrap { white-space: nowrap; }
 
 .skip {
   position: absolute;
@@ -384,8 +386,8 @@ button, input, select { font: inherit; color: inherit; }
 .tail-label { fill: var(--c-unknown); font: 400 12px var(--font-data); }
 
 .thread { fill: none; stroke: var(--c-exposure); stroke-opacity: 0.35; stroke-width: 1; }
-.thread-off { stroke-opacity: 0; }
 .thread-lit { stroke: var(--c-accent); stroke-opacity: 0.9; }
+.thread.thread-off { visibility: hidden; }
 
 .cut-mark { stroke: var(--c-edit); stroke-width: 2; }
 .cut-label { fill: var(--c-edit); font: 600 12px var(--font-data); }
@@ -448,7 +450,8 @@ button, input, select { font: inherit; color: inherit; }
 .back-1 { stop-color: var(--c-plate); }
 .back-2 { stop-color: var(--c-rebate); }
 
-.face { fill: var(--c-exposure); fill-opacity: 0.55; }
+.face { fill: var(--c-exposure); fill-opacity: 0.5; }
+.fold { fill: none; stroke: var(--c-rebate); stroke-opacity: 0.35; stroke-width: 2; }
 .strand { fill: none; stroke: var(--c-exposure); stroke-opacity: 0.4; stroke-width: 1.2; }
 
 .mini-plate { fill: var(--c-plate); stroke: var(--c-rule); stroke-width: 1; }

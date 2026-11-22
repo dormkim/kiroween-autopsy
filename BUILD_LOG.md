@@ -416,3 +416,42 @@ CLARITY
 
 Do not change any computed number and do not weaken tests. Keep CSP, zero dependencies, textContent only, reduced motion.
 ~~~~
+
+## Run 11: honest headline, no future in replay, polish
+
+- Time: 2026-11-22T10:38:15Z to 2026-11-22T10:41:57Z
+- Model: `claude-opus-5.5`
+- Kiro session: `93188b46-cd87-4156-9617-9f1ace94b864`
+- Exit code: 0
+- Account meter: 821.45 to 840.28 (18.83 credits)
+
+Files changed:
+- `build-evidence/write-guard.jsonl`
+- `index.html`
+- `.kiro/specs/session-autopsy/design.md`
+- `.kiro/specs/session-autopsy/tasks.md`
+- `.kiro/steering/design.md`
+- `.kiro/steering/product.md`
+- `src/core/findings.js`
+- `src/styles/app.css`
+- `src/ui/apparition.js`
+- `src/ui/notes.js`
+- `src/ui/strip.js`
+- `src/ui/summary.js`
+- `test/findings.test.mjs`
+
+Prompt, verbatim:
+
+~~~~text
+The reviewer re-ran everything: 230 tests pass; the stage fits, the apparition forms, the cut mark at call 162 is visible, contrast is at least 7.4:1, keyboard and reduced motion work. Very good. One short final pass, only these, with minimal edits:
+
+1. HONESTY, most important. The headline "90% of the session passed before the first source edit attempt" states too much, because 35 earlier calls might also have edited. Say "first recognised source edit attempt" in that headline, its label, the detail sentence and the cut-mark label wherever it is claimed (shorter "first recognised edit" is fine on the strip). Update the tests and spec templates to match.
+2. Replay must not show the future: at call 25 of requests-6644 an ectoplasm thread to call 45 is already drawn. Draw a thread only once the playhead has reached its repeat. The cut mark may stay as a landmark.
+3. At 360 the cabinet-card text "Developed from requests-6644.events.jsonl" is clipped. Use the short session name on the card or fit it.
+4. "Requested at least 1 time" should be "requested at least once"; "1 superimposed exposure" is fine. Fix the stray space in "( 29%)" when it wraps.
+5. The "Where they come from" link is 17px tall: give it a 44px target. Link it to DISCLOSURE.md as now.
+6. The apparition is close to a cartoon sheet ghost (round head, emoji-like mouth). Make it read more as a long-exposure Victorian spirit photograph of a veiled person: elongated head under a draped veil, a suggestion of sunken eye sockets and cheek shadow with no O-shaped mouth, torn trailing hem, visible displaced double exposures as the count grows. Keep one exposure per request.
+7. Tick the tasks in tasks.md that are truly written. Leave the reviewer's verification tasks open.
+
+Do not change any computed number.
+~~~~

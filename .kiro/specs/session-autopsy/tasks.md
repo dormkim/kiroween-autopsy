@@ -208,6 +208,8 @@ Boundary test first, then the page. UI code is not imported by tests. It is prov
 - [x] C16. Copy and type: "at least" on every lower-bound count (headline, sentence, caption, plate labels, table, notes); six font sizes (12, 14, 16, 20, 28, 40); case-line numbers as 44px buttons; space above the unknown-effect note.
 - [x] C17. Narrow tables: below 600px evidence tables become stacked rows with a label per cell; headers never break inside words.
 - [ ] C18. Checkpoint: the reviewer runs all tests and the 360, 768 and 1280 screenshots again, then commits.
+- [x] C19. Final pass: "first recognised source edit attempt" in the headline, its label, the sentence, notes and evidence, "first recognised edit" on the strip, with tests and spec templates updated; threads hidden until the playhead reaches their repeat, even when selected; short session name fitted on the card; "at least once"; no stray space before the meter share; 44px DISCLOSURE.md link; figure redrawn as a veiled person with sunken sockets, cheek shadow, torn hem and displaced exposures, still one per request.
+- [ ] C20. Checkpoint: the reviewer runs all tests and screenshots this pass, then commits.
 
 ## Increment D: verification (reviewer)
 

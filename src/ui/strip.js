@@ -127,7 +127,7 @@ const drawStrip = (ctx) => {
   const cutIndex = frames.findIndex((f) => f.cut);
   if (cutIndex !== -1) {
     const x = boxes[cutIndex].x;
-    const label = `first source edit, call ${frames[cutIndex].index}`;
+    const label = `first recognised edit, call ${frames[cutIndex].index}`;
     const right = x + 8 + label.length * 7.3 < width;
     cutLayer.append(
       svg('line', { class: 'cut-mark', x1: x, y1: 0, x2: x, y2: HEIGHT }),
@@ -150,7 +150,7 @@ const legend = () => el('ul', { class: 'legend' },
     svg('rect', { class: 'frame-fog', fill: FOG, x: 1, y: 1, width: 18, height: 14 })), 'fog: effect could be hidden'),
   el('li', {}, swatch(svg('rect', { class: 'frame frame-blocked', x: 1, y: 1, width: 18, height: 14 }),
     svg('line', { class: 'frame-cross', x1: 1, y1: 1, x2: 19, y2: 15 }), svg('line', { class: 'frame-cross', x1: 19, y1: 1, x2: 1, y2: 15 })), 'unexposed: blocked'),
-  el('li', {}, swatch(svg('line', { class: 'cut-mark', x1: 10, y1: 0, x2: 10, y2: 16 })), 'cut: first source edit attempt'),
+  el('li', {}, swatch(svg('line', { class: 'cut-mark', x1: 10, y1: 0, x2: 10, y2: 16 })), 'cut: first recognised source edit attempt'),
   el('li', {}, swatch(svg('path', { class: 'thread', d: 'M 1 15 Q 10 -5 19 15' })), 'thread: asked again for lines of an earlier frame'));
 
 // ---- live line ----
@@ -205,7 +205,7 @@ const liveText = (ctx, k, exposures) => {
   }
   let main = `${said.join('; ')}.`;
   main = main[0].toUpperCase() + main.slice(1);
-  if (frame.cut) main = `First source edit attempt. ${main}`;
+  if (frame.cut) main = `First recognised source edit attempt. ${main}`;
   if (frame.fog) main += ' Some effects unknown.';
   const raw = rawText(call);
   return { head: `${time}, call ${k} of ${total}`, main, raw: `${call.tool}: ${raw.length > 140 ? `${raw.slice(0, 140)}...` : raw}` };

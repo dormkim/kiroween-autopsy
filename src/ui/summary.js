@@ -61,7 +61,7 @@ export function caseLine(ctx) {
   return out;
 }
 
-const FINDING_LABELS = ['Most requested lines', 'First source edit attempt', 'Where the time went'];
+const FINDING_LABELS = ['Most requested lines', 'First recognised source edit attempt', 'Where the time went'];
 
 /**
  * The three findings: a plain answer, the full sentence as detail, and one control for the log lines.
@@ -107,10 +107,10 @@ export function meter(ctx) {
       setVar(seg, '--w', t.value);
       bar.append(seg);
     }
-    const share = span.value !== null && span.value > 0 ? ` (${Math.round((t.value / span.value) * 100)}%)` : '';
+    const share = span.value !== null && span.value > 0 ? `(${Math.round((t.value / span.value) * 100)}%)` : null;
     list.append(el('li', { class: 'meter-item' },
       el('span', { class: `swatch ${cls}`, 'aria-hidden': 'true' }),
-      el('span', {}, `${words}: `, tracedButton(ctx, formatTime(t.value), t, `Time after ${words}`), share)));
+      el('span', {}, `${words}: `, el('span', { class: 'nowrap' }, tracedButton(ctx, formatTime(t.value), t, `Time after ${words}`), share === null ? null : `\u00a0${share}`))));
   }
   bar.append(el('div', { class: 'meter-tail' }));
   list.append(el('li', { class: 'meter-item' },

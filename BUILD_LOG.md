@@ -100,3 +100,52 @@ node.innerHTML = value;
 
 The write guard hook is expected to block this. Make exactly one attempt, do not work around it, and report the exact error.
 ~~~~
+
+## Run 2: spec requirements and design
+
+- Time: 2026-11-22T08:37:38Z to 2026-11-22T08:49:13Z
+- Model: `claude-opus-5.5`
+- Kiro session: `9badee87-f2f0-4083-8497-a0310ada89ba`
+- Exit code: 0
+- Account meter: 563.59 to 582.98 (19.39 credits)
+
+Files changed:
+- `build-evidence/write-guard.jsonl`
+- `.kiro/specs/session-autopsy/design.md`
+- `.kiro/specs/session-autopsy/requirements.md`
+
+Prompt, verbatim:
+
+~~~~text
+Write the spec for Session Autopsy, phase 1: ONLY .kiro/specs/session-autopsy/requirements.md (user stories, EARS acceptance criteria with ids) and .kiro/specs/session-autopsy/design.md (modules, data shapes, algorithms, states, and numbered correctness properties that each name the requirement they validate). Read all three sample logs first; they are the real input. No code yet. Keep both files tight: smallest design that is correct. A judge must be able to read requirements.md in five minutes.
+
+Scope: a static site (index.html at repo root, works from any static host and any subpath) + a pure parser/analysis module shared by browser and Node tests. Bundled sample picker + open a local jsonl. Replay timeline from first to last event. No recorder, server, build step or dependency.
+
+Facts about the input that you cannot discover yourself:
+- A line with hook "pre" is one tool call, logged before it ran. "post" lines (scope, warning) are notes, not calls. `t` is epoch seconds. `allow: false` means blocked: it neither read nor edited.
+- `/workspace` is the sanitized working directory. The old recorder put exactly the working directory in `paths` when it could not resolve a target, so for read_file and str_replace that path means "target unknown", not a file. For those two tools `paths` comes from the tool input; for shell calls it is the old classifier's guess and must not be trusted.
+- read_file in the recording Kiro version (3.5.0): `offset` is 0-indexed, `limit` is a count defaulting to 2000, so {offset:433, limit:70} requested lines 434 to 503. The requested end may be past the end of the file, whose length is not logged. With no explicit limit, the line count is unknown: never turn it into 2000 counted lines or use the old [0, 1e9] span. Count those as open-ended requests beside the line counts, and say that line counts are a lower bound for that file.
+- `cmd` was cut at 200 characters. `cmd_truncated` is authoritative when present; when absent, a length of 200 or more means cut.
+
+Classification from tool + cmd, conservative:
+- Quote-aware segments (&& || ; | newline), cd tracking for relative paths, env prefixes and timeout, redirects, heredoc bodies not parsed as shell.
+- These four were wrong in the old classifier and must be fixed and pinned by unit AND property tests:
+  `grep x a.py 2> /dev/null` is a read of a.py, not an edit;
+  `cat a.py > /tmp/x` is a read of a.py plus a scratch write, never a source edit;
+  `cd pkg && cat a.py` is a read of pkg/a.py;
+  `cat a.py; echo` is a read of a.py.
+- A pattern search (grep, rg) reads or searches a file but its matched lines are unknown: it must not invent line numbers. An exact shell range such as `sed -n '10,20p' f` does give lines. `tail -n` does not.
+- Anything that can hide effects (interpreters and inline scripts, heredoc to python, eval, substitutions, xargs, find -exec, unknown programs, a cut command whose missing part matters) is "unknown". A visible complete read or write in an earlier segment of a cut command may be kept, with the rest marked unknown. Do not call test runners reads or edits. Over-claiming is worse than "unknown".
+- A source file is inside the workspace, has a code extension, is not a test file and is not a scratch script. Document the rule; show other edit attempts separately.
+
+Metrics, all with evidence log line numbers:
+- Lines: how many times each line was requested (compressed intervals, never an array per line), the most requested range per file and overall.
+- Re-read: a request containing at least one line already requested in this session with no recognised edit attempt on that file in between. An edit to one file must not reset another file. Show raw request counts and re-reads as two different numbers. State what it cannot see (unknown effects, open-ended requests).
+- First source edit attempt: call number, log line, seconds from start, share of session. Beside it the number of earlier calls with unknown effect that could have edited. If none was recognised say "no source edit attempt recognised", never "the agent did not edit", plus the unknown count. An edit with unknown target is not the first source edit but counts as possibly earlier.
+- Time: the interval from a call to the next call, and from the last call to the last valid event, assigned to that call and labelled "time until the next call (tool, model and waiting together)". Time after the final event is unknown. Intervals by category must sum to the first-to-last span. Show the longest intervals and the time spent after re-read calls. Non-monotonic or missing time is an anomaly with null time, not zero, and must not be silently sorted away.
+- States: empty file, every line broken, valid but zero calls, some broken lines (valid lines still analyse, metrics marked partial, every broken line number reachable), failed load, malformed field types, huge or nonsense numbers, very large file limit.
+
+Screen: the first screen carries the limit statement and gets a sample in one click. The autopsy must be understandable in 20 seconds by someone who has never seen the log format: three findings (most requested lines, first source edit attempt, where the time went) as readable sentences, then the evidence. The Victorian spirit-photograph concept from steering stays, and must read as unmistakably haunted at a glance (a Costume Contest is judged on a polished, unforgettable haunting interface) while every ghost still encodes data.
+
+Tests run as `node --permission --allow-fs-read=. test/<file>.test.mjs`, no child processes, no writes. Property tests are hand-written with a seeded generator, zero dependencies, printing the seed on failure. A further test must analyse every bundled sample without asserting numbers that were copied from the parser's own output.
+~~~~

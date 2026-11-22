@@ -27,4 +27,6 @@ Changes made to the copies:
 2. `cmd_truncated` was added to each event with a command. It is true when the original command field was 200 characters or longer, which can no longer be measured after step 1.
 3. The copies were scanned for key, token, email and IP patterns (no match), and every distinct command was read once by Claude Code. The original files were left unchanged.
 
+The task prompts and base commits belong to the upstream projects; only the event logs are here. In `rich-3480` the agent also requested two files of the recorder hook installed in its workspace (`.kiro/exorcist/...`), so that session was not free of the recorder's influence.
+
 The three files were hand-picked to show different shapes of session. They are not a representative sample and support no statistical claim.

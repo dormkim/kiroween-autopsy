@@ -311,7 +311,8 @@ Input facts come only from the "Phase 2" section of BUILD_LOG.md. Shapes not lis
 | Topic | Decision | Why |
 |---|---|---|
 | New folders | `recorder/` holds the one file a user copies. `examples/` holds `recorder-agent.json`. Neither is loaded by the page. | R13.1. The recorder runs in a user's project, so it cannot live in `scripts/` (development only) or `src/` (site). |
-| No `allow` | The recorder never writes `allow`. | preToolUse runs before the permission check on both engines, and denied attempts reach the hook (measured). |
+| No `allow` | The recorder never writes `allow`. | preToolUse runs before the permission check on both engines, and denied attempts reach the hook (measured). Calls rejected by `deniedPaths` do not, and can cancel other calls of the same response (live recordings). |
+| Parallel order | Lines are written in the order the hooks start. No reordering. | The hook input has no sequence number (live recordings), so the order inside a batch of parallel calls can differ from the session. Open. |
 | Absent `allow` | Parsed as permission `not_recorded`, classified like an allowed call, counted and stated on screen. | Phase 1 treated absent like malformed (unknown, hidden effects). That would make every recorder call unknown. Malformed stays unknown. |
 | Tool names | Mapped to a fixed set by the table below. Never copied. | Tool names are text from the event and can be anything. |
 | Shell | `execute_bash` with no `cmd`, always. No option records commands. | Commands can hold secrets and paths. Shell input shape is not measured. |
@@ -402,6 +403,8 @@ File names inside the project are written to the log. A file named `outside-work
 - The prompt check works only when the agent relays the instruction, and cannot see a failure after the last prompt.
 - If `node` is missing, the hook cannot run and cannot report itself.
 - The log records attempts. It cannot say whether a call was allowed, denied or ran.
+- The log can include denied calls, and some rejected calls never appear. A call rejected by the agent's `deniedPaths` never reaches preToolUse, and other calls of the same response can be cancelled before their hooks run (measured in the live recordings).
+- Calls sent in parallel in one response are logged in the order their hooks happened to start, so the order inside such a batch, including which file is the first source edit, can differ from the session. The hook input has no call id or sequence number, so preToolUse cannot restore it. Open. The live first-source-edit check failed for this reason (BUILD_LOG.md, "Live recordings").
 - File names inside the project are recorded. Commands, contents and outside names are not.
 
 ## Reading recorder logs
@@ -445,6 +448,8 @@ Per path in a `read_file`: `/workspace`, no path or an unresolvable path gives n
 - N > 1: "Whether N calls were allowed or ran was not recorded. They count as attempts and can include denied calls."
 
 The number is a traced part. The UI shows it in the case line. No screen copy describes a `not_recorded` call as allowed.
+
+Directly after the permission note, and exactly when it is shown, `ui/summary.js` adds one static sentence: "Calls sent in parallel may be logged out of order, so the first edit can be another call of the same batch." It is not part of `permissionNote`, has no number and is not traced.
 
 ## Correctness properties, phase 2
 

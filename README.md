@@ -11,6 +11,32 @@ It shows:
 
 Numbers counted from a log link back to its lines. How a bundled sample ended comes from separate records, not from the log.
 
+You can record your own Kiro CLI session with the bundled hook (see "Record your own session"). Such a log draws a figure only when the agent requested explicit line ranges, and neither live test recording did.
+
+## How Kiro was used
+
+Claude Code directed, reviewed, ran tests and committed; Kiro CLI wrote the spec, code, tests and this README. Runs are numbered as in [BUILD_LOG.md](BUILD_LOG.md). [DISCLOSURE.md](DISCLOSURE.md) says who made what and where the sample logs come from.
+
+| Feature | What it did | Evidence |
+|---|---|---|
+| Steering | Product rules, words, tech limits, structure and the visual concept, in `.kiro/steering/` | BUILD_LOG run 1, updated in later runs |
+| Spec | Requirements with EARS criteria, design with correctness properties, tasks in increments, in `.kiro/specs/session-autopsy/` | runs 2 and 3; recorder added in run 15 |
+| Custom agent | `autopsy-builder`: read and write tools only, paths limited to the project, no shell. Its boundary was tested in 23 probe sessions before any code | run 0 |
+| Agent hook: write guard | `scripts/hooks/write-guard.mjs` checked the Kiro writes after run 1. Its one block was the deliberate live test | runs 1 and 1b, `build-evidence/write-guard.jsonl` |
+| Agent hook: recorder | `recorder/session-autopsy-record.mjs`, the preToolUse and userPromptSubmit hook this project ships | runs 15 to 17, "Live recordings" |
+| Property-based tests | Seeded generators pin the four shell regression cases. Seeds 7, 12345 and 987654321 found no failure. They did not find the `sed -i` and `tee` gap, which a reviewer's probe found | runs 5 and 6, "Verification" sections |
+| Headless CLI | Build runs used `chat --v2 --no-interactive`. The recorder probes ran headless on both the V2 and V3 engines | run 1 onward, "Probe sessions before the spec" |
+
+Not used: Kiro IDE, Kiro Web, Crew, MCP, powers, and a shell for Kiro.
+
+What failed:
+
+- Run 4 exited with code 0 and wrote nothing: it ran out of output while planning. Run 5 resumed it in smaller steps.
+- Run 6 stopped after writing failing tests. Run 7 resumed it.
+- Run 7 left two `tee` tests failing. Run 8 fixed them.
+- Review found false claims: that `file://` works (fixed in run 12), that the samples were finished sessions, while two did not end normally and the page did not show how any of them ended (runs 13 and 14), and more from an outside review (run 17).
+- The live check that the log names the same first source edit as the session was not met, because parallel calls are logged in the order their hooks started ("Live recordings").
+
 ## What it does not claim
 
 In three comparisons of interventions we did not confirm more issues solved, so this page only reads recordings after a session ends. It never intervenes.
@@ -62,7 +88,8 @@ One line per tool call: the time, a fixed tool name, file names relative to the 
 
 - File names inside the project are recorded. They can be sensitive.
 - A path outside the project is written as `/outside-workspace`, with no name. The project itself, and a target that cannot be read, is `/workspace`.
-- Every call the agent asks for is recorded as an attempt. The hook runs before Kiro's permission check, so the log cannot say whether a call was allowed, denied or ran. Denied calls are included, and the page says how many calls have no recorded permission.
+- Every call that reaches the hook is recorded as an attempt. The hook runs before Kiro's permission check, so the log cannot say whether a call was allowed, denied or ran. The log can include denied calls, and some rejected calls never appear: a call rejected by the agent's `deniedPaths` never reaches the hook, and other calls of the same response can be cancelled before their hooks run. The page says how many calls have no recorded permission.
+- Calls sent in parallel in one response are logged in the order their hooks happened to start. Inside such a batch the log order can differ from the session, including which file is the first source edit. The hook input has no sequence number, so a preToolUse hook cannot restore the order.
 
 What it never records: commands, file contents, old or new text of an edit, tool output, prompts, tool-use purposes, values of unknown fields, absolute paths and home paths. Commands are never recorded, and there is no option to record them, because they can hold secrets. A shell call is logged only as `execute_bash`, so the page shows its effect as unknown.
 
@@ -123,6 +150,8 @@ A log you open is read in your browser and stays there. The code has no upload a
 - File lengths are not logged. A request without a line range counts as "whole file, length unknown" and does not add to line counts.
 - Shell commands are read with a small, conservative parser. Interpreters, inline scripts, unknown programs and commands cut at 200 characters may have touched files the log does not show. They are marked as unknown, never as zero.
 - Time per call is the time until the next call: tool, model and waiting together. The time after the last event is unknown.
+- Order of parallel calls: recorded logs keep the order in which the hooks of parallel calls started, not the session's order. In the V2 live recording three edits sent in one response were logged in another order, so the log named `orchard/report.py` as the first source edit where the session's was `orchard/units.py`. That acceptance check failed and stays open: the hook input has no sequence number.
+- Missing calls: calls rejected by `deniedPaths`, and calls of the same response cancelled before their hooks ran, are not in a recorded log.
 - Opened files are limited to 50 MB.
 - Touch targets: every control is at least 44 by 44px, except numbers inside running text (finding sentences and notes), which are buttons as small as 11 by 38px. This is an open limit, not compliance. Each finding has a 44px "Show log lines" button that shows the same log lines.
 - The three sample logs were hand-picked to show different session shapes. They support no statistical claim.
@@ -144,10 +173,6 @@ The event logs do not record how a session ended, so every share and total on th
 - `requests-6644`: exited normally, with exit code 0. The log has no outcome.
 
 A file you open yourself, even one with a sample's name, shows "Ending unknown". Sources and line references are in [DISCLOSURE.md](DISCLOSURE.md).
-
-## How it was built
-
-Claude Code directed and verified the work, and Kiro CLI wrote the code: the steering documents, the spec, the page, the tests and the write-guard hook. Kiro had no shell, so Claude Code ran the tests and checks. See [DISCLOSURE.md](DISCLOSURE.md) for who made what and where the sample logs come from, and [BUILD_LOG.md](BUILD_LOG.md) for each session.
 
 ## License
 

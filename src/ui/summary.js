@@ -21,6 +21,9 @@ const METER = [
 /** Session name: the file name without .events.jsonl or .jsonl. */
 export const sessionName = (name) => name.replace(/\.events\.jsonl$|\.jsonl$/i, '') || name;
 
+/** Shown exactly when the permission note is shown. Static text, no number, so nothing to trace. */
+const PARALLEL_NOTE = 'Calls sent in parallel may be logged out of order, so the first edit can be another call of the same batch.';
+
 /** A number outside running text: a full 44px button. */
 const statButton = (ctx, text, traced, label) => {
   const b = tracedButton(ctx, text, traced, label);
@@ -52,10 +55,12 @@ export function caseLine(ctx) {
   const head = el('h2', { class: 'case-name', tabindex: '-1', id: 'case-head' }, sessionName(ctx.name));
   // How the session ended is provenance for bundled samples only; an opened file is unknown.
   // Recorder logs do not record permission: say so before the headlines, never call them allowed.
+  // Recorder logs also keep parallel calls in hook start order, not session order (measured live).
   const note = permissionNote(a);
   const out = el('header', { class: 'case' }, head,
     el('p', { class: 'case-ending' }, ctx.ending.sentence),
-    note === null ? null : el('p', { class: 'case-permission', role: 'note' }, renderParts(ctx, note, 'Calls whose permission was not recorded')),
+    note === null ? null : el('p', { class: 'case-permission', role: 'note' }, renderParts(ctx, note, 'Calls whose permission was not recorded'),
+      ' ', el('span', { class: 'case-parallel' }, PARALLEL_NOTE)),
     el('p', { class: 'case-line' }, 'Developed from ', el('span', { class: 'data' }, ctx.name), '.'),
     el('div', { class: 'case-row' }, stats, replayButton));
   if (a.totals.partial) {

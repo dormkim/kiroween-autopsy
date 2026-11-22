@@ -293,9 +293,18 @@ Three sessions: E1 to E4 (tests and spec, this run), E5 to E10 (implementation),
   - Proof: `test/recorder.test.mjs`, run by the reviewer.
 
 - [ ] E10. Checkpoint: the reviewer runs `npm test` and the property seeds, then commits.
+  - Status: BUILD_LOG.md records 282 passing tests before run 17. A run of the property seeds in phase 2 is not recorded, so this stays open.
 
 - [ ] E11. Live recording on V2 (reviewer): a harmless session in a scratch project with the example agent; the log opens in the page; every line matches the session's tool calls; no content, command or outside name in it.
+  - Status: recorded (BUILD_LOG.md, "Live recordings"). The log opened unedited with "Open a log file". Tool calls 5 of 5, read requests 5 of 5 with the same files and order, edit attempts 3 of 3 with the same files, first source edit attempt at call 3 in both.
+  - NOT met: the first source edit file. The session's was `orchard/units.py`, the log's is `orchard/report.py`. Three edits were sent in one response, and Kiro started their hooks in parallel, 3 ms apart, in another order. A probe of 8 parallel writes in each of three sessions gave a log order different from the session order in all three. The hook input has no call id or sequence number, so preToolUse cannot restore the order. Open, not fixable in the recorder. Stated in the README ("What it records", "Limits"), the recorder header, R13.16 and design.md, and on screen after the permission note.
+  - Also measured: a call rejected by `deniedPaths` never reaches the hook and cancelled the other calls of its response before their hooks ran, so neither is in the log.
 
-- [ ] E12. Live recording on V3 (reviewer): the same, plus one forced failure (for example a symlinked `.session-autopsy`) and a check that the next prompt's reply begins with the failure line.
+- [x] E12. Live recording on V3 (reviewer): the same, plus one forced failure (for example a symlinked `.session-autopsy`) and a check that the next prompt's reply begins with the failure line.
+  - Status: V3 tool calls 13 of 13, reads 7 of 7 in the same order, edits 3 of 3, first source edit attempt call 11 and `orchard/units.py` in both. This equal result is not evidence that order is kept. With the log path made unusable, both engines ran the tool and the reply began "Session Autopsy recorder: RECORDING FAILED (log_dir_unsafe)"; `--check` exited 1.
 
-- [ ] E13. Record sessions, credits and results in BUILD_LOG.md.
+- [x] E13. Record sessions, credits and results in BUILD_LOG.md.
+  - Status: in "Live recordings with the recorder", with verbatim prompts, sessions and account meter.
+
+- [ ] E14. Measured limits documented: parallel order and calls missing after `deniedPaths`, in the README, the recorder header, R13.16, R14.3 and design.md. `src/ui/summary.js` adds "Calls sent in parallel may be logged out of order, so the first edit can be another call of the same batch." inside the permission note's paragraph, shown exactly when that note is. `permissionNote` and its tests are unchanged. README has "How Kiro was used"; the older "How it was built" is removed.
+  - Status: written. The reviewer runs `npm test` and checks that the replay stage still fits 1280x800 and 360x740 with a recorder log open.

@@ -18,7 +18,14 @@
 //
 // Limits:
 // - preToolUse runs before the permission check, so the log holds attempts. It cannot say whether
-//   a call was allowed, denied or ran, and no permission field is written.
+//   a call was allowed, denied or ran, and no permission field is written. The log can include
+//   denied calls, and some rejected calls never appear: a call rejected by the agent's deniedPaths
+//   never reaches this hook, and other calls of the same response can be cancelled before their
+//   hooks run.
+// - Calls sent in parallel in one response are logged in the order their hooks happened to start.
+//   Inside such a batch the log order, including which file is the first source edit, can differ
+//   from the session. The hook input has no sequence number, so this cannot be fixed here. It made
+//   the live first-source-edit check fail (BUILD_LOG.md, "Live recordings").
 // - Kiro does not show a preToolUse hook's stderr. A failure exits 1 (never 2, which would block
 //   the tool), prints one fixed line on stderr and appends {time, code} to
 //   .session-autopsy/recording-failures.jsonl.

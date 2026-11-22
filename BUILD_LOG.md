@@ -897,3 +897,35 @@ Test sessions of this part, verbatim prompts, sessions and account meter:
 * fail-v2 | orchard-fail | recorded | --v2 | claude-haiku-5.5 | ### RC=0 ### SESSION dcd5380d-4725-43bd-843e-98da7e0258c6 ### METER 994.95 -> 994.95  | prompt: Read ISSUE.md and tell me in one sentence what it says.
 * fail-v3 | orchard-fail | recorded | --v3 --trust-workspace | claude-haiku-5.5 | ### RC=0 ### SESSION sess_782910e0-5fa7-494b-9627-410993d30eb0 ### METER 994.95 -> 994.95  | prompt: Read ISSUE.md and tell me in one sentence what it says.
 ~~~~
+
+## Run 18: measured limits, how Kiro was used
+
+- Time: 2026-11-22T13:57:13Z to 2026-11-22T14:01:04Z
+- Model: `claude-opus-5.5`
+- Kiro session: `d7575b79-4436-4f2c-bae2-e6553b38da6f`
+- Exit code: 0
+- Account meter: 994.97 to 1006.88 (11.91 credits)
+
+Files changed:
+- `build-evidence/write-guard.jsonl`
+- `.kiro/specs/session-autopsy/design.md`
+- `.kiro/specs/session-autopsy/requirements.md`
+- `.kiro/specs/session-autopsy/tasks.md`
+- `README.md`
+- `recorder/session-autopsy-record.mjs`
+- `src/ui/summary.js`
+
+Prompt, verbatim:
+
+~~~~text
+Last pass of phase 2: documentation of measured limits and "How Kiro was used". No new feature, no algorithm change, no test weakened. Read README.md, BUILD_LOG.md (all of it, it is the evidence), DISCLOSURE.md, and only the lines you edit elsewhere. One tool call at a time, keep going.
+
+1. Two limits measured live (BUILD_LOG "Live recordings"), state them in README ("What it records" and "Limits"), the header comment of the recorder, requirements R13 and the spec:
+   a) calls sent in parallel in one response are logged in the order their hooks happened to start, so the order inside such a batch, including WHICH file is the first source edit, can differ from the session. The hook input has no sequence number, so this is open and cannot be fixed in preToolUse. The first-edit acceptance check failed for this reason; say so.
+   b) calls rejected by the agent's deniedPaths never reach the hook, and other calls of the same response can be cancelled before their hooks run: neither is in the log. So replace any wording that says denied calls are all included with "can include denied calls, and some rejected calls never appear".
+   On screen: in src/ui/summary.js add one static sentence right after the existing permission note, shown exactly when that note is shown: "Calls sent in parallel may be logged out of order, so the first edit can be another call of the same batch." Do not change permissionNote or its tests. Keep it small enough that the replay stage still fits.
+   tasks.md: tick what increment E really finished; mark the live first-source-edit check as NOT met, with the reason.
+2. README: a short "How Kiro was used" section directly after the opening paragraph and before everything long. At most 25 lines. First sentence: Claude Code directed, reviewed, ran tests and committed; Kiro CLI wrote the spec, code, tests and this README. A table with one row per feature, what it did, and evidence as file plus run number from BUILD_LOG: steering, spec, custom agent (restricted, boundary tested before code), agent hooks (the development write guard, which blocked only the one deliberate test; and the recorder this project ships), property-based tests (say what they did not find, only if BUILD_LOG supports it), headless CLI with both engines in the recorder probes. Then "Not used": IDE, Web, Crew, MCP, powers, shell for Kiro. Then "What failed", each with run number: run 4 wrote nothing, run 6 stopped early, run 7 left two failing tests, the review that found the false claims and the missing sample endings, and the unmet parallel-order check. No scores, no judging, no internal evaluations, no adjectives of praise. Every number must be in BUILD_LOG.
+   Shorten or merge any older "How it was built" section so that nothing is said twice.
+3. README opening: one line saying that you can record your own Kiro CLI session with the bundled hook, and that such a log draws a figure only when the agent requested explicit line ranges (neither live test recording did).
+~~~~

@@ -1,3 +1,13 @@
 {"time":"2026-11-22T08:36:59.830Z","path":"docs-probe.js","decision":"block","rule":"html-sink"}
 {"time":"2026-11-22T08:47:26.684Z","path":".kiro/specs/session-autopsy/requirements.md","decision":"allow","rule":"ok"}
 {"time":"2026-11-22T08:48:57.567Z","path":".kiro/specs/session-autopsy/design.md","decision":"allow","rule":"ok"}
+{"time":"2026-11-22T08:52:35.607Z","path":".kiro/specs/session-autopsy/tasks.md","decision":"allow","rule":"ok"}
+{"time":"2026-11-22T08:52:50.937Z","path":".kiro/steering/structure.md","decision":"allow","rule":"ok"}
+{"time":"2026-11-22T08:52:50.942Z","path":".kiro/steering/product.md","decision":"allow","rule":"ok"}
+{"time":"2026-11-22T08:52:50.948Z","path":".kiro/steering/product.md","decision":"allow","rule":"ok"}
+{"time":"2026-11-22T08:52:50.960Z","path":".kiro/steering/design.md","decision":"allow","rule":"ok"}
+{"time":"2026-11-22T08:52:50.960Z","path":".kiro/steering/structure.md","decision":"allow","rule":"ok"}
+{"time":"2026-11-22T08:52:50.961Z","path":".kiro/steering/design.md","decision":"allow","rule":"ok"}
+{"time":"2026-11-22T08:52:50.968Z","path":".kiro/steering/tech.md","decision":"allow","rule":"ok"}
+{"time":"2026-11-22T08:53:00.783Z","path":".kiro/specs/session-autopsy/design.md","decision":"allow","rule":"ok"}
+{"time":"2026-11-22T08:53:00.788Z","path":".kiro/specs/session-autopsy/design.md","decision":"allow","rule":"ok"}

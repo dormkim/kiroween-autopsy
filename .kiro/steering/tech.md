@@ -23,7 +23,7 @@
 - `src/ui/` is the only code that touches the DOM or fetches.
 - Unknown is `null`. Never use `undefined`, `0`, `''`, `NaN` or `[]` as a stand-in.
 - Every metric is a traced value: `{ value, lines, reason }`. `lines` is a sorted array of 1-based log line numbers that support the value. `reason` is a short code when `value` is `null`, otherwise `null`.
-- Parsing: split on `\n`, drop a trailing `\r`, number lines from 1, `JSON.parse` each line inside try/catch. A broken line records its number and a reason code, never its content. Validate types at this boundary. A wrong type on a required field (`t`, `hook`, `tool` on a call) breaks the line. A wrong type on an optional field makes that field unknown.
+- Parsing: split on `\n`, drop a trailing `\r`, number lines from 1, `JSON.parse` each line inside try/catch. A broken line records its number and a reason code, never its content. Validate types at this boundary. A wrong type on a required field (`hook`, `tool` on a call) breaks the line. A wrong type on any other field, `t` included, makes that field unknown.
 - ES2022. Named exports only. `const` by default. Small functions with JSDoc types on exports. No classes unless they hold state. Two-space indent, semicolons, single quotes.
 
 ## Tests

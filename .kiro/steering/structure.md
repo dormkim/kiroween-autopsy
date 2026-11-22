@@ -5,12 +5,16 @@ index.html                 page shell, CSP meta, loads src/ui/main.js
 src/
   core/                    pure logic, runs in the browser and under node:test
     parse.js               text -> calls, other lines, broken lines, all with log line numbers
+    shell.js               cmd string -> segments, redirects, flags
     classify.js            call -> category and file effect, from tool, cmd, range
+    lines.js               requested ranges -> merged count intervals
     metrics.js             repeated requests, first edit attempt, time per category
     timeline.js            frames for the replay
+    findings.js            finding sentences and state messages
   ui/                      the only code that touches the DOM or fetches
     main.js                entry point and state machine (loading, empty, error, normal)
     dom.js                 el(tag, attrs, text) helper built on createElement and textContent
+    summary.js             case line, findings, exposure meter
     strip.js               contact strip and playhead
     plates.js              exposure plates
     notes.js               detail panel for the selected call or range

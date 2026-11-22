@@ -7,15 +7,15 @@ Smallest design that meets `requirements.md`. Steering (`.kiro/steering/`) still
 | Topic | Decision | Why |
 |---|---|---|
 | Call number | Ordinal of `pre` lines, blocked included. Logged `call` is ignored. | Blocked lines have no `call` field, so logged numbers skip them. |
-| Interval | Call to next call; last call to last valid event. Notes do not split intervals. | Requirement R7.1. Steering said "until the next event"; update steering. |
-| Missing `t` on a call | Call kept, time unknown, anomaly listed. | R7.6. Steering said a wrong `t` breaks the line; update steering. |
+| Interval | Call to next call; last call to last valid event. Notes do not split intervals. | R7.1. |
+| Missing `t` on a call | Call kept, time unknown, anomaly listed. | R7.6. |
 | Re-read | Called "repeat request" on screen, `repeat` in code. | Steering bans "read" for a request. |
 | Repeat overlap | Only two explicit ranges can prove a repeat. Open-ended and unknown-line requests make it "could not be checked". | File length is not logged, so overlap with an open-ended request is not provable. |
 | Line numbers | Requested line numbers, 1-based, even past the end of the file. | The request is what the log shows. |
 | Shell working directory | Each shell call starts at `/workspace`. `cd` is tracked within one call. | All samples either `cd /workspace` or use root-relative paths. A wrong guess here would misname files, so an unresolvable `cd` makes later relative paths unknown. |
 | Dot-directories | Paths with a segment starting with `.` are never source. | `rich-3480` requests `.kiro/exorcist/...`, the old recorder's own code. |
-| Extra modules | `core/shell.js`, `core/lines.js`, `core/findings.js`, `ui/summary.js`. | One concern each: shell lexing, interval counting, sentence text (pure, so the copy rules are testable), findings and meter rendering. |
-| Steering example | Steering says "call 46, log line 47". In `requests-6644` the first edit attempt is call 46 on log line 46 (log line 47 is a note). | Copy uses the computed values. |
+| Extra modules | `core/shell.js`, `core/lines.js`, `core/findings.js`, `ui/summary.js`. | One concern each. Listed in steering `structure.md`. |
+| First edit example | In `requests-6644` the first edit attempt is call 46 on log line 46; log line 47 is a note. | Copy uses the computed values. |
 
 ## Modules
 

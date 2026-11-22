@@ -149,3 +149,32 @@ Screen: the first screen carries the limit statement and gets a sample in one cl
 
 Tests run as `node --permission --allow-fs-read=. test/<file>.test.mjs`, no child processes, no writes. Property tests are hand-written with a seeded generator, zero dependencies, printing the seed on failure. A further test must analyse every bundled sample without asserting numbers that were copied from the parser's own output.
 ~~~~
+
+## Run 3: spec tasks, steering corrections
+
+- Time: 2026-11-22T08:49:40Z to 2026-11-22T08:53:14Z
+- Model: `claude-opus-5.5`
+- Kiro session: `8a292033-c5c8-4dfa-aa05-ab83ad9a9e20`
+- Exit code: 0
+- Account meter: 582.98 to 589.80 (6.82 credits)
+
+Files changed:
+- `build-evidence/write-guard.jsonl`
+- `.kiro/specs/session-autopsy/design.md`
+- `.kiro/specs/session-autopsy/tasks.md`
+- `.kiro/steering/design.md`
+- `.kiro/steering/product.md`
+- `.kiro/steering/structure.md`
+- `.kiro/steering/tech.md`
+
+Prompt, verbatim:
+
+~~~~text
+Read .kiro/steering and .kiro/specs/session-autopsy. Two jobs, no application code:
+1. Write .kiro/specs/session-autopsy/tasks.md: a checkbox plan, each task naming files, requirement ids and properties, with the test that proves it. Order it in three increments that will each be implemented in its own session and committed on its own:
+   A. tests first for parsing and shell classification (including the four regression cases as unit and property tests), then core parse, shell, classify;
+   B. metrics, lines, timeline, findings with their tests, including the sample tests;
+   C. the site and its boundary test, then a README.
+   Include a final verification increment that the reviewer runs (tests, independent recount, screenshots at 360, 768 and 1280).
+2. Correct the steering files where your spec's Decisions table says they are wrong, with the smallest edits, then shorten those Decisions rows accordingly.
+~~~~

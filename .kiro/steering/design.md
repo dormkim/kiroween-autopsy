@@ -18,12 +18,12 @@ The ghost is the measurement. No mascots, bats, cobwebs, skulls, dripping type o
 | Exposure band | lines covered by n requests | opacity `0.25 + 0.75 * (1 - 0.8^(n - 1))`: n=1 0.25, 2 0.40, 3 0.52, 5 0.69, 8 0.85. 1px edge in `--c-exposure-edge` on every band | "requested 5 times" label and table row with log lines |
 | Brightest band | highest n on the plate | caption beside it | text with log lines |
 | Overexposed edge | whole-file request, length unknown | band runs off the plate bottom with a ragged edge | "whole file, length unknown" |
-| Frame | one call | width proportional to seconds until the next event, minimum 4px; the strip scrolls inside its own box | edge code |
+| Frame | one call | width proportional to seconds until the next call, minimum 4px; the strip scrolls inside its own box | edge code |
 | Edge code | call number and log line | `--font-data` 12px in the margin | is the text |
 | Fogged frame | category or file effect unknown | diagonal hatch in `--c-unknown` | "unknown" |
 | Unexposed frame | `allow: false`, blocked by the recording hook | solid `--c-rebate` frame with a cross | "blocked" |
 | Torn frame | broken log line | notch cut through the strip | "log line 37 could not be read" |
-| Cut mark | first edit attempt | full-height line across strip and plates in `--c-edit` | "First edit attempt: call 46, log line 47" plus the unknown count before it |
+| Cut mark | first edit attempt | full-height line across strip and plates in `--c-edit` | "First edit attempt: call 46, log line 46" plus the unknown count before it |
 | Exposure meter | time per category | one horizontal bar, segment length proportional to seconds | label with seconds and share; table |
 | Playhead | replay position | accent line over the strip | native range input with value text |
 

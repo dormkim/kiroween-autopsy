@@ -43,7 +43,7 @@ Repeated reading is described with counts and line numbers. It is never judged.
 2. `cmd` is cut at 200 characters when `cmd_truncated` is true. The visible part can still set the category, but anything the cut part could have done (more target files, a file write) is unknown.
 3. Each call has two separate results: a category (what kind of call it is) and a file effect (`none`, `requested`, `edit attempt`, or `unknown`). Starting categories: file request, search, run, edit attempt, version control, blocked, unknown. The spec lists the tools and command patterns seen in `samples/`.
 4. A read with an empty `range` requests the whole file. Its length is unknown. A `limit` without an `offset` starts at the file start. The offset base (0 or 1) is not documented, so the detail view shows ranges as logged ("offset 360, limit 50"). Overlap counts do not depend on the base.
-5. The first edit attempt is the first call that is certainly an edit attempt on a file inside the workspace. Earlier calls whose file effect is unknown are counted and listed with it: "First edit attempt: call 46, log line 47. 3 earlier commands could have changed files: unknown."
+5. The first edit attempt is the first call that is certainly an edit attempt on a file inside the workspace. Earlier calls whose file effect is unknown are counted and listed with it: "First edit attempt: call 46, log line 46. 3 earlier commands could have changed files: unknown."
 6. `"allow": false` means the recording hook blocked the call. Show it as blocked, never as run.
 7. Lines that are not `"hook": "pre"` (for example `"hook": "post"`) are not calls. They are counted and listed by log line.
 
@@ -64,7 +64,7 @@ Every number on screen can be traced to raw log line numbers. Focus or click on 
 
 ## Time
 
-`t` is the time in epoch seconds when the hook ran, before the tool ran. The time of a call is the time until the next logged line, labelled "until the next event". The last call's time is unknown. The total is first to last log line "plus an unknown tail". Times on screen are relative to the first line, as m:ss.
+`t` is the time in epoch seconds when the hook ran, before the tool ran. The time of a call is the time until the next call, labelled "time until the next call (tool, model and waiting together)". Notes do not split it. The last call's time runs to the last valid event. The total is first call to last valid event "plus an unknown tail". Times on screen are relative to the first call, as m:ss.
 
 ## Privacy and copy
 

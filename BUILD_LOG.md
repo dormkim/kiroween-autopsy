@@ -455,3 +455,34 @@ The reviewer re-ran everything: 230 tests pass; the stage fits, the apparition f
 
 Do not change any computed number.
 ~~~~
+
+## Run 12: remove false file:// claim, small copy fixes, verification status
+
+- Time: 2026-11-22T10:45:15Z to 2026-11-22T10:47:32Z
+- Model: `claude-opus-5.5`
+- Kiro session: `93188b46-cd87-4156-9617-9f1ace94b864`
+- Exit code: 0
+- Account meter: 840.28 to 854.94 (14.66 credits)
+
+Files changed:
+- `build-evidence/write-guard.jsonl`
+- `index.html`
+- `.kiro/specs/session-autopsy/design.md`
+- `.kiro/specs/session-autopsy/requirements.md`
+- `.kiro/specs/session-autopsy/tasks.md`
+- `.kiro/steering/tech.md`
+- `README.md`
+- `src/core/findings.js`
+- `src/styles/app.css`
+- `src/ui/main.js`
+- `test/findings.test.mjs`
+
+Prompt, verbatim:
+
+~~~~text
+Reviewer's verification results: 230 tests pass, also with SEED 7, 12345 and 987654321; npm test passes; 22 on-screen numbers equal an independent count from the original logs; screenshots at 360, 768 and 1280 show no overflow, no console error over HTTP, no external request. Fix only these, minimal edits:
+
+1. A false claim: README.md says opening index.html from disk works from file://. Tested in Chromium: it does NOT, the browser blocks ES module scripts from file://. Remove that claim from README and any spec or steering line that makes it, say an HTTP server is required, and show a plain visible message in index.html that is replaced when the module loads ("This page needs to be served over HTTP, see README"), without inline script.
+2. In finding sentences "were requested 1 time" must read "were requested once", and the bracket before a share still wraps as "( 29%)": keep the bracket with its number. Update tests as needed.
+3. In tasks.md tick only the checkpoints A11, B12, C11, C18, C20 and D1. Under D2 to D5 add a one-line status, unticked: D2 numbers verified, click-through of three traced numbers per sample not done; D3 screenshots and keyboard done, the over 50 MB, loading and no-calls screens not exercised; D4 partly done (screen, README, home paths, secrets); D5 recorded in BUILD_LOG.md.
+~~~~

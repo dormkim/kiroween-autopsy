@@ -22,7 +22,7 @@ As someone studying agents, I want to open a recorded session in one click, so t
 - R1.2 THE page SHALL show one button per bundled sample. WHEN one is pressed, THE page SHALL load and show its autopsy with no further input.
 - R1.3 THE page SHALL offer a file input for a local `.jsonl` file and SHALL read it in the browser, with no upload and no storage.
 - R1.4 IF the chosen file is larger than 50 MB, THEN THE page SHALL show the error state with the file size and SHALL NOT parse it.
-- R1.5 THE page SHALL work from `file://` for local files and from any static host at any subpath, with no build step, dependency, server, or network request except same-origin samples.
+- R1.5 THE page SHALL work from any static HTTP host at any subpath, with no build step, dependency, server code, or network request except same-origin samples. WHEN opened from `file://`, where browsers block module scripts, THE page SHALL show a plain message that it needs to be served over HTTP.
 - R1.6 WHILE a log is being parsed, THE page SHALL show "Developing: X of Y log lines".
 
 ## R2. Parse

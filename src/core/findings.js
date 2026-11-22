@@ -50,7 +50,7 @@ const requested = (a) => {
   return [
     ...(single ? ['Line ', val(top.from, a.top)] : ['Lines ', val(top.from, a.top), ' to ', val(top.to, a.top)]),
     ' of ', val(top.file, a.top), single ? ' was requested ' : ' were requested ', ...(lower ? ['at least '] : []),
-    val(top.count, a.top), many(top.count, ' time. ', ' times. '),
+    val(top.count === 1 ? 'once' : top.count, a.top), top.count === 1 ? '. ' : ' times. ',
     num(a.repeats), ' of ', num(a.requests), many(k, ' request', ' requests'),
     ' asked again for lines already requested since the last edit attempt on that file; ', num(a.unchecked), ' could not be checked.',
   ];
@@ -94,8 +94,8 @@ const timeSpent = (a) => {
   } else {
     const [key, t] = best;
     const pct = span.value > 0 ? `${Math.round((t.value / span.value) * 100)}%` : 'unknown';
-    parts.push('The largest share of the session, ', val(formatTime(t.value), t), ' of ', val(formatTime(span.value), span), ' (', val(pct, t),
-      `), came after ${LABELS[key]}. That includes the tool, the model and waiting.`);
+    parts.push('The largest share of the session, ', val(formatTime(t.value), t), ' of ', val(formatTime(span.value), span), ' ', val(`(${pct})`, t),
+      `, came after ${LABELS[key]}. That includes the tool, the model and waiting.`);
   }
   const top = a.time.longest[0];
   if (top !== undefined) {

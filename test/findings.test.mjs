@@ -51,7 +51,7 @@ test('a file with open-ended or unlocated requests gives a lower bound: "at leas
   const other = new Map([['src/requests/models.py', { lowerBound: false }], ['b.py', { lowerBound: true }]]);
   assert.ok(!sentences(base({ files: other }))[0].includes('at least'), 'only the lower bound of the most requested file counts');
   const one = base({ files, top: tr({ file: 'src/requests/models.py', from: 5, to: 5, count: 1 }, [3]) });
-  assert.ok(sentences(one)[0].startsWith('Line 5 of src/requests/models.py was requested at least 1 time.'), 'singular');
+  assert.ok(sentences(one)[0].startsWith('Line 5 of src/requests/models.py was requested at least once.'), 'singular reads "once"');
 });
 
 test('every number is a traced part, never fixed text', () => {
@@ -73,7 +73,7 @@ test('singular forms', () => {
     possibleEarlier: tr(1, [2]),
   });
   const s = sentences(a);
-  assert.equal(s[0], 'Line 5 of a.py was requested 1 time. 0 of 1 request asked again for lines already requested since the last edit attempt on that file; 1 could not be checked.');
+  assert.equal(s[0], 'Line 5 of a.py was requested once. 0 of 1 request asked again for lines already requested since the last edit attempt on that file; 1 could not be checked.');
   assert.equal(s[1], 'First recognised source edit attempt: call 46 at 2:58, 39% into the session (log line 46). 1 earlier call might also have changed files; the log cannot tell.');
 });
 
@@ -303,4 +303,10 @@ test('headlines contain no banned words, em dashes or exclamation marks', () => 
   const variants = [base(), base({ firstSource: tr(null, [], 'none_recognised') }), base({ top: tr(null, [], 'no_ranges') }),
     withTime({ span: tr(null, [], 'no_time'), byCategory: new Map(), longest: [] })];
   for (const a of variants) for (const t of heads(a)) assert.ok(!banned.test(t), `"${t}" breaks the copy rules in product.md`);
+});
+
+test('the share keeps its brackets in one value part, so "(" never wraps away from the number', () => {
+  const parts = findings(base())[2];
+  assert.ok(parts.some((p) => typeof p !== 'string' && p.text === '(55%)'), 'the share is the value part "(55%)"');
+  assert.ok(!parts.some((p) => typeof p === 'string' && /\($/.test(p)), 'no fixed text ends with an opening bracket');
 });

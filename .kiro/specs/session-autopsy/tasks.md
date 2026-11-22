@@ -75,7 +75,7 @@ Tests first, then `parse.js`, `shell.js`, `classify.js`. Commit: "Add log parsin
   - Files: `package.json` (`scripts.test` runs `write-guard`, `parse`, `shell`, `classify` and `classify.property` one after another with `&&`, each with `--permission --allow-fs-read=.`). No dependencies.
   - Proof: the reviewer runs `npm test`.
 
-- [ ] A11. Checkpoint: the reviewer runs the five test files, once with the default seed and once with another `SEED`, then commits increment A.
+- [x] A11. Checkpoint: the reviewer runs the five test files, once with the default seed and once with another `SEED`, then commits increment A.
 
 ## Increment B: metrics, lines, timeline, findings
 
@@ -136,7 +136,7 @@ Tests first, including the sample tests, then the modules. Commit: "Add line cou
 
 - [x] B11. Test script: add `lines`, `metrics`, `timeline`, `findings`, `samples` and `samples-invariants` to `scripts.test` in `package.json`.
 
-- [ ] B12. Checkpoint: the reviewer runs all test files, once with another `SEED`. If a sample test fails, the next session re-checks the log text before changing the test or the code. Then commit increment B.
+- [x] B12. Checkpoint: the reviewer runs all test files, once with another `SEED`. If a sample test fails, the next session re-checks the log text before changing the test or the code. Then commit increment B.
 
 ## Increment C: site, boundary test, README
 
@@ -191,13 +191,13 @@ Boundary test first, then the page. UI code is not imported by tests. It is prov
 
 - [x] C9. README
   - Files: `README.md`
-  - What the page shows, the limit statement, how to open a log (`file://` with the file picker, or any static server for the sample buttons), privacy (nothing leaves the browser), how to run the tests, the repo layout. Steering words only, no banned words, no em dashes, no exclamation marks.
+  - What the page shows, the limit statement, how to open a log (an HTTP server is required; `file://` only shows the notice), privacy (nothing leaves the browser), how to run the tests, the repo layout. Steering words only, no banned words, no em dashes, no exclamation marks.
   - Requirements: R1.5, R9.6
   - Proof: D4
 
 - [x] C10. Test script: add `boundaries` to `scripts.test` in `package.json`.
 
-- [ ] C11. Checkpoint: the reviewer runs all test files, then commits increment C.
+- [x] C11. Checkpoint: the reviewer runs all test files, then commits increment C.
 
 ### Increment C, review fixes (after the first screenshots)
 
@@ -207,28 +207,32 @@ Boundary test first, then the page. UI code is not imported by tests. It is prov
 - [x] C15. First screen: two columns from 1000px with the developing apparition of rich-3480, one primary "Open the autopsy of rich-3480", sample line with a relative link to DISCLOSURE.md.
 - [x] C16. Copy and type: "at least" on every lower-bound count (headline, sentence, caption, plate labels, table, notes); six font sizes (12, 14, 16, 20, 28, 40); case-line numbers as 44px buttons; space above the unknown-effect note.
 - [x] C17. Narrow tables: below 600px evidence tables become stacked rows with a label per cell; headers never break inside words.
-- [ ] C18. Checkpoint: the reviewer runs all tests and the 360, 768 and 1280 screenshots again, then commits.
+- [x] C18. Checkpoint: the reviewer runs all tests and the 360, 768 and 1280 screenshots again, then commits.
 - [x] C19. Final pass: "first recognised source edit attempt" in the headline, its label, the sentence, notes and evidence, "first recognised edit" on the strip, with tests and spec templates updated; threads hidden until the playhead reaches their repeat, even when selected; short session name fitted on the card; "at least once"; no stray space before the meter share; 44px DISCLOSURE.md link; figure redrawn as a veiled person with sunken sockets, cheek shadow, torn hem and displaced exposures, still one per request.
-- [ ] C20. Checkpoint: the reviewer runs all tests and screenshots this pass, then commits.
+- [x] C20. Checkpoint: the reviewer runs all tests and screenshots this pass, then commits.
 
 ## Increment D: verification (reviewer)
 
 Not implemented by Kiro. The reviewer runs it after C and records the results.
 
-- [ ] D1. Tests
+- [x] D1. Tests
   - Run every test file with the default seed, then with three other `SEED` values. All pass.
 
 - [ ] D2. Independent recount
   - For each sample, recount from the raw log text without project code: log lines, calls, notes, blocked calls, span, first source edit attempt, the earlier calls that could have changed files, most requested range, requests and repeats, longest interval. Compare with the table in design.md and with the screen.
   - On screen, open at least three traced numbers per sample and confirm the log lines shown contain what the number claims.
+  - Status: numbers verified; click-through of three traced numbers per sample not done.
 
 - [ ] D3. Screenshots at 360, 768 and 1280
-  - Serve the repo from 127.0.0.1 with any static server, for example `python3 -m http.server --bind 127.0.0.1 8000`. Also open `index.html` from `file://` and load a sample with the file picker.
+  - Serve the repo from 127.0.0.1 with any static server, for example `python3 -m http.server --bind 127.0.0.1 8000`. Also open `index.html` from `file://` and check that it shows "This page needs to be served over HTTP, see README".
   - Capture each sample at 360, 768 and 1280px, the first screen at 360, and the loading, load error (a file above 50 MB), empty, not a log, no calls and partial states at 360 using the fixtures.
   - At each width check: no page-level horizontal scroll (`document.documentElement.scrollWidth <= innerWidth`), the strip scrolls inside its box, plates follow the layout rules, Tab reaches every control with a visible focus ring, targets are at least 44px, replay works with arrow keys, Home, End and Space, and reduced motion disables autoplay and transitions.
   - Console shows no CSP violations. The network panel shows only same-origin GETs of `samples/*.events.jsonl` besides the page's own files.
+  - Status: screenshots and keyboard done; the over 50 MB, loading and no-calls screens not exercised.
 
 - [ ] D4. Copy check
   - Search the screen text, `README.md`, code comments and commit messages for the banned words in product.md, em dashes, emoji and exclamation marks. None found.
+  - Status: partly done (screen, README, home paths, secrets).
 
 - [ ] D5. Record the results and the screenshot file names, then commit or report the failures as tasks for a new session.
+  - Status: recorded in BUILD_LOG.md.

@@ -19,16 +19,13 @@ It does not fix agents, save credits or predict anything. It cannot say whether 
 
 ## Run it
 
-The page has no build step and no dependencies.
+The page has no build step and no dependencies, but it needs an HTTP server: browsers block ES module scripts opened from `file://`, so opening `index.html` from disk only shows a message saying so. From the repository root:
 
-- Open `index.html` from disk and use "Open a log file". This works from `file://`.
-- The sample buttons need HTTP. From the repository root:
+```sh
+python3 -m http.server --bind 127.0.0.1 8000
+```
 
-  ```sh
-  python3 -m http.server --bind 127.0.0.1 8000
-  ```
-
-  Then open `http://127.0.0.1:8000/`. Any static server works, also under a subpath, because every path in the page is relative.
+Then open `http://127.0.0.1:8000/`. Any static server works, also under a subpath, because every path in the page is relative. "Open a log file" and the sample buttons both work there.
 
 ## Test it
 

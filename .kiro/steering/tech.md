@@ -41,4 +41,4 @@ When it blocks a write, fix the content. Do not work around it. Test and script 
 
 ## Local preview
 
-The file picker works from `file://`. Sample loading needs HTTP. A later task may add `scripts/serve.mjs` with `node:http`, bound to 127.0.0.1, serving the repo read-only.
+The page needs HTTP. Browsers block ES module scripts from `file://`, so opened from disk the page only shows its static notice "This page needs to be served over HTTP, see README", which `main.js` removes when it loads. Serve the repo root with any static server, for example `python3 -m http.server --bind 127.0.0.1 8000`.

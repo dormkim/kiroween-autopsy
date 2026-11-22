@@ -165,6 +165,16 @@ button, input, select { font: inherit; color: inherit; }
 
 /* ---- states ---- */
 
+.needs-http {
+  margin-top: var(--s-6);
+  max-width: 64ch;
+  padding: var(--s-4);
+  border: 1px solid var(--c-error);
+  border-left-width: 3px;
+  background: var(--c-plate);
+  overflow-wrap: anywhere;
+}
+
 .status {
   margin-top: var(--s-8);
   max-width: 64ch;

@@ -19,6 +19,8 @@ const CHUNK = 2000;
 const DEVELOP_MS = 220;
 
 const $ = (id) => document.getElementById(id);
+// The module loaded, so the page is served over HTTP: remove the static notice.
+$('needs-http')?.remove();
 const ui = {
   intro: $('intro'),
   primary: $('open-specimen'),
@@ -248,7 +250,7 @@ const fetchSample = async (name) => {
   try {
     res = await fetch(`./samples/${name}`, { credentials: 'same-origin', cache: 'no-cache' });
   } catch {
-    return { fail: { state: 'load_error', name, cause: 'the request failed; sample buttons need the page served over HTTP, so from a local file use Open a log file' } };
+    return { fail: { state: 'load_error', name, cause: 'the request failed; the page and its samples must be served over HTTP from the repository root' } };
   }
   if (!res.ok) return { fail: { state: 'load_error', name, cause: `the server answered ${res.status}` } };
   const blob = await res.blob();

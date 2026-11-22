@@ -486,3 +486,32 @@ Reviewer's verification results: 230 tests pass, also with SEED 7, 12345 and 987
 2. In finding sentences "were requested 1 time" must read "were requested once", and the bracket before a share still wraps as "( 29%)": keep the bracket with its number. Update tests as needed.
 3. In tasks.md tick only the checkpoints A11, B12, C11, C18, C20 and D1. Under D2 to D5 add a one-line status, unticked: D2 numbers verified, click-through of three traced numbers per sample not done; D3 screenshots and keyboard done, the over 50 MB, loading and no-calls screens not exercised; D4 partly done (screen, README, home paths, secrets); D5 recorded in BUILD_LOG.md.
 ~~~~
+
+## Verification by Claude Code at the end of phase 1 (2026-11-22)
+
+Run on the committed tree after run 12. The check scripts live outside this repository.
+
+| Check | Result |
+|---|---|
+| `node --permission` test files | 231 pass, 0 fail in 12 files |
+| Other property seeds (7, 12345, 987654321) | 0 failing files, at 230 tests, before run 12 |
+| `npm test` | exit 0, before run 12 |
+| On-screen numbers against an independent count from the unsanitized original logs | 22 of 22 equal |
+| Three samples replayed to the last call, Chromium, served under a subpath, at 360, 768 and 1280 px | done, no console error, no external request, no page-level horizontal overflow |
+| Empty file, all lines broken, some lines broken, failed fetch | each shows its own state |
+| Markup in a path and a command | shown as text, not executed |
+| HTML text contrast | lowest 7.43:1 |
+| Keyboard on replay, reduced motion | arrow, Home, End and Space work; no autoplay and no animation with reduced motion |
+| `file://` | does not work in Chromium; the false README claim was removed in run 12 |
+| Home paths and common key patterns in tracked files | none found |
+
+Not verified: Safari, Firefox, real phones, screen readers, public hosting, files near 50 MB, loading and no-call screens,
+clicking through traced numbers one by one, logs from other models or other recorders, and whether people understand the screen in 20 seconds.
+Inline number buttons inside sentences are narrower than 44 px; each finding also has a 44 px "Show log lines" button.
+
+What the build hit, kept as it happened:
+- Run 4 exited with code 0 and wrote nothing (output limit while planning). It was resumed as run 5 with smaller steps.
+- Run 6 stopped after the failing tests. It was resumed as run 7.
+- Run 7 left two tee tests failing. They were fixed in run 8.
+- Screenshot review in runs 10 and 11 found a replay below the fold, a strip that did not follow the playhead, and a headline that claimed more than the log shows.
+- The write-guard hook ran on the Kiro writes after run 1. Its one block was the deliberate live test in run 1b.

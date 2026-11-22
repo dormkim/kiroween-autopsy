@@ -667,3 +667,14 @@ Copy-only follow-up to the sample-endings correction. Make exactly these targete
    - src/ui/notes.js line 449: "The log lines behind the counted numbers. Open a section to see its rows."
 2. src/ui/strip.js around line 373: "most requested lines of the session" becomes "most requested lines of the recording".
 ~~~~
+
+## Verification of the correction (2026-11-22)
+
+By Claude Code, on the committed tree after run 14.
+
+- 238 tests pass in 13 files with the default seed and with seeds 7, 12345 and 987654321. `npm test` exits 0.
+- The 22 on-screen numbers still equal the independent count. No computed number changed.
+- Chromium at 360x740, 768x900 and 1280x800: each sample's ending is in the first viewport after opening, above the headlines. A copy of a sample opened as a file says "Ending unknown". No console error, external request or page-level overflow.
+- On the first screen at 360 only the primary sample's ending is inside the first 740 px. The other two are next to their buttons, below the photograph.
+- Account meter for the correction: 854.94 to 875.49 (20.55 credits), total for the build 335.72. The per-run meter lags, so the 0 shown for run 14 is not its real cost; the totals here were read afterwards.
+- Still open: inline number buttons are 42 px high and as narrow as 12 px, below the 44 px rule.

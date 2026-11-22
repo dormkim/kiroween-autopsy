@@ -178,3 +178,22 @@ Read .kiro/steering and .kiro/specs/session-autopsy. Two jobs, no application co
    Include a final verification increment that the reviewer runs (tests, independent recount, screenshots at 360, 768 and 1280).
 2. Correct the steering files where your spec's Decisions table says they are wrong, with the smallest edits, then shorten those Decisions rows accordingly.
 ~~~~
+
+## Run 4: increment A: parser and classifier, tests first
+
+- Time: 2026-11-22T08:53:34Z to 2026-11-22T09:04:29Z
+- Model: `claude-opus-5.5`
+- Kiro session: `002bb3db-598f-42f5-84c9-b8344a132369`
+- Exit code: 0
+- Account meter: 589.80 to 608.56 (18.76 credits)
+
+Files changed:
+- none
+
+Prompt, verbatim:
+
+~~~~text
+Read .kiro/steering and the whole spec in .kiro/specs/session-autopsy. First fix product.md where it defines the first edit attempt differently from the spec (the spec's "first source edit attempt" wins).
+
+Then implement ONLY increment A from tasks.md, tests first: the test files, then the core modules they test. Pay attention to the four regression cases; pin them both as named unit tests and as seeded property tests. Do not weaken a test to make it easy. You cannot run tests; the reviewer will run each file as `node --permission --allow-fs-read=. test/<file>.test.mjs` and send you failures, so trace tricky cases by hand. Update package.json's test script so it runs every test file in that way and fails if any file fails. Tick a task only for what you have written; leave "verified" tasks to the reviewer.
+~~~~

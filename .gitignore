@@ -1,0 +1,9 @@
+# .kiro/ and build-evidence/ are tracked on purpose. Do not add them here.
+node_modules/
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.env
+.env.*
+coverage/

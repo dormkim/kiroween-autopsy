@@ -1,0 +1,14 @@
+{
+  "name": "session-autopsy",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A static page that reads the event log of a finished coding-agent session and shows repeated line requests, the first edit attempt and where the time went.",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "test": "node --permission --allow-fs-read=. test/write-guard.test.mjs"
+  }
+}

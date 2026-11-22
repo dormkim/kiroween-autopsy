@@ -17,31 +17,31 @@ R-numbers refer to `requirements.md`. P-numbers refer to "Correctness properties
 
 Tests first, then `parse.js`, `shell.js`, `classify.js`. Commit: "Add log parsing and call classification with tests".
 
-- [ ] A1. Seeded property test helper
+- [x] A1. Seeded property test helper
   - Files: `test/gen.mjs`
   - `rng(seed)` (mulberry32) and `check(name, { seed, runs }, genFn, propFn)`. Fixed default seed, `SEED` overrides it. On failure it throws with the seed, the case index and the generated input. Shared generators: file names, directory names, quoting styles (bare, single, double), offsets, limits, times. No writes, no child processes, no network.
   - Requirements: R11.2
   - Proof: `test/parse.test.mjs` checks that one seed gives the same sequence twice and that a failing property's message contains the seed, the case index and the input.
 
-- [ ] A2. Fixtures
+- [x] A2. Fixtures (the file tools cannot write a literal CR, so `some-broken.jsonl` is LF; `parse.test.mjs` converts it to CRLF at run time and expects the same result)
   - Files in `test/fixtures/`: `empty.jsonl` (0 bytes), `whitespace.jsonl`, `some-broken.jsonl` (includes a CRLF line), `all-broken.jsonl`, `truncated-cmd.jsonl`, `blocked.jsonl` (`allow: false`), `post-only.jsonl` (notes, no calls), `bad-types.jsonl` (wrong type on each optional field), `time-anomalies.jsonl` (missing, NaN-like string, out of range, backwards `t`).
   - Hand-written, under 20 lines each, paths under `/workspace` or `/tmp` only. Expected values live in the tests, with the log line numbers.
   - Requirements: R2.1 to R2.5, R3.2, R3.10, R7.6, R8.2 to R8.5
   - Proof: used by `parse.test.mjs` and `classify.test.mjs` here, and by `metrics.test.mjs` and `findings.test.mjs` in B.
 
-- [ ] A3. Parse tests
+- [x] A3. Parse tests
   - Files: `test/parse.test.mjs`
   - Unit: one trailing `\r` dropped, a final empty string after the last `\n` is not a line; call, note, blank, and each broken reason (`json`, `not_object`, `no_hook`, `no_tool`); a broken entry has only `n` and `reason`; each optional field with a wrong type becomes `null` with its name in `malformed` (`t`, `cmd`, `cmd_truncated`, `allow`, `paths`, `range`, negative or fractional `offset`, `limit` 0); `truncated` from a boolean `cmd_truncated`, else from `cmd.length >= CUT_LEN`, else `null`; `index` counts `pre` lines with blocked calls included and ignores the logged `call`; parsing in chunks of 2,000 lines equals one pass. Each fixture's counts and log line numbers.
   - Properties: P1, P2, P3 (changing `kind`, `spans` or `call` leaves the parsed `Call` unchanged)
   - Requirements: R2.1 to R2.6, R8.2, R8.3, R11.1, R11.2
 
-- [ ] A4. Shell lexer tests
+- [x] A4. Shell lexer tests
   - Files: `test/shell.test.mjs`
   - Unit: each operator (`&&`, `||`, `;`, `|`, `|&`, `&`, newline) and the operator stored on its segment; single and double quotes and backslash; every redirect form in design.md; `<<`, `<<-` and a quoted delimiter, with the body skipped; `#` comments; `dynamic`, `glob`, `exec` and `group` flags; `cutAt`, the `cut` segment, and a heredoc whose redirect is visible before the cut.
   - Properties: P8
   - Requirements: R3.6, R3.10
 
-- [ ] A5. Classify unit tests, including the four regression cases
+- [x] A5. Classify unit tests, including the four regression cases
   - Files: `test/classify.test.mjs`
   - Regression cases as four named tests, each asserting category, requests (file key and kind) and edits:
     - `grep x a.py 2> /dev/null`: search, one unlocated request on `a.py`, no edits.
@@ -51,27 +51,27 @@ Tests first, then `parse.js`, `shell.js`, `classify.js`. Commit: "Add log parsin
   - Unit: every row of the tool table; `read_file` range rules including `{}`, `offset` only, `limit` only, wrong type, and an end above `MAX_LINE`; `/workspace`, no path and several paths; every row of the shell program table; `NAME=value`, `env` and `timeout` prefixes; `cd` tracking and every case that sets `cwd` to `null`; each redirect rule; one example per edit class in the documented order; category precedence; `blocked` overriding everything; a truncated command keeping only segments before the cut. Pinned from `rich-3480` log line 80: `tail -50 tests/test_text.py` is an unlocated request on `tests/test_text.py`.
   - Requirements: R3.1 to R3.12, R8.6, R11.2
 
-- [ ] A6. Classify property tests
+- [x] A6. Classify property tests
   - Files: `test/classify.property.test.mjs`
   - Properties: P3 (changing `paths` on shell calls changes no effect), P4, P5, P6, P7 (the four regression cases with generated names, directories, quoting, prefixes and harmless suffixes), P9, P10, P11
   - Requirements: R2.6, R3.2 to R3.11, R8.6, R11.2
 
-- [ ] A7. Parser
+- [x] A7. Parser
   - Files: `src/core/parse.js` (exports `splitLines`, `parseLine`, `parse`, `CUT_LEN`)
   - Requirements: R2.1 to R2.6
   - Proof: `test/parse.test.mjs`
 
-- [ ] A8. Shell lexer
+- [x] A8. Shell lexer
   - Files: `src/core/shell.js` (exports `lex`)
   - Requirements: R3.6, R3.10
   - Proof: `test/shell.test.mjs`
 
-- [ ] A9. Classifier
+- [x] A9. Classifier
   - Files: `src/core/classify.js` (exports `classify`, `resolve`, `editClass`, `ROOT`, `MAX_LINE`)
   - Requirements: R3.1 to R3.12, R8.6
   - Proof: `test/classify.test.mjs`, `test/classify.property.test.mjs`
 
-- [ ] A10. Test script
+- [x] A10. Test script
   - Files: `package.json` (`scripts.test` runs `write-guard`, `parse`, `shell`, `classify` and `classify.property` one after another with `&&`, each with `--permission --allow-fs-read=.`). No dependencies.
   - Proof: the reviewer runs `npm test`.
 

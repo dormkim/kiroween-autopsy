@@ -9,6 +9,6 @@
     "node": ">=22.13"
   },
   "scripts": {
-    "test": "node --permission --allow-fs-read=. test/write-guard.test.mjs"
+    "test": "node --permission --allow-fs-read=. test/write-guard.test.mjs && node --permission --allow-fs-read=. test/parse.test.mjs && node --permission --allow-fs-read=. test/shell.test.mjs && node --permission --allow-fs-read=. test/classify.test.mjs && node --permission --allow-fs-read=. test/classify.property.test.mjs"
   }
 }

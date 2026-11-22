@@ -1,0 +1,3 @@
+{"t": 1795248300.0, "hook": "post", "scope": {}}
+{"t": 1795248301.5, "hook": "post", "scope": {"x": ["rich/a.py"]}}
+{"hook": "session_end"}

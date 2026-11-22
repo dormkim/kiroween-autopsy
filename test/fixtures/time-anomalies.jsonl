@@ -1,0 +1,7 @@
+{"t": 1795248500.0, "hook": "pre", "tool": "execute_bash", "paths": [], "range": {}, "cmd": "ls", "allow": true, "cmd_truncated": false}
+{"hook": "pre", "tool": "execute_bash", "paths": [], "range": {}, "cmd": "pwd", "allow": true, "cmd_truncated": false}
+{"t": "NaN", "hook": "pre", "tool": "execute_bash", "paths": [], "range": {}, "cmd": "ls rich", "allow": true, "cmd_truncated": false}
+{"t": 99999999999, "hook": "pre", "tool": "execute_bash", "paths": [], "range": {}, "cmd": "ls tests", "allow": true, "cmd_truncated": false}
+{"t": 1795248490.0, "hook": "pre", "tool": "execute_bash", "paths": [], "range": {}, "cmd": "git status", "allow": true, "cmd_truncated": false}
+{"t": 1795248510.0, "hook": "pre", "tool": "read_file", "paths": ["rich/a.py"], "range": {"offset": 0, "limit": 10}, "cmd": "", "allow": true, "cmd_truncated": false}
+{"t": 1795248520.0, "hook": "post", "scope": {}}

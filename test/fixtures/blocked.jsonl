@@ -1,0 +1,4 @@
+{"t": 1795248200.0, "hook": "pre", "tool": "execute_bash", "paths": [], "range": {}, "cmd": "ls -la", "allow": true, "call": 1, "cmd_truncated": false}
+{"t": 1795248201.0, "hook": "pre", "tool": "web_fetch", "paths": [], "allow": false, "guard": "web lookup", "cmd": "fetch of an issue page", "cmd_truncated": false}
+{"t": 1795248202.0, "hook": "pre", "tool": "execute_bash", "paths": [], "allow": false, "guard": "network or upstream lookup", "cmd": "cat rich/a.py > rich/b.py", "cmd_truncated": false}
+{"t": 1795248203.0, "hook": "pre", "tool": "read_file", "paths": ["rich/a.py"], "range": {}, "cmd": "", "allow": true, "call": 2, "cmd_truncated": false}

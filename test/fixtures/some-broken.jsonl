@@ -1,0 +1,11 @@
+{"t": 1795248000.0, "hook": "pre", "tool": "read_file", "paths": ["rich/text.py"], "range": {"offset": 10, "limit": 5}, "cmd": "", "allow": true, "call": 1, "cmd_truncated": false}
+{not json
+[1, 2]
+{"t": 1795248001.0, "tool": "read_file"}
+{"t": 1795248002.0, "hook": "pre", "cmd": "ls"}
+{"t": 1795248003.0, "hook": "pre", "tool": "execute_bash", "paths": [], "range": {}, "cmd": "cat a.py", "allow": true, "call": 2, "cmd_truncated": false}
+{"t": 1795248004.0, "hook": "post", "scope": {}}
+"just a string"
+null
+{"hook": 5}
+{"hook": "pre", "tool": 7}

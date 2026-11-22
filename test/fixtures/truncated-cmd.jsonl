@@ -1,0 +1,5 @@
+{"t": 1795248100.0, "hook": "pre", "tool": "execute_bash", "paths": [], "range": {}, "cmd": "cd /workspace && cat rich/a.py && python3 << 'EOF'\nimport x", "allow": true, "call": 1, "cmd_truncated": true}
+{"t": 1795248101.0, "hook": "pre", "tool": "execute_bash", "paths": [], "range": {}, "cmd": "cat rich/a.py rich/b", "allow": true, "call": 2, "cmd_truncated": true}
+{"t": 1795248102.0, "hook": "pre", "tool": "execute_bash", "paths": [], "range": {}, "cmd": "cat rich/a.py; echo aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "allow": true, "call": 3}
+{"t": 1795248103.0, "hook": "pre", "tool": "execute_bash", "paths": [], "range": {}, "cmd": "cat rich/a.py", "allow": true, "call": 4, "cmd_truncated": false}
+{"t": 1795248104.0, "hook": "pre", "tool": "execute_bash", "paths": [], "range": {}, "cmd": "ls", "allow": true, "call": 5, "cmd_truncated": "yes"}

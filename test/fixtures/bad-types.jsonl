@@ -1,0 +1,12 @@
+{"t": "soon", "hook": "pre", "tool": "read_file", "paths": ["rich/a.py"], "range": {"offset": 0, "limit": 5}, "cmd": "", "allow": true}
+{"t": 1795248401.0, "hook": "pre", "tool": "execute_bash", "paths": [], "range": {}, "cmd": 42, "allow": true, "cmd_truncated": false}
+{"t": 1795248402.0, "hook": "pre", "tool": "execute_bash", "paths": [], "range": {}, "cmd": "ls", "allow": true, "cmd_truncated": "no"}
+{"t": 1795248403.0, "hook": "pre", "tool": "read_file", "paths": ["rich/a.py"], "range": {}, "cmd": "", "allow": "yes"}
+{"t": 1795248404.0, "hook": "pre", "tool": "read_file", "paths": "rich/a.py", "range": {}, "cmd": "", "allow": true}
+{"t": 1795248405.0, "hook": "pre", "tool": "read_file", "paths": [1], "range": {}, "cmd": "", "allow": true}
+{"t": 1795248406.0, "hook": "pre", "tool": "read_file", "paths": ["rich/a.py"], "range": [], "cmd": "", "allow": true}
+{"t": 1795248407.0, "hook": "pre", "tool": "read_file", "paths": ["rich/a.py"], "range": {"offset": -1, "limit": 5}, "cmd": "", "allow": true}
+{"t": 1795248408.0, "hook": "pre", "tool": "read_file", "paths": ["rich/a.py"], "range": {"offset": 1.5, "limit": 5}, "cmd": "", "allow": true}
+{"t": 1795248409.0, "hook": "pre", "tool": "read_file", "paths": ["rich/a.py"], "range": {"limit": 0}, "cmd": "", "allow": true}
+{"t": null, "hook": "pre", "tool": "read_file", "paths": ["rich/a.py"], "range": {"offset": 0, "limit": 5}, "cmd": "", "allow": true}
+{"t": 1795248411.0, "hook": "pre", "tool": "read_file", "paths": ["rich/a.py"], "range": {"offset": "5"}, "cmd": "", "allow": true}

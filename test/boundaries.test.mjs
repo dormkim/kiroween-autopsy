@@ -18,8 +18,9 @@ const filesUnder = (dir, ext) => readdirSync(join(ROOT, dir), { recursive: true 
 
 const CORE = filesUnder('src/core', ['.js']);
 const UI = filesUnder('src/ui', ['.js']);
+const PROVENANCE = filesUnder('src/provenance', ['.js']);
 const CSS = filesUnder('src/styles', ['.css']);
-const SCRIPTS = [...CORE, ...UI];
+const SCRIPTS = [...CORE, ...PROVENANCE, ...UI];
 const SITE = [...SCRIPTS, ...CSS, 'index.html'];
 
 /** Removes block comments and line comments that start a line or follow whitespace. */
@@ -60,7 +61,7 @@ test('core is pure: no DOM, network, storage, clock, randomness or node: imports
     ['require', /\brequire\s*\(/],
     ['process', /\bprocess\s*\./],
   ];
-  for (const f of CORE) {
+  for (const f of [...CORE, ...PROVENANCE]) {
     const src = stripComments(read(f));
     for (const [name, re] of banned) {
       assert.ok(!re.test(src), `expected no ${name} in ${f}, because tech.md says src/core is pure and runs unchanged under node:test`);
@@ -76,7 +77,7 @@ test('core is pure: no DOM, network, storage, clock, randomness or node: imports
 test('ui imports only relative paths, and only core or ui modules', () => {
   for (const f of UI) {
     for (const spec of importsOf(read(f))) {
-      assert.ok(spec.startsWith('./') || spec.startsWith('../core/'), `expected ${f} to import ./ or ../core/ paths only (found ${spec}), because the page must work from any subpath with no CDN`);
+      assert.ok(spec.startsWith('./') || spec.startsWith('../core/') || spec.startsWith('../provenance/'), `expected ${f} to import ./, ../core/ or ../provenance/ paths only (found ${spec}), because the page must work from any subpath with no CDN`);
       assert.ok(spec.endsWith('.js'), `expected ${f} to import with a .js extension (found ${spec})`);
     }
   }

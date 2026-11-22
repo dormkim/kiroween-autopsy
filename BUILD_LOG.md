@@ -582,3 +582,60 @@ The verification above missed how the sample recordings ended. An external check
 - The numbers themselves were counted correctly from the events. Their meaning was stated wrongly.
 - While checking, Claude Code found that all 24 round 1 agent logs of the earlier benchmark had been overwritten through hard links. The event files are intact. See DISCLOSURE.md.
 - DISCLOSURE.md was corrected by Claude Code. The site, spec, README and tests are corrected by Kiro in the runs below.
+
+## Run 13: show how each bundled recording ended
+
+- Time: 2026-11-22T10:55:19Z to 2026-11-22T11:01:29Z
+- Model: `claude-opus-5.5`
+- Kiro session: `d72d6dda-e5b7-4418-8251-2f3e3ecd9974`
+- Exit code: 0
+- Account meter: 854.94 to 873.42 (18.48 credits)
+
+Files changed:
+- `build-evidence/write-guard.jsonl`
+- `index.html`
+- `.kiro/specs/session-autopsy/design.md`
+- `.kiro/specs/session-autopsy/requirements.md`
+- `.kiro/specs/session-autopsy/tasks.md`
+- `.kiro/steering/design.md`
+- `.kiro/steering/product.md`
+- `.kiro/steering/structure.md`
+- `package.json`
+- `README.md`
+- `src/core/findings.js`
+- `src/provenance/sample-endings.js`
+- `src/styles/app.css`
+- `src/ui/main.js`
+- `src/ui/strip.js`
+- `src/ui/summary.js`
+- `test/boundaries.test.mjs`
+- `test/findings.test.mjs`
+- `test/sample-endings.test.mjs`
+
+Prompt, verbatim:
+
+~~~~text
+A correction to a working, committed product (231 tests pass). To keep cost low, read only what you need: DISCLOSURE.md (already corrected by the reviewer, read it first), index.html, README.md, src/core/findings.js, src/ui/main.js, src/ui/summary.js, test/findings.test.mjs, and the few lines of the spec, steering, package.json, strip.js and app.css that you change. Make small targeted edits and keep making tool calls until all is written.
+
+THE ERROR: two of the three bundled samples did not end normally and the product does not say so.
+- rich-3480: cut off, the runner killed it at its 15-minute (900 s) limit.
+- rich-3506: crashed, Kiro's server shut down with "RangeError: Invalid string length", about 2 minutes after the last recorded event. Not the agent's fault; do not word it as if it were.
+- requests-6644: exited normally (exit code 0). This does not mean solved.
+
+REQUIRED
+1. One small pure module holds the ending of each BUNDLED sample as provenance (from the runner's records, not from the log), each with a short label and one full sentence that says where it comes from. It applies only when the sample was opened through the bundled-sample path. A file the user opens, even with the same name or the same content, says "Ending unknown: the log does not record how the session ended." Core analysis must never read it or infer an ending from events.
+2. Selection screen: the short ending is visible as text next to each sample, including the primary rich-3480 button (directly with it, so that it shows in the first 740px at 360 wide) and the first-screen photograph. Put it in the buttons' accessible names or descriptions. Not by color alone.
+3. Opened autopsy: the full ending is shown directly under the session title and before the headlines, for samples and opened files, visible in the first viewport at 360x740 after opening. Keep it short.
+4. Percentages and absence claims must read as about the recording, for every log:
+   - "90% of the recording had passed before the first recognised source edit attempt";
+   - "... 90% into the recording ...";
+   - "29% of the recorded time came after code runs"; "The largest share of the recording, ...";
+   - "No source edit attempt recognised in this recording";
+   - duration is labelled as recorded time.
+   Replace other wording that assumes a finished session: "finished coding-agent session" (index.html, README, package.json, product.md, requirements.md), "of the session" where a share or total is meant, and "Fully developed" at the end of the replay ("End of the recording"). Keep "only reads recordings after a session ends. It never intervenes." as it is.
+5. Never show or use solved/unsolved, and never link repeated requests to an ending.
+6. Update requirements.md with new acceptance criteria, design.md (templates, module, a decision line), tasks.md (one new correction task), README (a short "How the samples ended" with a link to DISCLOSURE.md), and the tests: exact new wording; every bundled sample has an ending; a name that is not a bundled sample, and an opened file with a bundled name, get "unknown"; core does not import the provenance module. Add a new test file to package.json if you create one.
+
+Leave the small inline number buttons as they are; add one line to tasks.md recording them as open (42px high, down to 12px wide, below the 44px rule; enlarging them in running text would overlap neighbouring lines).
+Do not change any computed number, the samples, or the visual design beyond these labels. The stage must still fit its viewport. Finish with the exact on-screen strings in at most 15 lines.
+~~~~

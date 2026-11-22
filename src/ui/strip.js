@@ -262,7 +262,7 @@ export function stage(ctx, width) {
     const atEnd = ctx.step >= total;
     if (ctx.reduced()) playLabel.textContent = atEnd ? 'Start again' : 'Next call';
     else playLabel.textContent = atEnd ? 'Replay from call 1' : 'Play';
-    if (atEnd) hint.textContent = 'Fully developed. Replay to watch the figure form.';
+    if (atEnd) hint.textContent = 'End of the recording. Replay to watch the figure form.';
     else if (ctx.step === 0) hint.textContent = 'Each request of the brightest lines adds one exposure.';
     else hint.textContent = 'Paused. Arrow keys on the slider step one call.';
   };

@@ -30,7 +30,7 @@ const statButton = (ctx, text, traced, label) => {
 };
 
 /**
- * Heading, case line (file, calls, duration plus unknown tail, broken lines) and the replay action.
+ * Heading, ending, case line (file, calls, recorded time plus unknown tail, broken lines) and the replay action.
  * @param {object} ctx
  */
 export function caseLine(ctx) {
@@ -41,8 +41,8 @@ export function caseLine(ctx) {
   const broken = a.totals.broken.map((b) => b.n);
   const stat = (label, value, after = null) => el('li', { class: 'stat' }, el('span', { class: 'stat-label' }, label), value, after);
   const stats = el('ul', { class: 'stats' },
-    stat('Calls', statButton(ctx, String(calls.value), calls, 'Calls in this session')),
-    stat('Duration', span.value === null ? el('span', { class: 'stat-plain' }, 'unknown')
+    stat('Calls', statButton(ctx, String(calls.value), calls, 'Calls in this recording')),
+    stat('Recorded time', span.value === null ? el('span', { class: 'stat-plain' }, 'unknown')
       : statButton(ctx, formatTime(span.value), span, 'Time from the first call to the last valid event'),
     el('span', { class: 'stat-after' }, 'plus an unknown tail')),
     stat('Broken log lines', broken.length === 0 ? el('span', { class: 'stat-plain' }, '0')
@@ -50,7 +50,9 @@ export function caseLine(ctx) {
   const replayButton = el('button', { class: 'button button-primary', type: 'button' }, 'Replay from the first call');
   replayButton.addEventListener('click', () => ctx.playFromStart());
   const head = el('h2', { class: 'case-name', tabindex: '-1', id: 'case-head' }, sessionName(ctx.name));
+  // How the session ended is provenance for bundled samples only; an opened file is unknown.
   const out = el('header', { class: 'case' }, head,
+    el('p', { class: 'case-ending' }, ctx.ending.sentence),
     el('p', { class: 'case-line' }, 'Developed from ', el('span', { class: 'data' }, ctx.name), '.'),
     el('div', { class: 'case-row' }, stats, replayButton));
   if (a.totals.partial) {

@@ -11,6 +11,8 @@ src/
     metrics.js             repeated requests, first edit attempt, time per category
     timeline.js            frames for the replay
     findings.js            finding sentences and state messages
+  provenance/              pure facts from outside the log, never read by core
+    sample-endings.js      how each bundled sample session ended, from the runner's records
   ui/                      the only code that touches the DOM or fetches
     main.js                entry point and state machine (loading, empty, error, normal)
     dom.js                 el(tag, attrs, text) helper built on createElement and textContent
@@ -33,7 +35,7 @@ build-evidence/            generated hook decision logs
 
 ## Rules
 
-- Dependencies go one way: `ui` imports `core`. `core` never imports `ui`. Tests import `core` and the hook, never `ui`.
+- Dependencies go one way: `ui` imports `core` and `provenance`. `core` never imports `ui` or `provenance`. `provenance` imports nothing and follows the purity rules of `core`. Tests import `core`, `provenance` and the hook, never `ui`.
 - Site files use `.js`. Node-only files use `.mjs` and live in `test/` or `scripts/`.
 - File names are kebab-case. One concern per module.
 - All paths in the site are relative (`./src/ui/main.js`) so the page works from a subpath.

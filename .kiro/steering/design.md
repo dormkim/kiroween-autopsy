@@ -89,8 +89,8 @@ Six sizes total: 12, 14, 16, 20, 28, 40. Weights 400 and 600 only. Numbers use `
 ## Layout
 
 - Left-aligned and asymmetric. Nothing is centered except numbers inside table cells.
-- First screen: title, one-line purpose, the claims paragraph, one primary button "Open the autopsy of rich-3480", the apparition of that sample (developing once, from its data), then the other sample buttons, "Open a log file" and the line "Recorded sessions of a coding agent on public issues, hand-picked, not representative." linking to `./DISCLOSURE.md`. From 1000px the apparition takes the right column, so it is in the first viewport; at 360 its head is within the first 740px.
-- After loading: case line (file name, then calls, duration plus unknown tail and broken lines as 44px buttons, and "Replay from the first call"), the three findings (headline, sentence, "Show log lines"), the replay stage, the plates with the notes panel, the exposure meter, the evidence.
+- First screen: title, one-line purpose, the claims paragraph, one primary button "Open the autopsy of rich-3480" with its ending as text directly below it, the apparition of that sample (developing once, from its data) captioned with its ending, then the other sample buttons, each with its ending as a second line, "Open a log file" and the line "Recorded sessions of a coding agent on public issues, hand-picked, not representative." linking to `./DISCLOSURE.md`. From 1000px the apparition takes the right column, so it is in the first viewport; at 360 its head is within the first 740px.
+- After loading: session name, then the ending sentence (provenance for bundled samples, "Ending unknown" for opened files), case line (file name, then calls, recorded time plus unknown tail and broken lines as 44px buttons, and "Replay from the first call"), the three findings (headline, sentence, "Show log lines"), the replay stage, the plates with the notes panel, the exposure meter, the evidence.
 - Replay stage: apparition, Play, live line, compact strip (100px) and slider together, fitting one viewport at 1280x800 and 360x740. From a 1040px container the apparition (560px) and the controls sit side by side. Explanations and the legend are in a closed "How to read the replay" details element.
 - 360px: single column. The strip scrolls horizontally inside its own box. Plates stack. Evidence tables become stacked rows with a label per cell, so headers never break inside words.
 - 768px: plates in two columns, notes below.
@@ -108,7 +108,7 @@ Six sizes total: 12, 14, 16, 20, 28, 40. Weights 400 and 600 only. Numbers use `
 - Every control is at least 44 by 44px and reachable with Tab, with the visible `--focus` ring.
 - The strip has one tab stop: the playhead range input. Arrow keys step one call, Home and End jump to the ends, Space plays and pauses.
 - The repeated-requests table is the keyboard path to the bands. Selecting a row highlights its band and lights its frames on the strip. Clicking a band selects the same row.
-- Replay: one frame per 120ms. A new exposure appears over 160ms. The strip keeps the playhead in view while playing, scrubbing and after load. After load the playhead is at the end (fully developed) and the button reads "Replay from call 1"; pressing it at the end restarts from the first call and brings the stage into view.
+- Replay: one frame per 120ms. A new exposure appears over 160ms. The strip keeps the playhead in view while playing, scrubbing and after load. After load the playhead is at the end (end of the recording) and the button reads "Replay from call 1"; pressing it at the end restarts from the first call and brings the stage into view.
 - `prefers-reduced-motion: reduce`: no autoplay and no transitions. Play steps one call per press and plates update at once.
 - No entrance animation on sections.
 

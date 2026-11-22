@@ -5,6 +5,7 @@ import { splitLines, parseLine } from '../core/parse.js';
 import { analyse, MAX_BYTES } from '../core/metrics.js';
 import { frames, exposuresAt } from '../core/timeline.js';
 import { stateMessage } from '../core/findings.js';
+import { endingFor } from '../provenance/sample-endings.js';
 import { el, replace, grouped } from './dom.js';
 import { caseLine, findingsBlock, meter } from './summary.js';
 import { stage, WIDE } from './strip.js';
@@ -24,6 +25,7 @@ $('needs-http')?.remove();
 const ui = {
   intro: $('intro'),
   primary: $('open-specimen'),
+  primaryEnding: $('specimen-ending'),
   file: $('file'),
   samples: $('samples'),
   specimen: $('specimen'),
@@ -47,7 +49,7 @@ const repeatedIntervals = (a) => {
  * Shared state for one opened log: the analysis, the replay step and the selection.
  * Views subscribe with onStep and onSelect.
  */
-const makeContext = (name, parsed, analysis) => {
+const makeContext = (name, parsed, analysis, ending) => {
   const selectSubs = [];
   const stepSubs = [];
   const disposers = [];
@@ -55,6 +57,7 @@ const makeContext = (name, parsed, analysis) => {
   let k = total;
   return {
     name,
+    ending,
     parsed,
     analysis,
     frames: frames(analysis),
@@ -172,8 +175,10 @@ const stageKey = (w) => (w >= WIDE ? 'wide' : `${photoSize(w).W}x${photoSize(w).
 /**
  * The normal screen: case line, findings, replay stage, plates with notes, meter, evidence.
  * @param {number|null} step replay step to keep after a rebuild, null for a fresh load (the end)
+ * @param {boolean} first true on a fresh load
+ * @param {import('../provenance/sample-endings.js').Ending} ending how the session ended, from provenance only
  */
-const render = (name, parsed, analysis, step, first) => {
+const render = (name, parsed, analysis, step, first, ending) => {
   if (current !== null) current.dispose();
   stopSpecimen();
   ui.status.hidden = true;
@@ -183,9 +188,9 @@ const render = (name, parsed, analysis, step, first) => {
   ui.intro.classList.add('intro-compact');
   ui.autopsy.hidden = false;
   const width = ui.autopsy.clientWidth;
-  const ctx = makeContext(name, parsed, analysis);
+  const ctx = makeContext(name, parsed, analysis, ending);
   current = ctx;
-  shown = { name, parsed, analysis, key: stageKey(width) };
+  shown = { name, parsed, analysis, ending, key: stageKey(width) };
   const bench = el('div', { class: 'bench' }, plates(ctx, tracedButton), notesPanel(ctx));
   ui.autopsy.append(caseLine(ctx), findingsBlock(ctx), stage(ctx, width), bench, meter(ctx), evidence(ctx));
   ctx.setStep(step ?? analysis.calls.length, { source: 'init' });
@@ -198,7 +203,7 @@ const render = (name, parsed, analysis, step, first) => {
 };
 
 /** Decides the state for a loaded text and shows it. */
-const develop = async (name, text, stale) => {
+const develop = async (name, text, stale, ending) => {
   if (text.trim() === '') {
     showState({ state: 'empty', name });
     return;
@@ -214,14 +219,16 @@ const develop = async (name, text, stale) => {
     showState({ state: 'no_calls', name, notes: parsed.notes.map((x) => x.n) });
     return;
   }
-  render(name, parsed, analyse(parsed), null, true);
+  render(name, parsed, analyse(parsed), null, true, ending);
 };
 
 /**
  * Runs one load. `getText` resolves to { text } or { fail } with a state input.
+ * `origin` says whether this is a bundled sample or a file the user opened; only the
+ * bundled-sample path can have a known ending.
  * A newer load makes an older one stop quietly.
  */
-const load = async (name, getText) => {
+const load = async (name, getText, origin) => {
   generation += 1;
   const gen = generation;
   const stale = () => gen !== generation;
@@ -238,7 +245,7 @@ const load = async (name, getText) => {
     showState(result.fail);
     return;
   }
-  await develop(name, result.text, stale);
+  await develop(name, result.text, stale, endingFor(origin));
 };
 
 const cache = new Map();
@@ -269,25 +276,29 @@ const readFile = async (file) => {
   }
 };
 
-const openSample = (name) => load(name, () => fetchSample(name));
+const openSample = (name) => load(name, () => fetchSample(name), { source: 'sample', name });
 
 // ---- first screen ----
 
 const shortName = (name) => name.replace(/\.events\.jsonl$/, '');
+const sampleEnding = (name) => endingFor({ source: 'sample', name });
 
 for (const name of SAMPLES) {
-  const button = el('button', { class: 'button', type: 'button', 'aria-label': `Open the recorded session ${shortName(name)}` },
-    el('span', { class: 'data' }, shortName(name)));
+  const ending = sampleEnding(name);
+  const button = el('button', { class: 'button sample-button', type: 'button', 'aria-label': `Open the recorded session ${shortName(name)}. ${ending.label}` },
+    el('span', { class: 'data' }, shortName(name)),
+    el('span', { class: 'sample-ending' }, ending.label));
   button.addEventListener('click', () => openSample(name));
   ui.samples.append(button);
 }
 
+ui.primaryEnding.textContent = sampleEnding(SPECIMEN).label;
 ui.primary.addEventListener('click', () => openSample(SPECIMEN));
 
 ui.file.addEventListener('change', () => {
   const file = ui.file.files !== null && ui.file.files.length > 0 ? ui.file.files[0] : null;
   if (file === null) return;
-  load(file.name, () => readFile(file));
+  load(file.name, () => readFile(file), { source: 'file', name: file.name });
 });
 
 let specimenData = null;
@@ -305,7 +316,7 @@ const drawSpecimen = (animate) => {
     ui.specimen.hidden = true;
     return;
   }
-  replace(ui.specimenBody, photo.node);
+  replace(ui.specimenBody, photo.node, el('p', { class: 'ending-note' }, sampleEnding(SPECIMEN).sentence));
   ui.specimenBody.dataset.key = stageKey(ui.specimenBody.clientWidth);
   const file = a.top.value.file;
   const show = (k) => photo.update(k, exposuresAt(a, k).get(file) ?? []);
@@ -345,7 +356,7 @@ window.addEventListener('resize', () => {
   resizeTimer = setTimeout(() => {
     resizeTimer = null;
     if (shown !== null && current !== null && stageKey(ui.autopsy.clientWidth) !== shown.key) {
-      render(shown.name, shown.parsed, shown.analysis, current.step, false);
+      render(shown.name, shown.parsed, shown.analysis, current.step, false, shown.ending);
     } else if (shown === null && specimenData !== null && !ui.specimen.hidden
       && stageKey(ui.specimenBody.clientWidth) !== ui.specimenBody.dataset.key) {
       drawSpecimen(false);

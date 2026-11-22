@@ -42,8 +42,8 @@ const requested = (a) => {
   const top = a.top.value;
   const k = a.requests.value;
   if (top === null) {
-    if (k === 0) return ['No file requests were recognised.'];
-    return ['No line ranges were requested. ', num(a.requests), many(k, ' request had', ' requests had'), ' unknown or open-ended lines.'];
+    if (k === 0) return ['No file requests were recognised in this recording.'];
+    return ['No line ranges were requested in this recording. ', num(a.requests), many(k, ' request had', ' requests had'), ' unknown or open-ended lines.'];
   }
   const single = top.from === top.to;
   const lower = a.files instanceof Map && a.files.get(top.file)?.lowerBound === true;
@@ -65,11 +65,11 @@ const firstEdit = (a) => {
     if (k === 0) return [' ', num(a.possibleEarlier), noun, ' could have changed files.'];
     return [' ', num(a.possibleEarlier), noun, earlier === '' ? ' might have' : ' might also have', ' changed files; the log cannot tell.'];
   };
-  if (fs === null) return ['No source edit attempt recognised.', ...could('')];
+  if (fs === null) return ['No source edit attempt recognised in this recording.', ...could('')];
   let when = [' at an unknown time'];
   if (fs.offset !== null) {
     when = [' at ', val(formatTime(fs.offset), a.firstSource)];
-    if (fs.share !== null) when.push(', ', val(`${Math.round(fs.share * 100)}%`, a.firstSource), ' into the session');
+    if (fs.share !== null) when.push(', ', val(`${Math.round(fs.share * 100)}%`, a.firstSource), ' into the recording');
   }
   return ['First recognised source edit attempt: call ', val(fs.call, a.firstSource), ...when, ' (log line ', val(fs.n, a.firstSource), ').', ...could('earlier ')];
 };
@@ -94,7 +94,7 @@ const timeSpent = (a) => {
   } else {
     const [key, t] = best;
     const pct = span.value > 0 ? `${Math.round((t.value / span.value) * 100)}%` : 'unknown';
-    parts.push('The largest share of the session, ', val(formatTime(t.value), t), ' of ', val(formatTime(span.value), span), ' ', val(`(${pct})`, t),
+    parts.push('The largest share of the recording, ', val(formatTime(t.value), t), ' of ', val(formatTime(span.value), span), ' ', val(`(${pct})`, t),
       `, came after ${LABELS[key]}. That includes the tool, the model and waiting.`);
   }
   const top = a.time.longest[0];
@@ -105,7 +105,7 @@ const timeSpent = (a) => {
     else parts.push(' (log lines ', val(first, top), ' and ', val(second, top), ').');
   }
   const gaps = a.time.byCategory.get('unknown_time');
-  if (gaps !== undefined) parts.push(' Times are unknown for ', val(formatTime(gaps.value), gaps), ' of the session.');
+  if (gaps !== undefined) parts.push(' Times are unknown for ', val(formatTime(gaps.value), gaps), ' of the recording.');
   return parts;
 };
 
@@ -140,9 +140,9 @@ export function headlines(a) {
 
   const top = a.top.value;
   if (top === null) {
-    out.push({ text: a.requests.value === 0 ? 'No file requests recognised' : 'No line ranges requested', traced: a.requests, label: 'Requests' });
+    out.push({ text: a.requests.value === 0 ? 'No file requests recognised in this recording' : 'No line ranges requested in this recording', traced: a.requests, label: 'Requests' });
   } else if (top.count < 2) {
-    out.push({ text: 'No line was requested twice', traced: a.top, label: 'Most requested lines' });
+    out.push({ text: 'No line was requested twice in this recording', traced: a.top, label: 'Most requested lines' });
   } else {
     const n = top.to - top.from + 1;
     const lines = n === 1 ? 'the same line' : `the same ${n} lines`;
@@ -152,11 +152,11 @@ export function headlines(a) {
 
   const fs = a.firstSource.value;
   if (fs === null) {
-    out.push({ text: 'No source edit attempt recognised', traced: a.possibleEarlier, label: 'Calls that could have changed files' });
+    out.push({ text: 'No source edit attempt recognised in this recording', traced: a.possibleEarlier, label: 'Calls that could have changed files' });
   } else if (fs.share === null) {
     out.push({ text: `First recognised source edit attempt at call ${fs.call}, time unknown`, traced: a.firstSource, label: 'First recognised source edit attempt' });
   } else {
-    out.push({ text: `${Math.round(fs.share * 100)}% of the session passed before the first recognised source edit attempt`, traced: a.firstSource, label: 'First recognised source edit attempt' });
+    out.push({ text: `${Math.round(fs.share * 100)}% of the recording had passed before the first recognised source edit attempt`, traced: a.firstSource, label: 'First recognised source edit attempt' });
   }
 
   const span = a.time.span;
@@ -165,7 +165,7 @@ export function headlines(a) {
     out.push({ text: 'Where the time went is unknown', traced: span, label: 'Time from the first call to the last valid event' });
   } else {
     const [key, t] = best;
-    out.push({ text: `${Math.round((t.value / span.value) * 100)}% of the time came after ${LABELS[key]}`, traced: t, label: `Time after ${LABELS[key]}` });
+    out.push({ text: `${Math.round((t.value / span.value) * 100)}% of the recorded time came after ${LABELS[key]}`, traced: t, label: `Time after ${LABELS[key]}` });
   }
   return out;
 }

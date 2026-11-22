@@ -1,6 +1,6 @@
 # Requirements: Session Autopsy, phase 1
 
-A static page that opens the event log of a finished coding-agent session and shows which file lines were requested again, when the first source edit was attempted, and where the time went, with a replay. It reads recordings only. It never intervenes and cannot say whether a session succeeded.
+A static page that opens the event log of a recorded coding-agent session and shows which file lines were requested again, when the first source edit was attempted, and where the recorded time went, with a replay. It reads recordings only. It never intervenes and cannot say whether a session succeeded. The log does not record how a session ended, so every share and total is of the recording.
 
 ## Terms
 
@@ -64,9 +64,9 @@ As someone studying agents, I want to open a recorded session in one click, so t
 
 ## R6. First source edit attempt
 
-- R6.1 THE analysis SHALL report the first call with an edit attempt on a source file: call number, log line, time from start, and share of the session.
+- R6.1 THE analysis SHALL report the first call with an edit attempt on a source file: call number, log line, time from start, and share of the recording.
 - R6.2 THE analysis SHALL report, with log lines, how many earlier calls could have edited files: possible hidden edits and edit attempts with unknown target.
-- R6.3 IF no source edit attempt is recognised, THEN THE screen SHALL say "No source edit attempt recognised" and the session-wide count of calls that could have edited files. It SHALL NOT say the agent did not edit.
+- R6.3 IF no source edit attempt is recognised, THEN THE screen SHALL say "No source edit attempt recognised in this recording" and the recording-wide count of calls that could have edited files. It SHALL NOT say the agent did not edit.
 - R6.4 THE screen SHALL list other edit attempts separately by class.
 
 ## R7. Time
@@ -110,3 +110,15 @@ As a first-time viewer, I want to understand the session in 20 seconds, so that 
 - R11.2 Property tests SHALL use a hand-written seeded generator and SHALL print the seed and case on failure. The four cases in R3.11 SHALL be pinned by unit and property tests.
 - R11.3 A sample test SHALL check numbers derived by hand from the log text.
 - R11.4 A further test SHALL analyse every bundled sample and check invariants only, never numbers copied from the parser's output.
+
+## R12. How a session ended
+
+As a viewer, I want to know whether a recording stopped early, so that I do not read a share of a cut-off recording as a share of a finished session.
+
+- R12.1 THE page SHALL hold the ending of each bundled sample in one pure module, `src/provenance/sample-endings.js`, taken from the benchmark runner's records in DISCLOSURE.md, each with a short label and one sentence that names that source. `src/core` SHALL NOT import it, and no analysis SHALL infer an ending from events.
+- R12.2 WHEN a bundled sample is opened through a sample button, THE screen SHALL show its ending sentence directly under the session title and before the headlines, visible in the first viewport at 360x740.
+- R12.3 WHEN the user opens a file, whatever its name or content, THE screen SHALL show "Ending unknown: the log does not record how the session ended." in the same place.
+- R12.4 THE first screen SHALL show each sample's short ending as text next to its button, including directly below the primary rich-3480 button (within the first 740px at 360 wide) and under the first-screen photograph, and SHALL include it in each button's accessible name or description. Color SHALL NOT carry it alone.
+- R12.5 Shares, totals and absence claims SHALL be worded as about the recording: "{share}% of the recording had passed before the first recognised source edit attempt", "{share}% into the recording", "{pct}% of the recorded time came after {category}", "The largest share of the recording", "No source edit attempt recognised in this recording", and the duration labelled "Recorded time". The end of the replay SHALL read "End of the recording".
+- R12.6 THE screen SHALL NOT show solved or unsolved and SHALL NOT link repeated requests to an ending.
+- R12.7 A test SHALL check the exact ending copy, that every bundled sample has an ending, that a name outside the bundled list and an opened file with a bundled name get "unknown", and that `src/core` does not import the provenance module.

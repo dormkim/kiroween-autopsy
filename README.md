@@ -1,6 +1,6 @@
 # Session Autopsy
 
-A static web page that opens the event log of a finished coding-agent session and develops it like a spirit photograph. Each requested file is a plate. Every request exposes its lines once, so lines requested again come out brighter, and the ghost forms exactly where requests repeated.
+A static web page that opens the event log of a recorded coding-agent session and develops it like a spirit photograph. Each requested file is a plate. Every request exposes its lines once, so lines requested again come out brighter, and the ghost forms exactly where requests repeated.
 
 It shows:
 
@@ -59,6 +59,16 @@ A log you open is read in your browser and stays there. Nothing is uploaded or s
 - Time per call is the time until the next call: tool, model and waiting together. The time after the last event is unknown.
 - Opened files are limited to 50 MB.
 - The three sample logs were hand-picked to show different session shapes. They support no statistical claim.
+
+## How the samples ended
+
+The event logs do not record how a session ended, so every share and total on the page is about the recording, from the first event to the last. For the bundled samples the ending comes from the earlier benchmark runner's records and is shown as text:
+
+- `rich-3480`: cut off. The runner stopped the agent at its 15-minute (900 s) time limit.
+- `rich-3506`: crashed. Kiro's server shut down with `RangeError: Invalid string length`, about 2 minutes after the last recorded event. No fault is assigned to the agent.
+- `requests-6644`: exited normally, with exit code 0. The log has no outcome.
+
+A file you open yourself, even one with a sample's name, shows "Ending unknown". Sources and line references are in [DISCLOSURE.md](DISCLOSURE.md).
 
 ## How it was built
 

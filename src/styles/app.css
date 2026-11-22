@@ -154,6 +154,18 @@ button, input, select { font: inherit; color: inherit; }
   margin-top: var(--s-2);
 }
 .samples { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+/* sample buttons: name, then how the session ended as words below it */
+.sample-button { flex-direction: column; align-items: flex-start; justify-content: center; gap: 0; }
+.sample-ending { color: var(--c-text-dim); font-size: var(--t-small); line-height: 1.45; }
+/* how a bundled sample ended, from the runner's records: text, never color alone */
+.ending-note {
+  margin-top: var(--s-2);
+  max-width: 64ch;
+  color: var(--c-text-dim);
+  font-size: var(--t-small);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
 .samples-note, .privacy {
   margin-top: var(--s-3);
   max-width: 64ch;
@@ -226,6 +238,15 @@ button, input, select { font: inherit; color: inherit; }
 .case-name:focus { outline: none; }
 .case-name:focus-visible { outline: var(--focus); outline-offset: 2px; }
 .case-line { margin-top: var(--s-1); color: var(--c-text-dim); font-size: var(--t-small); line-height: 1.45; overflow-wrap: anywhere; }
+.case-ending {
+  margin-top: var(--s-2);
+  max-width: 64ch;
+  padding-left: var(--s-3);
+  border-left: 2px solid var(--c-exposure-edge);
+  font-size: var(--t-small);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
 .case-row {
   display: flex;
   flex-wrap: wrap;

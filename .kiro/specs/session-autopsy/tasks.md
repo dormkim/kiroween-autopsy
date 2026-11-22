@@ -210,6 +210,8 @@ Boundary test first, then the page. UI code is not imported by tests. It is prov
 - [x] C18. Checkpoint: the reviewer runs all tests and the 360, 768 and 1280 screenshots again, then commits.
 - [x] C19. Final pass: "first recognised source edit attempt" in the headline, its label, the sentence, notes and evidence, "first recognised edit" on the strip, with tests and spec templates updated; threads hidden until the playhead reaches their repeat, even when selected; short session name fitted on the card; "at least once"; no stray space before the meter share; 44px DISCLOSURE.md link; figure redrawn as a veiled person with sunken sockets, cheek shadow, torn hem and displaced exposures, still one per request.
 - [x] C20. Checkpoint: the reviewer runs all tests and screenshots this pass, then commits.
+- [ ] C21. Correction, session endings (R12): `src/provenance/sample-endings.js` with the ending of each bundled sample from the runner's records (DISCLOSURE.md); short label beside each sample button, below the primary button and under the first-screen photograph, in accessible names; full sentence under the session title before the headlines; "Ending unknown: the log does not record how the session ended." for every opened file; shares, totals and absence claims worded as of the recording, "Recorded time", "End of the recording"; `test/sample-endings.test.mjs` added to `npm test`; boundary test covers `src/provenance/`. The reviewer runs the tests and the 360x740 screenshots, then commits.
+- [ ] Open: the inline number buttons in running text are 42px high and down to 12px wide, below the 44px rule. Enlarging them in running text would overlap neighbouring lines, so they are left as they are for now.
 
 ## Increment D: verification (reviewer)
 

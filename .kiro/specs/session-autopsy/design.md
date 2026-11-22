@@ -16,6 +16,7 @@ Smallest design that meets `requirements.md`. Steering (`.kiro/steering/`) still
 | Dot-directories | Paths with a segment starting with `.` are never source. | `rich-3480` requests `.kiro/exorcist/...`, the old recorder's own code. |
 | Extra modules | `core/shell.js`, `core/lines.js`, `core/findings.js`, `ui/summary.js`. | One concern each. Listed in steering `structure.md`. |
 | First edit example | In `requests-6644` the first edit attempt is call 46 on log line 46; log line 47 is a note. | Copy uses the computed values. |
+| Session ending | Endings of the bundled samples live in `src/provenance/sample-endings.js`, from the runner's records. Only the sample-button path uses them; an opened file is "Ending unknown". Shares and totals say "recording". | The log has no ending, and two of the three samples did not end normally (DISCLOSURE.md). R12. |
 
 ## Modules
 
@@ -28,6 +29,7 @@ src/core/lines.js     requests -> merged count intervals
 src/core/metrics.js   analyse(): repeats, first source edit, time, assembles Analysis
 src/core/timeline.js  Analysis -> frames and exposures for replay step k
 src/core/findings.js  Analysis -> three finding sentences with traced parts
+src/provenance/sample-endings.js  endingFor({ source, name }) -> { kind, label, sentence }; bundled samples only
 src/ui/main.js        state machine, sample buttons, file input, chunked parse
 src/ui/dom.js         el(), svg() on createElement(NS) + textContent
 src/ui/summary.js     case line, findings, exposure meter
@@ -38,7 +40,7 @@ src/ui/notes.js       evidence panel and tables
 src/styles/tokens.css, src/styles/app.css
 ```
 
-`ui` imports `core`; `core` imports only `core`. Sample names are a fixed array in `main.js`; fetch URLs are `./samples/` plus a name from that array.
+`ui` imports `core` and `provenance`; `core` imports only `core`; `provenance` imports nothing. Sample names are a fixed array in `main.js`; fetch URLs are `./samples/` plus a name from that array.
 
 Constants (in `metrics.js`, exported): `MAX_BYTES = 50 * 1024 * 1024`, `MAX_LINE = 10_000_000`, `T_MIN = 946684800` (2000-01-01), `T_MAX = 4102444800` (2100-01-01), `CUT_LEN = 200`, `ROOT = '/workspace'`, `LONGEST = 5`.
 
@@ -190,9 +192,9 @@ Time on screen is m:ss from `start`, rounded to the nearest second; minutes can 
 
 `findings(analysis)` returns three sentences, each a list of parts: either a string or `{ text, traced }`. Templates, with every number as a traced part:
 
-1. "Lines {from} to {to} of {file} were requested {count} times. {repeats} of {requests} requests asked again for lines already requested since the last edit attempt on that file; {unchecked} could not be checked." When that file has open-ended or unlocated requests, its count is a lower bound: "were requested at least {count} times". When no explicit range exists: "No line ranges were requested. {requests} requests had unknown or open-ended lines."
-2. "First recognised source edit attempt: call {call} at {m:ss}, {share}% into the session (log line {n}). {k} earlier calls might also have changed files; the log cannot tell." When there is none: "No source edit attempt recognised. {k} calls might have changed files; the log cannot tell." When {k} is 0: "0 earlier calls could have changed files."
-3. "The largest share of the session, {m:ss} of {span} ({pct}%), came after {category}. That includes the tool, the model and waiting. The longest time until the next call was {m:ss}, after call {call} (log lines {a} and {b})."
+1. "Lines {from} to {to} of {file} were requested {count} times. {repeats} of {requests} requests asked again for lines already requested since the last edit attempt on that file; {unchecked} could not be checked." When that file has open-ended or unlocated requests, its count is a lower bound: "were requested at least {count} times". When no explicit range exists: "No line ranges were requested in this recording. {requests} requests had unknown or open-ended lines."
+2. "First recognised source edit attempt: call {call} at {m:ss}, {share}% into the recording (log line {n}). {k} earlier calls might also have changed files; the log cannot tell." When there is none: "No source edit attempt recognised in this recording. {k} calls might have changed files; the log cannot tell." When {k} is 0: "0 earlier calls could have changed files."
+3. "The largest share of the recording, {m:ss} of {span} ({pct}%), came after {category}. That includes the tool, the model and waiting. The longest time until the next call was {m:ss}, after call {call} (log lines {a} and {b})." Unknown gaps add "Times are unknown for {m:ss} of the recording."
 
 Singular forms ("once", "1 request", "1 earlier call") are used for a count of 1. Category names on screen are plain words: file requests, searches, edit attempts, test runs, code runs, version control calls, other calls, blocked calls, calls with unknown effect.
 
@@ -200,13 +202,26 @@ When `totals.partial` is true, each sentence ends with "Partial: {b} log lines c
 
 `headlines(analysis)` returns the plain answer that leads each finding, with the traced value its "Show log lines" control opens. Same numbers as the sentences:
 
-1. "{count} requests for the same {n} lines" ("the same line" for one line), "At least {count} requests..." when the file's count is a lower bound, "No line was requested twice" when the top count is 1, "No line ranges requested" or "No file requests recognised" when there is no explicit range.
-2. "{share}% of the session passed before the first recognised source edit attempt"; "First recognised source edit attempt at call {call}, time unknown" when the share is unknown; "No source edit attempt recognised" (traced to the calls that could have changed files).
-3. "{pct}% of the time came after {category}"; "Where the time went is unknown" when the span is unknown or 0.
+1. "{count} requests for the same {n} lines" ("the same line" for one line), "At least {count} requests..." when the file's count is a lower bound, "No line was requested twice in this recording" when the top count is 1, "No line ranges requested in this recording" or "No file requests recognised in this recording" when there is no explicit range.
+2. "{share}% of the recording had passed before the first recognised source edit attempt"; "First recognised source edit attempt at call {call}, time unknown" when the share is unknown; "No source edit attempt recognised in this recording" (traced to the calls that could have changed files).
+3. "{pct}% of the recorded time came after {category}"; "Where the time went is unknown" when the span is unknown or 0.
+
+### Session ending (provenance/sample-endings.js)
+
+`endingFor({ source: 'sample' | 'file', name })` returns `{ kind, label, sentence }`. Only `source: 'sample'` with a name in the bundled list has a known ending; everything else returns the unknown ending. `ui/main.js` passes `{ source: 'sample' }` only from the sample buttons and `{ source: 'file' }` from the file input. No core module reads it.
+
+| Sample | Label (first screen) | Sentence (under the session title) |
+|---|---|---|
+| `rich-3480` | "Cut off at the 15-minute limit" | "Cut off: the benchmark runner's records show the runner stopped the agent at its 15-minute (900 s) time limit." |
+| `rich-3506` | "Crashed: Kiro's server shut down" | "Crashed: the benchmark runner's agent log shows Kiro's server shut down with an internal error ("RangeError: Invalid string length") about 2 minutes after the last recorded event." |
+| `requests-6644` | "Exited normally (exit code 0)" | "Exited normally: the benchmark runner's records show the agent process exited with code 0; the log has no outcome." |
+| opened file, any name | "Ending unknown" | "Ending unknown: the log does not record how the session ended." |
+
+The case line labels the span "Recorded time". At the end of the replay the hint reads "End of the recording. Replay to watch the figure form."
 
 ## Screen
 
-Order after load: case line ("Developed from {file}", then calls, duration plus an unknown tail and broken log lines as 44px buttons, and "Replay from the first call"), the three findings (headline, sentence, "Show log lines"), the replay stage, plates with the notes panel, exposure meter, evidence (collapsible tables). Layout breakpoints, tokens and type follow steering `design.md`.
+Order after load: session name, the ending sentence, case line ("Developed from {file}", then calls, recorded time plus an unknown tail and broken log lines as 44px buttons, and "Replay from the first call"), the three findings (headline, sentence, "Show log lines"), the replay stage, plates with the notes panel, exposure meter, evidence (collapsible tables). Layout breakpoints, tokens and type follow steering `design.md`.
 
 The first screen shows, before anything is opened, the apparition of `rich-3480` developing once from its own data, with one primary button "Open the autopsy of rich-3480". From 1000px it takes the right column.
 
@@ -265,7 +280,7 @@ Each property is a test. "Gen" means a seeded generated input.
 
 ## Tests
 
-Files in `test/`: `gen.mjs` (helper), `parse`, `shell`, `classify`, `classify.property`, `lines`, `metrics`, `timeline`, `findings`, `samples`, `samples-invariants`, `boundaries`, each ending in `.test.mjs`. Fixtures in `test/fixtures/` follow steering: empty, whitespace only, some broken, all broken, truncated `cmd`, `allow: false`, `post` only, bad field types, time anomalies.
+Files in `test/`: `gen.mjs` (helper), `parse`, `shell`, `classify`, `classify.property`, `lines`, `metrics`, `timeline`, `findings`, `sample-endings`, `samples`, `samples-invariants`, `boundaries`, each ending in `.test.mjs`. Fixtures in `test/fixtures/` follow steering: empty, whitespace only, some broken, all broken, truncated `cmd`, `allow: false`, `post` only, bad field types, time anomalies.
 
 `gen.mjs` exports `rng(seed)` (mulberry32) and `check(name, { seed, runs }, genFn, propFn)`. The default seed is fixed, and the `SEED` environment variable overrides it. On failure it throws with the seed, the case index and the generated input. It has no dependencies, writes nothing and spawns nothing.
 

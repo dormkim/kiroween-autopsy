@@ -38,8 +38,8 @@ const sentences = (a) => findings(a).map(text);
 test('the three findings, word for word', () => {
   assert.deepEqual(sentences(base()), [
     'Lines 81 to 100 of src/requests/models.py were requested 3 times. 1 of 13 requests asked again for lines already requested since the last edit attempt on that file; 6 could not be checked.',
-    'First recognised source edit attempt: call 46 at 2:58, 39% into the session (log line 46). 13 earlier calls might also have changed files; the log cannot tell.',
-    'The largest share of the session, 4:10 of 7:37 (55%), came after code runs. That includes the tool, the model and waiting. The longest time until the next call was 1:09, after call 65 (log lines 66 and 67).',
+    'First recognised source edit attempt: call 46 at 2:58, 39% into the recording (log line 46). 13 earlier calls might also have changed files; the log cannot tell.',
+    'The largest share of the recording, 4:10 of 7:37 (55%), came after code runs. That includes the tool, the model and waiting. The longest time until the next call was 1:09, after call 65 (log lines 66 and 67).',
   ]);
 });
 
@@ -74,28 +74,28 @@ test('singular forms', () => {
   });
   const s = sentences(a);
   assert.equal(s[0], 'Line 5 of a.py was requested once. 0 of 1 request asked again for lines already requested since the last edit attempt on that file; 1 could not be checked.');
-  assert.equal(s[1], 'First recognised source edit attempt: call 46 at 2:58, 39% into the session (log line 46). 1 earlier call might also have changed files; the log cannot tell.');
+  assert.equal(s[1], 'First recognised source edit attempt: call 46 at 2:58, 39% into the recording (log line 46). 1 earlier call might also have changed files; the log cannot tell.');
 });
 
 test('no explicit range: open-ended or unknown lines, or no request at all', () => {
   assert.equal(sentences(base({ top: tr(null, [], 'no_ranges'), requests: tr(2, [1, 2]) }))[0],
-    'No line ranges were requested. 2 requests had unknown or open-ended lines.');
+    'No line ranges were requested in this recording. 2 requests had unknown or open-ended lines.');
   assert.equal(sentences(base({ top: tr(null, [], 'no_ranges'), requests: tr(1, [1]) }))[0],
-    'No line ranges were requested. 1 request had unknown or open-ended lines.');
+    'No line ranges were requested in this recording. 1 request had unknown or open-ended lines.');
   assert.equal(sentences(base({ top: tr(null, [], 'no_ranges'), requests: tr(0, [1, 2]) }))[0],
-    'No file requests were recognised.');
+    'No file requests were recognised in this recording.');
 });
 
 test('no source edit attempt recognised, never "did not edit"', () => {
   const none = tr(null, [], 'none_recognised');
   assert.equal(sentences(base({ firstSource: none, possibleEarlier: tr(23, [5, 9]) }))[1],
-    'No source edit attempt recognised. 23 calls might have changed files; the log cannot tell.');
+    'No source edit attempt recognised in this recording. 23 calls might have changed files; the log cannot tell.');
   assert.equal(sentences(base({ firstSource: none, possibleEarlier: tr(1, [5]) }))[1],
-    'No source edit attempt recognised. 1 call might have changed files; the log cannot tell.');
+    'No source edit attempt recognised in this recording. 1 call might have changed files; the log cannot tell.');
   assert.equal(sentences(base({ firstSource: none, possibleEarlier: tr(0, [1, 2]) }))[1],
-    'No source edit attempt recognised. 0 calls could have changed files.');
+    'No source edit attempt recognised in this recording. 0 calls could have changed files.');
   assert.equal(sentences(base({ possibleEarlier: tr(0, [46]) }))[1],
-    'First recognised source edit attempt: call 46 at 2:58, 39% into the session (log line 46). 0 earlier calls could have changed files.');
+    'First recognised source edit attempt: call 46 at 2:58, 39% into the recording (log line 46). 0 earlier calls could have changed files.');
 });
 
 test('first source edit attempt with an unknown time', () => {
@@ -106,10 +106,10 @@ test('first source edit attempt with an unknown time', () => {
 
 test('time: one-line longest, unknown gaps, unknown span, unknown effect category', () => {
   const one = withTime({ longest: [tr({ call: 9, n: 9, seconds: 4 }, [9])] });
-  assert.equal(sentences(one)[2], 'The largest share of the session, 4:10 of 7:37 (55%), came after code runs. That includes the tool, the model and waiting. The longest time until the next call was 0:04, after call 9 (log line 9).');
+  assert.equal(sentences(one)[2], 'The largest share of the recording, 4:10 of 7:37 (55%), came after code runs. That includes the tool, the model and waiting. The longest time until the next call was 0:04, after call 9 (log line 9).');
   const gaps = withTime({ gaps: [tr(10, [1, 2, 3])], byCategory: new Map([['unknown', tr(300, [1])], ['unknown_time', tr(10, [1, 2, 3])]]) });
   assert.equal(sentences(gaps)[2],
-    'The largest share of the session, 5:00 of 7:37 (66%), came after calls with unknown effect. That includes the tool, the model and waiting. The longest time until the next call was 1:09, after call 65 (log lines 66 and 67). Times are unknown for 0:10 of the session.');
+    'The largest share of the recording, 5:00 of 7:37 (66%), came after calls with unknown effect. That includes the tool, the model and waiting. The longest time until the next call was 1:09, after call 65 (log lines 66 and 67). Times are unknown for 0:10 of the recording.');
   const span = withTime({ span: tr(null, [], 'no_time'), byCategory: new Map(), longest: [] });
   assert.equal(sentences(span)[2], 'No call has a usable time, so where the time went is unknown.');
 });
@@ -253,8 +253,8 @@ const heads = (a) => headlines(a).map((h) => h.text);
 test('headlines, word for word, from the hand-built analysis', () => {
   assert.deepEqual(heads(base()), [
     '3 requests for the same 20 lines',
-    '39% of the session passed before the first recognised source edit attempt',
-    '55% of the time came after code runs',
+    '39% of the recording had passed before the first recognised source edit attempt',
+    '55% of the recorded time came after code runs',
   ], 'lines 81 to 100 are 20 lines; share 0.389 rounds to 39%; 250.4 of 456.932 s rounds to 55%, the same numbers as the sentences');
 });
 
@@ -264,14 +264,14 @@ test('headline 1 says "At least" exactly when the most requested file has a lowe
   const other = new Map([['src/requests/models.py', { lowerBound: false }], ['b.py', { lowerBound: true }]]);
   assert.equal(heads(base({ files: other }))[0], '3 requests for the same 20 lines', 'only the most requested file counts');
   assert.equal(heads(base({ top: tr({ file: 'a.py', from: 5, to: 5, count: 2 }, [3, 4]) }))[0], '2 requests for the same line', 'singular line');
-  assert.equal(heads(base({ top: tr({ file: 'a.py', from: 5, to: 9, count: 1 }, [3]) }))[0], 'No line was requested twice', 'a count of 1 is not a repeat');
+  assert.equal(heads(base({ top: tr({ file: 'a.py', from: 5, to: 9, count: 1 }, [3]) }))[0], 'No line was requested twice in this recording', 'a count of 1 is not a repeat');
 });
 
 test('headlines for unknown and missing values never show 0 as a stand-in', () => {
-  assert.equal(heads(base({ top: tr(null, [], 'no_ranges'), requests: tr(2, [1, 2]) }))[0], 'No line ranges requested');
-  assert.equal(heads(base({ top: tr(null, [], 'no_ranges'), requests: tr(0, [1, 2]) }))[0], 'No file requests recognised');
+  assert.equal(heads(base({ top: tr(null, [], 'no_ranges'), requests: tr(2, [1, 2]) }))[0], 'No line ranges requested in this recording');
+  assert.equal(heads(base({ top: tr(null, [], 'no_ranges'), requests: tr(0, [1, 2]) }))[0], 'No file requests recognised in this recording');
   const none = base({ firstSource: tr(null, [], 'none_recognised'), possibleEarlier: tr(23, [5, 9]) });
-  assert.equal(heads(none)[1], 'No source edit attempt recognised', 'never "did not edit"');
+  assert.equal(heads(none)[1], 'No source edit attempt recognised in this recording', 'never "did not edit"; the claim is about the recording only');
   assert.deepEqual(headlines(none)[1].traced.lines, [5, 9], 'it opens the calls that could have changed files');
   const fs = tr({ call: 2, n: 2, file: 'a.py', offset: null, share: null }, [2]);
   assert.equal(heads(base({ firstSource: fs }))[1], 'First recognised source edit attempt at call 2, time unknown');
@@ -293,9 +293,18 @@ test('sample headlines match the hand-derived values in design.md', () => {
   const h = heads(r3480);
   const lower = r3480.files.get('rich/text.py').lowerBound;
   assert.equal(h[0], `${lower ? 'At least ' : ''}8 requests for the same 4 lines`, 'rich-3480: rich/text.py 1007 to 1010 (4 lines) requested 8 times, per the design.md table');
-  assert.equal(h[1], '90% of the session passed before the first recognised source edit attempt', 'rich-3480: share 0.903 per the design.md table');
-  assert.equal(heads(load('requests-6644'))[1], '39% of the session passed before the first recognised source edit attempt', 'requests-6644: share 0.389 per the design.md table');
-  assert.equal(heads(load('rich-3506'))[1], 'No source edit attempt recognised', 'rich-3506: none recognised per the design.md table');
+  assert.equal(h[1], '90% of the recording had passed before the first recognised source edit attempt', 'rich-3480: share 0.903 per the design.md table; a share of the recording, which was cut off');
+  assert.equal(heads(load('requests-6644'))[1], '39% of the recording had passed before the first recognised source edit attempt', 'requests-6644: share 0.389 per the design.md table');
+  assert.equal(heads(load('rich-3506'))[1], 'No source edit attempt recognised in this recording', 'rich-3506: none recognised per the design.md table');
+});
+
+test('no finding or headline names an ending or a result; endings are provenance, not analysis', () => {
+  const words = /\b(?:solved|unsolved|success|succeeded|failed|failure|crash|crashed|cut off|timeout|time limit|exit code|exited)\b/i;
+  const load = (name) => analyse(parse(readFileSync(new URL(`../samples/${name}.events.jsonl`, import.meta.url), 'utf8')));
+  for (const name of ['rich-3480', 'rich-3506', 'requests-6644']) {
+    const a = load(name);
+    for (const t of [...heads(a), ...sentences(a)]) assert.ok(!words.test(t), `${name}: "${t}" must not link the analysis to how the session ended`);
+  }
 });
 
 test('headlines contain no banned words, em dashes or exclamation marks', () => {

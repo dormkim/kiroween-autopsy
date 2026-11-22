@@ -1,6 +1,6 @@
 # Product: Session Autopsy
 
-Session Autopsy is a static web page. It opens the event log (`*.events.jsonl`) of a finished coding-agent session and shows:
+Session Autopsy is a static web page. It opens the event log (`*.events.jsonl`) of a recorded coding-agent session and shows:
 
 - which file lines were requested again, and how many times;
 - when the first source edit was attempted;
@@ -43,7 +43,7 @@ Repeated reading is described with counts and line numbers. It is never judged.
 2. `cmd` is cut at 200 characters when `cmd_truncated` is true. The visible part can still set the category, but anything the cut part could have done (more target files, a file write) is unknown.
 3. Each call has two separate results: a category (what kind of call it is) and a file effect (`none`, `requested`, `edit attempt`, or `unknown`). Starting categories: file request, search, run, edit attempt, version control, blocked, unknown. The spec lists the tools and command patterns seen in `samples/`.
 4. A read with an empty `range` requests the whole file. Its length is unknown. A `limit` without an `offset` starts at the file start. The offset base (0 or 1) is not documented, so the detail view shows ranges as logged ("offset 360, limit 50"). Overlap counts do not depend on the base.
-5. The first source edit attempt is the first call with an edit attempt on a source file: inside the workspace, code extension, not a test file, not a scratch script, not under a dot-directory (the spec's edit classes). Edit attempts on other files are listed separately by class. Earlier calls that could have edited files (possible hidden edits, and edit attempts with an unknown target) are counted and listed with it: "First recognised source edit attempt: call 46, log line 46. 13 earlier calls could have changed files: unknown." If none is recognised, the screen says "No source edit attempt recognised", never that the agent did not edit.
+5. The first source edit attempt is the first call with an edit attempt on a source file: inside the workspace, code extension, not a test file, not a scratch script, not under a dot-directory (the spec's edit classes). Edit attempts on other files are listed separately by class. Earlier calls that could have edited files (possible hidden edits, and edit attempts with an unknown target) are counted and listed with it: "First recognised source edit attempt: call 46, log line 46. 13 earlier calls could have changed files: unknown." If none is recognised, the screen says "No source edit attempt recognised in this recording", never that the agent did not edit.
 6. `"allow": false` means the recording hook blocked the call. Show it as blocked, never as run.
 7. Lines that are not `"hook": "pre"` (for example `"hook": "post"`) are not calls. They are counted and listed by log line.
 
@@ -65,6 +65,10 @@ Every number on screen can be traced to raw log line numbers. Focus or click on 
 ## Time
 
 `t` is the time in epoch seconds when the hook ran, before the tool ran. The time of a call is the time until the next call, labelled "time until the next call (tool, model and waiting together)". Notes do not split it. The last call's time runs to the last valid event. The total is first call to last valid event "plus an unknown tail". Times on screen are relative to the first call, as m:ss.
+
+## How a session ended
+
+The log does not record how a session ended. Shares and totals are of the recording ("90% of the recording had passed", "of the recorded time"), never of a finished session. For bundled samples opened through the sample buttons, the ending comes from the benchmark runner's records in `src/provenance/sample-endings.js` (see `DISCLOSURE.md`) and is shown as text under the session title and next to each sample button. Any file the user opens says "Ending unknown: the log does not record how the session ended." Analysis never reads the ending, never infers one from events, and never links repeated requests to an ending. Never show solved or unsolved.
 
 ## Privacy and copy
 

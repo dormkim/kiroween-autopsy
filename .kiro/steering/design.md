@@ -4,11 +4,11 @@
 
 The session is developed like a Victorian spirit photograph.
 
-Each file the agent requested is a photographic plate, its lines running top to bottom. Every read request exposes its line range once, as a pale band. Exposures stack, so a range requested five times glows far brighter than one requested once. The ghost appears exactly where reading repeated, and its brightness is the count.
+Each file the agent requested is a photographic plate, its lines running top to bottom. Every read request exposes its line range once, as a pale band. Exposures stack, so a range requested five times glows far brighter than one requested once. Brightness is the count.
 
 Under the plates runs the contact strip: the session as a strip of film, one frame per call. A frame's width is the time until the next event. The film margin carries printed edge codes with the call number and log line, so every frame points back to the raw log. Replay develops the plates: as the playhead moves along the strip, exposures land on the plates in recorded order.
 
-The ghost is the measurement. The most requested line range develops into an apparition: a veiled figure with hollow eyes in a cabinet-card photograph, made of exactly one offset exposure per request of those lines up to the playhead. It is invisible at zero requests, faint at one and a dense, staring figure at eight. One short caption says so, and the line plate beside it stays the exact reading, with one strand per exposure running from the requested lines into the figure.
+The ghost is the measurement. The most requested line range develops into an apparition: a veiled figure with hollow eyes in a cabinet-card photograph, made of exactly one offset exposure per request of those lines up to the playhead. The figure appears with the first request of the most requested lines and gains one exposure each time they are requested again: invisible at zero requests, faint at one and a dense, staring figure at eight. One short caption says so, and the line plate beside it stays the exact reading, with one strand per exposure running from the requested lines into the figure.
 
 No mascots, bats, cobwebs, skulls, dripping type or glow effects. A ghost or figure is allowed only when it is built from the data like the apparition; ghosts that carry no data are banned.
 
@@ -105,7 +105,7 @@ Six sizes total: 12, 14, 16, 20, 28, 40. Weights 400 and 600 only. Numbers use `
 
 ## Interaction and motion
 
-- Every control is at least 44 by 44px and reachable with Tab, with the visible `--focus` ring.
+- Every control is at least 44 by 44px and reachable with Tab, with the visible `--focus` ring. This includes traced number buttons in table cells. Open limit, not compliance: traced number buttons inside running text (finding sentences, notes) are smaller, measured as small as 11 by 38px at 360, 768 and 1280. The alternative for each finding is its 44px "Show log lines" button, which shows the same log lines.
 - The strip has one tab stop: the playhead range input. Arrow keys step one call, Home and End jump to the ends, Space plays and pauses.
 - The repeated-requests table is the keyboard path to the bands. Selecting a row highlights its band and lights its frames on the strip. Clicking a band selects the same row.
 - Replay: one frame per 120ms. A new exposure appears over 160ms. The strip keeps the playhead in view while playing, scrubbing and after load. After load the playhead is at the end (end of the recording) and the button reads "Replay from call 1"; pressing it at the end restarts from the first call and brings the stage into view.

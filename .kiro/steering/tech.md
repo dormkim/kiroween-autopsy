@@ -6,8 +6,9 @@
 - Tests: Node 22.13 or later, standard library only (`node:test`, `node:assert/strict`).
 - `package.json` has no `dependencies` or `devDependencies`. Never add one. No `npx`.
 - No CDN, remote font, analytics, telemetry, service worker, cookie or storage API. The only network request is a same-origin GET of `samples/*.events.jsonl`.
-- `index.html` sets this Content Security Policy in a meta tag, so the browser enforces the rule at run time:
+- `index.html` sets this Content Security Policy in a meta tag:
   `default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'`
+  It blocks connections to other origins. `connect-src 'self'` still allows a request to the server that hosts the page, so the CSP alone does not prevent an upload; the code has no upload or storage, and `test/boundaries.test.mjs` checks that the only fetch is of `./samples/`.
   No inline scripts, no inline `<style>`, no `style=""` attributes. Dynamic values go through `element.style.setProperty('--name', value)`.
 
 ## Untrusted log content
@@ -28,7 +29,7 @@
 
 ## Tests
 
-- Run each file as `node --permission --allow-fs-read=. test/<name>.test.mjs`. Tests never write files, spawn processes or use the network.
+- Run each file as `node --permission --allow-fs-read=. test/<name>.test.mjs`. Tests never write files, spawn processes or use the network, except `test/recorder.test.mjs` (below).
 - Each core module has a test file. Small hand-written fixtures in `test/fixtures/` cover: empty file, broken lines, all lines broken, truncated `cmd`, `allow: false`, `post` lines, no calls.
 - Sample tests check exact numbers and their log lines against `samples/`.
 - Kiro has no shell. The reviewer runs the tests, so assertion messages must say what was expected and why.

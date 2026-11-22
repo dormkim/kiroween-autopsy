@@ -13,11 +13,11 @@ Audience: people who build or study coding agents and want to look closely at on
 
 ## Claims
 
-The product does not fix agents, improve solve rates, save credits, or predict failure, live or afterwards. It cannot say whether a session succeeded, because the log has no outcome. It reads a recording after the session ended and never intervenes.
+The product does not fix agents, improve solve rates, save credits, or predict failure, live or afterwards. It cannot say whether a session succeeded, because the log has no outcome. The page reads a recording after the session ended and never intervenes. The recorder (`recorder/`) only writes the log: it never blocks or steers the agent, with one exception. When recording fails, its prompt check asks the agent to say so.
 
-The first screen says this in one short paragraph, in these words or very close:
+The first screen says this in one short paragraph, in these words:
 
-> In three comparisons of interventions, we did not confirm that more issues were solved. So Session Autopsy only reads recordings after a session has ended. It never intervenes.
+> In three comparisons of interventions we did not confirm more issues solved, so this page only reads recordings after a session ends. It never intervenes.
 
 Never write, in copy, code comments, docs or commit text:
 - "found it but did not fix it" or any variant;

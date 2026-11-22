@@ -2,7 +2,7 @@
 
 Plan for `requirements.md` and `design.md`. Increments A, B and C are each implemented in one session and committed on their own. Increment D is run by the reviewer.
 
-Kiro has no shell. At the end of each increment the reviewer runs that increment's tests and commits only when they pass. Every test file runs as `node --permission --allow-fs-read=. test/<name>.test.mjs`. Property tests accept `SEED=<n>` to change the seed.
+Kiro has no shell. At the end of each increment the reviewer runs that increment's tests and commits. The reviewer also committed failing states, on purpose (tests written before the code they test) or as work in progress, and marked them in the commit message, for example 952c17c, 6fc3f70 and ac643e2. Each increment ended on a passing commit. Every test file runs as `node --permission --allow-fs-read=. test/<name>.test.mjs`, except `test/recorder.test.mjs` (steering tech.md). Property tests accept `SEED=<n>` to change the seed.
 
 R-numbers refer to `requirements.md`. P-numbers refer to "Correctness properties" in `design.md`.
 
@@ -210,8 +210,10 @@ Boundary test first, then the page. UI code is not imported by tests. It is prov
 - [x] C18. Checkpoint: the reviewer runs all tests and the 360, 768 and 1280 screenshots again, then commits.
 - [x] C19. Final pass: "first recognised source edit attempt" in the headline, its label, the sentence, notes and evidence, "first recognised edit" on the strip, with tests and spec templates updated; threads hidden until the playhead reaches their repeat, even when selected; short session name fitted on the card; "at least once"; no stray space before the meter share; 44px DISCLOSURE.md link; figure redrawn as a veiled person with sunken sockets, cheek shadow, torn hem and displaced exposures, still one per request.
 - [x] C20. Checkpoint: the reviewer runs all tests and screenshots this pass, then commits.
-- [ ] C21. Correction, session endings (R12): `src/provenance/sample-endings.js` with the ending of each bundled sample from the runner's records (DISCLOSURE.md); short label beside each sample button, below the primary button and under the first-screen photograph, in accessible names; full sentence under the session title before the headlines; "Ending unknown: the log does not record how the session ended." for every opened file; shares, totals and absence claims worded as of the recording, "Recorded time", "End of the recording"; `test/sample-endings.test.mjs` added to `npm test`; boundary test covers `src/provenance/`. The reviewer runs the tests and the 360x740 screenshots, then commits.
-- [ ] Open: the inline number buttons in running text are 42px high and down to 12px wide, below the 44px rule. Enlarging them in running text would overlap neighbouring lines, so they are left as they are for now.
+- [x] C21. Correction, session endings (R12): `src/provenance/sample-endings.js` with the ending of each bundled sample from the runner's records (DISCLOSURE.md); short label beside each sample button, below the primary button and under the first-screen photograph, in accessible names; full sentence under the session title before the headlines; "Ending unknown: the log does not record how the session ended." for every opened file; shares, totals and absence claims worded as of the recording, "Recorded time", "End of the recording"; `test/sample-endings.test.mjs` added to `npm test`; boundary test covers `src/provenance/`. The reviewer runs the tests and the 360x740 screenshots, then commits.
+  - Status: done in runs 13 and 14, verified by the reviewer.
+- [ ] C22. Touch targets in table cells: traced number buttons inside `td` were 38px high (99 found at 360, 768 and 1280). `app.css` now gives `.ev-table td .traced` at least 44 by 44px, capped at the cell width so it cannot widen the page at 360. Status: CSS written; the reviewer measures again at 360, 768 and 1280 before this is ticked.
+- [ ] Open limit, not compliance: traced number buttons inside running text (finding sentences, notes) are below the 44px rule, measured as small as 11 by 38px. Enlarging them would overlap neighbouring lines, so they stay. The alternative for each finding is its 44px "Show log lines" button, which shows the same log lines. Stated in steering design.md, R9.5 and the README limits.
 
 ## Increment D: verification (reviewer)
 
@@ -280,10 +282,15 @@ Three sessions: E1 to E4 (tests and spec, this run), E5 to E10 (implementation),
   - Files: `recorder/session-autopsy-record.mjs`, with the limits from design.md in its header comment
   - Proof: `test/recorder.test.mjs`
 
-- [ ] E9. Install example and docs
+- [x] E9. Install example and docs
   - Files: `examples/recorder-agent.json` (preToolUse matcher `*` running `node .kiro/session-autopsy/session-autopsy-record.mjs`, userPromptSubmit running it with `--prompt-check`), README section "Record your own session" (copy, register, `--check`, what is recorded including file names inside the project, the limits), steering `structure.md` tree with `recorder/` and `examples/`, the case-line note from `permissionNote()` in `src/ui/summary.js`.
   - Proof: `test/boundaries.test.mjs`, E12
-  - Status: example agent, structure.md, the case-line note (`summary.js`, `.case-permission` in `app.css`) and "Attempt, permission not recorded." in the live line (`strip.js`) are written. The README section is left for the next run.
+  - Status: example agent, structure.md, the case-line note (`summary.js`, `.case-permission` in `app.css`) and "Attempt, permission not recorded." in the live line (`strip.js`) are written. The README now has "Record your own session", what is and is never recorded, failure visibility, the log format for recorder logs and what is not verified.
+
+- [x] E8a. Mixed V2 reads (R13.5): a read call mixing `Line` and `Directory` operations, seen in a real probe with six files and a directory, becomes one `read_file` line of only the `Line` operations, in order; `Directory` operations are dropped. Only `Directory` stays `list_directory`; any other mode keeps the whole call `unknown_tool`.
+  - Files: `test/recorder.test.mjs` first, then `recorder/session-autopsy-record.mjs`
+  - Changed older assertion: "V2 read with mixed Line and Directory" in "unknown tool names and unknown shapes become unknown_tool" pinned exactly this case as `unknown_tool`. It is removed there and the case now lives in the V2 shapes test with its new expected line. No other assertion changed.
+  - Proof: `test/recorder.test.mjs`, run by the reviewer.
 
 - [ ] E10. Checkpoint: the reviewer runs `npm test` and the property seeds, then commits.
 

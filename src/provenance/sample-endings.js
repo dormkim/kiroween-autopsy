@@ -22,7 +22,7 @@ const ENDINGS = new Map([
   ['rich-3506.events.jsonl', Object.freeze({
     kind: 'crashed',
     label: 'Crashed: Kiro\'s server shut down',
-    sentence: 'Crashed: the benchmark runner\'s agent log shows Kiro\'s server shut down with an internal error ("RangeError: Invalid string length") about 2 minutes after the last recorded event.',
+    sentence: 'Crashed: the benchmark runner\'s agent log shows Kiro\'s server shut down with an internal error ("RangeError: Invalid string length"). The time of the crash is not recorded; the runner wrote that log 121 seconds after the last recorded event.',
   })],
   ['requests-6644.events.jsonl', Object.freeze({
     kind: 'exited',

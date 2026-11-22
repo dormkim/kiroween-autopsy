@@ -329,6 +329,26 @@ test('V2 shapes measured on Kiro CLI 3.5.0 become the documented lines (R13.2 to
       { tool: 'read_file', paths: ['a.py', 'numbered.txt'], ranges: [{}, { offset: 1, limit: 2 }] }],
     ['one read call with three operations, one outside', 'read', { operations: [{ mode: 'Line', path: 'src/m.py', offset: 4 }, { mode: 'Line', path: '../outside.txt' }, { mode: 'Line', path: 'a.py', limit: 9 }] },
       { tool: 'read_file', paths: ['src/m.py', OUT, 'a.py'], ranges: [{ offset: 4 }, {}, { limit: 9 }] }],
+    // Seen in a real probe: one read call with six files and a directory. Directory operations
+    // have no file effect, so they are dropped and the Line operations stay, in order.
+    ['one read call with six files and a directory', 'read', { operations: [
+      { mode: 'Line', path: 'a.py' },
+      { mode: 'Line', path: 'numbered.txt', offset: 2, limit: 3 },
+      { mode: 'Line', path: 'src/m.py', limit: 4 },
+      { mode: 'Directory', path: 'src' },
+      { mode: 'Line', path: '../outside.txt' },
+      { mode: 'Line', path: 'new/f.py', offset: 0 },
+      { mode: 'Line', path: '.', offset: 5, limit: 1 },
+    ] },
+    { tool: 'read_file', paths: ['a.py', 'numbered.txt', 'src/m.py', OUT, 'new/f.py', WS], ranges: [{}, { offset: 2, limit: 3 }, { limit: 4 }, {}, { offset: 0 }, { offset: 5, limit: 1 }] }],
+    ['one Line and one Directory operation', 'read', { operations: [{ mode: 'Line', path: 'a.py' }, { mode: 'Directory', path: '.' }] },
+      { tool: 'read_file', paths: ['a.py'], range: {} }],
+    ['a Directory operation before one Line operation', 'read', { operations: [{ mode: 'Directory', path: 'src' }, { mode: 'Line', path: 'numbered.txt', offset: 1, limit: 2 }] },
+      { tool: 'read_file', paths: ['numbered.txt'], range: { offset: 1, limit: 2 } }],
+    ['two Directory operations around two Line operations', 'read', { operations: [{ mode: 'Directory', path: '.' }, { mode: 'Line', path: 'a.py', limit: 1 }, { mode: 'Line', path: 'src/m.py' }, { mode: 'Directory', path: 'src' }] },
+      { tool: 'read_file', paths: ['a.py', 'src/m.py'], ranges: [{ limit: 1 }, {}] }],
+    ['list two directories in one call', 'read', { operations: [{ mode: 'Directory', path: '.' }, { mode: 'Directory', path: 'src' }] },
+      { tool: 'list_directory', paths: [WS, 'src'] }],
     ['list the directory .', 'read', { operations: [{ mode: 'Directory', path: '.' }] },
       { tool: 'list_directory', paths: [WS] }],
     ['list the directory src', 'read', { operations: [{ mode: 'Directory', path: 'src' }] },
@@ -422,7 +442,11 @@ test('unknown tool names and unknown shapes become unknown_tool, never a copied 
     ['V2 read with operations not an array', 'read', { operations: { mode: 'Line', path: 'a.py' } }],
     ['V2 read with an operation that is a string', 'read', { operations: ['a.py'] }],
     ['V2 read with a null operation', 'read', { operations: [null] }],
-    ['V2 read with mixed Line and Directory', 'read', { operations: [{ mode: 'Line', path: 'a.py' }, { mode: 'Directory', path: '.' }] }],
+    ['V2 read with Line and Image', 'read', { operations: [{ mode: 'Line', path: 'a.py' }, { mode: 'Image', image_paths: ['x.png'] }] }],
+    ['V2 read with Line, Directory and an unknown mode', 'read', { operations: [{ mode: 'Line', path: 'a.py' }, { mode: 'Directory', path: '.' }, { mode: C.mode, path: 'src/m.py' }] }],
+    ['V2 read with Directory and no mode', 'read', { operations: [{ mode: 'Directory', path: '.' }, { path: 'a.py' }] }],
+    ['V2 read with Line and a Directory without a path', 'read', { operations: [{ mode: 'Line', path: 'a.py' }, { mode: 'Directory' }] }],
+    ['V2 read with Directory and a Line with a bad offset', 'read', { operations: [{ mode: 'Directory', path: '.' }, { mode: 'Line', path: 'a.py', offset: -1 }] }],
     ['V2 read in Image mode', 'read', { operations: [{ mode: 'Image', image_paths: ['x.png'] }] }],
     ['V2 read in an unknown mode', 'read', { operations: [{ mode: C.mode, path: 'a.py' }] }],
     ['V2 read with no mode', 'read', { operations: [{ path: 'a.py' }] }],
@@ -504,6 +528,8 @@ test('no content, text, output, prompt, purpose, command, unknown field, tool na
   await go(v2(box, 'write', { command: C.writeCommand, path: 'a.py', ...purpose }), { tool: 'unknown_tool' }, 'V2 unknown write command');
   await go(v2(box, 'read', { operations: [{ mode: 'Line', path: 'a.py', [C.fieldName]: C.fieldValue }], ...purpose }), { tool: 'read_file', paths: ['a.py'], range: {} }, 'V2 read with an unknown operation field');
   await go(v2(box, 'read', { operations: [{ mode: C.mode, path: 'a.py' }], ...purpose }), { tool: 'unknown_tool' }, 'V2 read in an unknown mode');
+  await go(v2(box, 'read', { operations: [{ mode: 'Directory', path: `/etc/${C.outside}`, [C.fieldName]: C.fieldValue }, { mode: 'Line', path: 'a.py' }], ...purpose }),
+    { tool: 'read_file', paths: ['a.py'], range: {} }, 'V2 read whose dropped Directory operation holds an outside name');
   await go(v3(box, 'fs_write', { path: 'b.py', text: C.content, ...purpose }), { tool: 'str_replace', paths: ['b.py'] }, 'V3 fs_write with text');
   await go(v3(box, 'str_replace', { path: 'a.py', oldStr: C.old, newStr: C.new, replace_all: true, ...purpose }), { tool: 'str_replace', paths: ['a.py'] }, 'V3 str_replace');
   await go(v3(box, 'grep_search', { pattern: C.pattern, path: 'src', ...purpose }), { tool: 'search' }, 'V3 grep_search');

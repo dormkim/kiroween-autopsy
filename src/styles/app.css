@@ -316,6 +316,19 @@ button, input, select { font: inherit; color: inherit; }
 }
 .traced:hover { text-decoration-style: solid; text-decoration-color: var(--c-exposure); }
 .traced[aria-pressed="true"] { color: var(--c-accent); text-decoration-color: var(--c-accent); }
+/* In table cells a traced number is a full 44 by 44px target; it shrinks to the cell, never widens the page.
+   Inside running text it stays inline and smaller: an open limit, see steering design.md. */
+.ev-table td .traced {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--target);
+  min-width: var(--target);
+  max-width: 100%;
+  margin: 0;
+  padding: 0 var(--s-1);
+  vertical-align: middle;
+}
 .value-plain { color: var(--c-text); overflow-wrap: anywhere; }
 
 /* ---- replay stage: photograph, controls and strip in one viewport ---- */

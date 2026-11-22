@@ -23,8 +23,8 @@ test('each bundled sample has its ending, word for word', () => {
   assert.deepEqual(s('rich-3506.events.jsonl'), {
     kind: 'crashed',
     label: 'Crashed: Kiro\'s server shut down',
-    sentence: 'Crashed: the benchmark runner\'s agent log shows Kiro\'s server shut down with an internal error ("RangeError: Invalid string length") about 2 minutes after the last recorded event.',
-  }, 'DISCLOSURE.md: Kiro\'s server raised RangeError, 121 s after the last event; no fault is assigned to the agent');
+    sentence: 'Crashed: the benchmark runner\'s agent log shows Kiro\'s server shut down with an internal error ("RangeError: Invalid string length"). The time of the crash is not recorded; the runner wrote that log 121 seconds after the last recorded event.',
+  }, 'DISCLOSURE.md: Kiro\'s server raised RangeError; 121 s is when the runner wrote its agent log, not the time of the crash; no fault is assigned to the agent');
   assert.deepEqual(s('requests-6644.events.jsonl'), {
     kind: 'exited',
     label: 'Exited normally (exit code 0)',

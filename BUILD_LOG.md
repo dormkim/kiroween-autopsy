@@ -808,3 +808,54 @@ The reviewer ran your tests: they fail as intended (0 of 28 recorder, 2 of 15 fo
 5. test/boundaries.test.mjs test 13 fails because it expects every test file to run under the permission model: make exactly recorder.test.mjs the one named exception (tech.md), everything else as strict as before.
 Do not edit or weaken the two new test files, unless one is self-contradictory: then say which and why in your summary instead of changing it. The README and the other defects come in the next run.
 ~~~~
+
+## Run 17: mixed reads and every reviewed false claim
+
+- Time: 2026-11-22T13:42:23Z to 2026-11-22T13:48:50Z
+- Model: `claude-opus-5.5`
+- Kiro session: `0a4c8894-f3b0-4944-99a3-8157f8f3af8e`
+- Exit code: 0
+- Account meter: 962.81 to 990.36 (27.55 credits)
+
+Files changed:
+- `build-evidence/write-guard.jsonl`
+- `index.html`
+- `.kiro/specs/session-autopsy/design.md`
+- `.kiro/specs/session-autopsy/requirements.md`
+- `.kiro/specs/session-autopsy/tasks.md`
+- `.kiro/steering/design.md`
+- `.kiro/steering/product.md`
+- `.kiro/steering/tech.md`
+- `README.md`
+- `recorder/session-autopsy-record.mjs`
+- `src/provenance/sample-endings.js`
+- `src/styles/app.css`
+- `test/recorder.test.mjs`
+- `test/sample-endings.test.mjs`
+
+Prompt, verbatim:
+
+~~~~text
+Phase 2, correction pass on a working project (282 tests pass, the recorder passed an independent adversarial check). Read only what you need and make targeted edits. One tool call at a time, keep going until all are done. Do not change any number the three bundled samples show.
+
+A. RECORDER, tests first (add the failing cases to test/recorder.test.mjs, update the spec line, then fix): a V2 read call that mixes Line and Directory operations (seen in a real probe: one call with six files and a directory) is now unknown_tool and loses every file. It must become one read_file line of only the Line operations, in order (paths + range for one, paths + ranges for several); Directory operations have no file effect and are dropped. Only-Directory stays list_directory; any other mode still makes the whole call unknown_tool. Change an existing assertion only if it pins exactly this case, and say so.
+
+B. FALSE CLAIMS found in an outside review. Fix each everywhere it occurs (screen, meta, README, steering, spec, tests, comments):
+1. "The ghost forms where requests repeated": false, one request already draws a faint figure. Say: the figure appears with the first request of the most requested lines, and gains one exposure each time they are requested again.
+2. "Kiro's server shut down about 2 minutes after the last recorded event": 121 s is when the runner wrote its log. Say in the rich-3506 sentence and README: "Crashed: the benchmark runner's agent log shows Kiro's server shut down with an internal error (\"RangeError: Invalid string length\"). The time of the crash is not recorded; the runner wrote that log 121 seconds after the last recorded event." Adjust its test.
+3. "A Content Security Policy enforces [no upload]": false, connect-src 'self' allows sending to the same server. Say: the code has no upload or storage; the CSP blocks connections to other origins but does not by itself prevent a request to the server that hosts the page.
+4. "Every control is 44px": false. Measured at 360, 768 and 1280: every control is at least 44x44 except traced number buttons. Those inside table cells (TD, 38px high, 99 found): FIX in CSS to at least 44 high and 44 wide without page overflow at 360. Those inside running text (as small as 11x38): keep, and state the exception in steering design.md, R9.5, tasks and README limits, with the 44px "Show log lines" button as the alternative for each finding. Say that it is an open limit, not compliance.
+5. "commits only when they pass" in tasks.md: false. Red commits exist on purpose or as work in progress (952c17c, 6fc3f70, ac643e2). State what really happened: the reviewer committed failing states too and marked them in the commit message; each increment ended on a passing commit.
+6. C21 in tasks.md is done (runs 13 and 14, verified): tick it. Check the other boxes of increments C and E against what exists; leave unverified reviewer tasks open.
+7. The screen's limit sentence must stay true now that a recorder exists: "In three comparisons of interventions we did not confirm more issues solved, so this page only reads recordings after a session ends. It never intervenes." Same in product.md and README. In README add that the recorder never blocks or steers, with one exception: when recording fails, its prompt check asks the agent to say so.
+
+C. README, in plain English, no invented numbers, no placeholders:
+- Near the top "Record your own session": copy recorder/session-autopsy-record.mjs to .kiro/session-autopsy/, copy examples/recorder-agent.json to .kiro/agents/, `node .kiro/session-autopsy/session-autopsy-record.mjs --check`, start `kiro-cli chat --agent recorded`, then open .session-autopsy/<session_id>.events.jsonl with "Open a log file". How to merge the two hook entries into an existing agent instead. Add .session-autopsy/ to the user's .gitignore. Note that V3 may rewrite the agent file into its own format with a .bak copy (seen in the probe).
+- What it records and never records: commands are never recorded, with no option, because they can hold secrets; file names inside the project are recorded and can be sensitive; attempts, permission unknown, denied calls included.
+- Failure visibility, honestly: Kiro shows no stderr of a failing preToolUse hook; what --check and the prompt check give and what they cannot.
+- "Log format": `allow` optional and what absent / false / malformed mean; the canonical tool names; `ranges`; /outside-workspace. Say the page does NOT read a raw Kiro event or the names read, write, fs_read, fs_write, shell: the recorder converts. In a log from elsewhere only /workspace or relative paths count as the project, any other absolute path is outside and never a source edit.
+- Not verified: shell tool input and everything after a shell call (recorded only as execute_bash, effect unknown), MCP and other tools, Windows, other Kiro versions than 3.5.0, real editing by tools not measured.
+- Fix other lines that became false: tests now include one file that spawns processes and writes temp directories (never deleted); "kind, spans, call are ignored" stays.
+- Do NOT write "How Kiro was used" yet, that is the next run.
+Finish with a short list: each B item and where it changed.
+~~~~

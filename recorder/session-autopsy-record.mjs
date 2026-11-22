@@ -352,17 +352,22 @@ const rangeOf = (input) => {
   return out;
 };
 
-/** V2 read: every operation Line (a file read) or every one Directory (a listing). */
+/**
+ * V2 read: every operation Directory is a listing. Otherwise every operation must be Line or
+ * Directory; the Line operations become one read_file line in order, and Directory operations
+ * are dropped because they have no file effect. Any other mode makes the whole call unknown.
+ */
 const v2Read = (input) => {
   const ops = has(input, 'operations') ? input.operations : null;
   if (!Array.isArray(ops) || ops.length === 0) return UNKNOWN;
   if (!ops.every((op) => isObject(op) && stringField(op, 'path') !== null)) return UNKNOWN;
-  const paths = ops.map((op) => op.path);
-  if (ops.every((op) => op.mode === 'Directory')) return { tool: 'list_directory', paths };
-  if (!ops.every((op) => op.mode === 'Line')) return UNKNOWN;
-  const ranges = ops.map(rangeOf);
+  if (ops.every((op) => op.mode === 'Directory')) return { tool: 'list_directory', paths: ops.map((op) => op.path) };
+  if (!ops.every((op) => op.mode === 'Line' || op.mode === 'Directory')) return UNKNOWN;
+  const lines = ops.filter((op) => op.mode === 'Line');
+  const paths = lines.map((op) => op.path);
+  const ranges = lines.map(rangeOf);
   if (ranges.includes(null)) return UNKNOWN;
-  return ops.length === 1 ? { tool: 'read_file', paths, range: ranges[0] } : { tool: 'read_file', paths, ranges };
+  return lines.length === 1 ? { tool: 'read_file', paths, range: ranges[0] } : { tool: 'read_file', paths, ranges };
 };
 
 const writeOf = (input) => {

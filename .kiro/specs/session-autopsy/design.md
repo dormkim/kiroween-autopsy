@@ -213,7 +213,7 @@ When `totals.partial` is true, each sentence ends with "Partial: {b} log lines c
 | Sample | Label (first screen) | Sentence (under the session title) |
 |---|---|---|
 | `rich-3480` | "Cut off at the 15-minute limit" | "Cut off: the benchmark runner's records show the runner stopped the agent at its 15-minute (900 s) time limit." |
-| `rich-3506` | "Crashed: Kiro's server shut down" | "Crashed: the benchmark runner's agent log shows Kiro's server shut down with an internal error ("RangeError: Invalid string length") about 2 minutes after the last recorded event." |
+| `rich-3506` | "Crashed: Kiro's server shut down" | "Crashed: the benchmark runner's agent log shows Kiro's server shut down with an internal error ("RangeError: Invalid string length"). The time of the crash is not recorded; the runner wrote that log 121 seconds after the last recorded event." |
 | `requests-6644` | "Exited normally (exit code 0)" | "Exited normally: the benchmark runner's records show the agent process exited with code 0; the log has no outcome." |
 | opened file, any name | "Ending unknown" | "Ending unknown: the log does not record how the session ended." |
 
@@ -356,7 +356,8 @@ The event is `{ session_id, cwd, tool_name, tool_input, ... }`. Only these keys 
 |---|---|---|
 | `read`, `fs_read` | `operations[]`, every one `{mode: "Line", path, offset?, limit?}` | `read_file`, `paths`, and `range` (one operation) or `ranges` (several) |
 | `read`, `fs_read` | `operations[]`, every one `{mode: "Directory", path}` | `list_directory`, `paths` |
-| `read`, `fs_read` | empty, mixed modes, any other mode, an operation that is not an object or whose `path` is not a string | `unknown_tool` |
+| `read`, `fs_read` | `operations[]` mixing `Line` and `Directory` (measured in a probe: six files and a directory in one call) | `read_file` of only the `Line` operations, in order: `paths` and `range` (one) or `ranges` (several). `Directory` operations have no file effect and are dropped |
+| `read`, `fs_read` | empty, any mode other than `Line` or `Directory`, an operation with no mode, an operation that is not an object or whose `path` is not a string | `unknown_tool` |
 | `read_file` | `{path, offset, limit}`, null when absent | `read_file`, `paths` with one entry, `range` |
 | `write`, `fs_write` with `command` | `create`, `strReplace`, `insert`, with a string `path` | `str_replace`, `paths` with one entry |
 | `write`, `fs_write` with `command` | any other command | `unknown_tool` |

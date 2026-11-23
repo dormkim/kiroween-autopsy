@@ -4,7 +4,7 @@ Category: Costume Contest. Written by Claude Code, the project's reviewer; Kiro 
 
 ## Five minutes, no install
 
-1. Open the live page: [APP_URL]. Nothing to sign in to, and nothing you open leaves your browser.
+1. Open the live page: https://dormkim.github.io/kiroween-autopsy/. Nothing to sign in to, and nothing you open leaves your browser.
 2. Press "Open the autopsy of rich-3480". This is a real 15-minute Kiro CLI session on a public Rich issue, cut off at its time limit.
 3. Read the three headlines. The first says how often the same lines were requested. Click its "Show log lines" button: the numbers point to the log lines they were counted from.
 4. Press replay. The figure gains one exposure each time those lines are requested again.

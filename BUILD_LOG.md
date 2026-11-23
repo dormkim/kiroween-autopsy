@@ -1178,3 +1178,7 @@ One small follow-up to your last change, CSS only, in src/styles/app.css. The su
 ~~~~
 
 Checked by Claude Code after runs 24 and 25: 290 tests pass. The headline and sentence text of the three samples did not change; only the sentence is closed by default. Screenshots at 360 and 1440 px: no horizontal overflow, no console error, the marker shows ▸ closed and ▾ open.
+
+## Credit total through run 25
+
+Account meter 539.77 at the start of the build, 1053.41 after run 25: **513.64 credits**. This is the whole account meter, so it includes the boundary probes, test sessions and the filming runs, not only the numbered runs.

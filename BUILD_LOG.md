@@ -1088,3 +1088,5 @@ Three runs of the bundled `recorded` agent (`kiro-cli chat --v2 --no-interactive
 - Take 3, session `7f0de166-e249-4cd5-b0f7-cdcc7b718573`: used in the video.
 
 Account meter 1030.62 before, 1030.89 after the three runs (0.27 credits). The terminal was recorded with asciinema and is replayed in the video at recorded speed, with pauses over 1.5 s shortened.
+
+Take 4, for the re-cut video (2026-11-23), session `6472e335-cf14-420d-8c46-b2ab0323646a`: the same `recorded` agent in a throwaway copy of this project's `src/`, prompt `In src/core/classify.js, find the rule that treats 'sed -i' as a file write and add a one-line comment above it explaining why.` Kiro read the 897-line file once without a line range and made one edit, so the recorder wrote two lines and the page draws no figure; the video shows that page. Account meter after take 4: 1031.05.

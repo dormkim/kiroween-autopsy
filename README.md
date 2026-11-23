@@ -15,7 +15,7 @@ You can record your own Kiro CLI session with the bundled hook (see "Record your
 
 ## How Kiro was used
 
-Claude Code directed, reviewed, ran tests and committed; Kiro CLI wrote the spec, code, tests and this README. Runs are numbered as in [BUILD_LOG.md](BUILD_LOG.md). [DISCLOSURE.md](DISCLOSURE.md) says who made what and where the sample logs come from.
+Kiro CLI wrote the spec, code, tests and this README, in runs numbered as in [BUILD_LOG.md](BUILD_LOG.md). Claude Code was the reviewer: it wrote the prompts, which sometimes dictated README sentences, ran the tests and committed. CLI agents keep hooks in the agent file, so the build hooks are registered in `.kiro/agents/autopsy-builder.json`. [DISCLOSURE.md](DISCLOSURE.md) says who made what and where the sample logs come from.
 
 | Feature | What it did | Evidence |
 |---|---|---|

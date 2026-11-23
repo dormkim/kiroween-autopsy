@@ -30,7 +30,7 @@ No mascots, bats, cobwebs, skulls, dripping type or glow effects. A ghost or fig
 | Playhead | replay position | accent line over the strip | native range input with value text |
 | Apparition | requests (with an explicit range) covering the most requested lines, up to the playhead | one veiled figure per request (elongated head under a draped veil, sunken eye sockets, cheek shadow, torn hem, no mouth), each at opacity 0.17; older copies are skewed further back and displaced sideways, alternating left and right, so double exposures separate as the count grows | caption "The figure is 8 superimposed exposures, one per request of lines 1007 to 1010 so far", plus "requested at least" when the file has open-ended requests |
 | Strand | one exposure of the apparition | pale curve from that request's range on the line plate into the figure | the same caption |
-| Headline | one finding | 28px plain answer above the exact sentence, computed by `headlines()` in `findings.js` | the sentence and a "Show log lines" button |
+| Headline | one finding | 28px plain answer, computed by `headlines()` in `findings.js`; the exact sentence opens on demand below the button | the sentence and a "Show log lines" button |
 
 "At least" is used everywhere a file's count is a lower bound: headline, sentence, caption, plate labels, table and notes.
 
@@ -90,7 +90,7 @@ Six sizes total: 12, 14, 16, 20, 28, 40. Weights 400 and 600 only. Numbers use `
 
 - Left-aligned and asymmetric. Nothing is centered except numbers inside table cells.
 - First screen: title, one-line purpose, one primary button "Open the autopsy of rich-3480" with its ending as text directly below it, then the claims paragraph, the apparition of that sample (developing once, from its data) captioned with its ending, then the other sample buttons, each with its ending as a second line, "Open a log file" and the line "Recorded sessions of a coding agent on public issues, hand-picked, not representative." linking to `./DISCLOSURE.md`. From 1000px the apparition takes the right column, so it is in the first viewport; at 360 its head is within the first 740px.
-- After loading: session name, then the ending sentence (provenance for bundled samples, "Ending unknown" for opened files), case line (file name, then calls, recorded time plus unknown tail and broken lines as 44px buttons, and "Replay from the first call"), the three findings (headline, sentence, "Show log lines"), the replay stage, the plates with the notes panel, the exposure meter, the evidence.
+- After loading: session name, then the ending sentence (provenance for bundled samples, "Ending unknown" for opened files), case line (file name, then calls, recorded time plus unknown tail and broken lines as 44px buttons, and "Replay from the first call"), the three findings (label, headline, "Show log lines", then the sentence in a closed "How this was counted" details element whose summary is a 44px dim control), the replay stage, the plates with the notes panel, the exposure meter, the evidence.
 - Replay stage: apparition, Play, live line, compact strip (100px) and slider together, fitting one viewport at 1280x800 and 360x740. From a 1040px container the apparition (560px) and the controls sit side by side. Explanations and the legend are in a closed "How to read the replay" details element.
 - 360px: single column. The strip scrolls horizontally inside its own box. Plates stack. Evidence tables become stacked rows with a label per cell, so headers never break inside words.
 - 768px: plates in two columns, notes below.

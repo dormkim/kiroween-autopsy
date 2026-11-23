@@ -1128,3 +1128,53 @@ Report the files you changed at the end.
 Checked by Claude Code: 289 tests pass (286 before, 3 new). The three samples keep their headlines. The take 4 recording now reads "First recognised source edit attempt at call 2 of 2" and "Only 2 calls recorded, too few to say where the time went". The first screen at 360 and 1280 px has no horizontal overflow and no console error. Kiro noted that the README section "What it does not claim" keeps the old sentence; it was left there, because that section lists what the project does not claim.
 
 Also on 2026-11-23, by Claude Code: `JUDGES.md` added, and the first line of `DISCLOSURE.md` reordered to name Kiro CLI first. No facts in it changed.
+
+## Run 24: finding sentence on demand
+
+- Time: 2026-11-23T01:46:35Z to 2026-11-23T01:48:30Z
+- Model: `claude-opus-5.5`
+- Kiro session: `7331e8d5-401e-45fc-86e9-c2ba8814a872`
+- Exit code: 0
+- Account meter: 1045.29 to 1052.26 (6.97 credits)
+
+Files changed:
+- `build-evidence/write-guard.jsonl`
+- `.kiro/specs/session-autopsy/design.md`
+- `.kiro/steering/design.md`
+- `src/styles/app.css`
+- `src/ui/summary.js`
+- `test/boundaries.test.mjs`
+
+Prompt, verbatim:
+
+~~~~text
+Small design pass from an independent review: "finding cards are dense paragraphs". No new feature. Read only what you need, change tests first where a test can see it, one file per tool call, short planning before each write. Do not weaken any other test. The headline and sentence text of every finding must not change; only what is visible first changes.
+
+In findingsBlock() in src/ui/summary.js each finding card shows the label, the headline, the full detail sentence and the "Show log lines" button. Change the detail so a first-time reader sees the label, the headline and the button, and opens the sentence on demand:
+- Wrap the existing finding-detail paragraph in a native <details class="finding-more"> with <summary class="finding-more-toggle">How this was counted</summary>, closed by default. Keep the paragraph's class and content as they are, so every number in it is still a button to its log lines.
+- Order inside the card: label, headline, "Show log lines" button, then the details element.
+- Styles in src/styles/app.css using existing tokens only: the summary is a control at least 44px tall, has a visible focus ring like the other controls, and uses the dim text colour; no new colours, no animation.
+- If the "Show log lines" panel or any code finds the detail paragraph by selector, keep that working.
+- Update the spec design.md where the finding card is described, in one or two sentences, and steering design.md if it describes the card layout.
+Report the files you changed at the end.
+~~~~
+
+## Run 25: visible disclosure marker
+
+- Time: 2026-11-23T01:50:29Z to 2026-11-23T01:51:11Z
+- Model: `claude-opus-5.5`
+- Kiro session: `dbd890e0-0beb-4d81-9c21-6272a8d79857`
+- Exit code: 0
+- Account meter: 1052.26 to 1053.41 (1.15 credits)
+
+Files changed:
+- `build-evidence/write-guard.jsonl`
+- `src/styles/app.css`
+
+Prompt, verbatim:
+
+~~~~text
+One small follow-up to your last change, CSS only, in src/styles/app.css. The summary "How this was counted" (.finding-more-toggle) uses display: flex, which removes the native disclosure triangle, so on screen it reads as plain grey text and nothing says it can be opened. Give it a visible marker: a "▸" before the text that turns to "▾" when the details element is open (use .finding-more[open] > .finding-more-toggle), hide the native marker in all browsers so there are not two, and underline the text on hover. Keep 44px height, the focus ring, existing tokens, no animation, and keep the marker working with prefers-reduced-motion. No other file. Report what you changed.
+~~~~
+
+Checked by Claude Code after runs 24 and 25: 290 tests pass. The headline and sentence text of the three samples did not change; only the sentence is closed by default. Screenshots at 360 and 1440 px: no horizontal overflow, no console error, the marker shows ▸ closed and ▾ open.

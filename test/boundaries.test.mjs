@@ -174,6 +174,34 @@ test('no storage, cookie, service worker or beacon API in site code', () => {
   }
 });
 
+test('a finding card shows label, headline and button first, and the sentence on demand', () => {
+  const src = read('src/ui/summary.js');
+  const start = src.indexOf('export function findingsBlock');
+  const end = src.indexOf('export function meter');
+  assert.ok(start >= 0 && end > start, 'expected findingsBlock before meter in src/ui/summary.js');
+  const body = src.slice(start, end);
+  const details = "el('details', { class: 'finding-more' }";
+  const summary = "el('summary', { class: 'finding-more-toggle' }, 'How this was counted')";
+  const detail = "el('p', { class: 'finding-detail' }, renderParts(ctx, parts, FINDING_LABELS[i]))";
+  assert.ok(body.includes(details), 'expected a details element with class finding-more and no open attribute, so the sentence is closed by default');
+  assert.ok(body.includes(summary), 'expected the summary "How this was counted" with class finding-more-toggle');
+  assert.ok(body.includes(detail), 'expected the finding-detail paragraph unchanged, so every number in it stays a button to its log lines');
+  const order = ["'finding-kind'", "'finding-head'", 'show,', details, summary, detail].map((s) => body.indexOf(s));
+  assert.ok(order.every((n, i) => n >= 0 && (i === 0 || n > order[i - 1])),
+    'expected the card order label, headline, "Show log lines" button, then the details element holding the sentence');
+
+  const css = read('src/styles/app.css');
+  const rule = css.match(/\.finding-more-toggle\s*\{([^}]*)\}/);
+  assert.ok(rule !== null, 'expected a .finding-more-toggle rule in src/styles/app.css');
+  assert.ok(/min-height:\s*var\(--target\)/.test(rule[1]), 'expected the toggle to be at least 44px tall, because every control is a 44px target');
+  assert.ok(/(?:^|[\s;])color:\s*var\(--c-text-dim\)/.test(rule[1]), 'expected the toggle in the dim text colour');
+  assert.ok(/\.finding-more-toggle:focus-visible\s*\{[^}]*outline:\s*var\(--focus\)/.test(css), 'expected a visible --focus ring on the toggle, like the other controls');
+  for (const m of css.matchAll(/\.finding-more[\w-]*[^{]*\{([^}]*)\}/g)) {
+    assert.ok(!/#[0-9a-f]{3,8}\b|rgba?\(|hsla?\(/i.test(m[1]), 'expected finding-more rules to use existing colour tokens only');
+    assert.ok(!/\b(?:animation|transition)\b/.test(m[1]), 'expected no animation or transition on the finding toggle');
+  }
+});
+
 test('package.json has no dependencies and runs every test file', () => {
   const pkg = JSON.parse(read('package.json'));
   assert.equal(pkg.dependencies, undefined, 'expected no dependencies, because tech.md forbids them');

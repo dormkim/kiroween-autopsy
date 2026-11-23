@@ -74,7 +74,7 @@ export function caseLine(ctx) {
 const FINDING_LABELS = ['Most requested lines', 'First recognised source edit attempt', 'Where the time went'];
 
 /**
- * The three findings: a plain answer, the full sentence as detail, and one control for the log lines.
+ * The three findings: a plain answer, one control for the log lines, and the full sentence on demand.
  * @param {object} ctx
  */
 export function findingsBlock(ctx) {
@@ -85,11 +85,14 @@ export function findingsBlock(ctx) {
     const h = heads[i];
     const show = el('button', { class: 'button finding-show', type: 'button' }, 'Show log lines');
     show.addEventListener('click', () => ctx.select({ kind: 'traced', label: h.label, text: h.text, traced: h.traced }, { reveal: true, origin: show }));
+    // The exact sentence is closed by default; its numbers stay buttons to their log lines.
     return el('li', { class: 'finding' },
       el('h3', { class: 'finding-kind' }, FINDING_LABELS[i]),
       el('p', { class: 'finding-head' }, h.text),
-      el('p', { class: 'finding-detail' }, renderParts(ctx, parts, FINDING_LABELS[i])),
-      show);
+      show,
+      el('details', { class: 'finding-more' },
+        el('summary', { class: 'finding-more-toggle' }, 'How this was counted'),
+        el('p', { class: 'finding-detail' }, renderParts(ctx, parts, FINDING_LABELS[i]))));
   });
   return el('section', { class: 'findings-block', 'aria-label': 'Findings' },
     el('ul', { class: 'findings' }, items),

@@ -426,3 +426,11 @@
 {"time":"2026-11-23T01:34:49.084Z","path":"index.html","decision":"allow","rule":"ok"}
 {"time":"2026-11-23T01:34:55.414Z","path":".kiro/steering/product.md","decision":"allow","rule":"ok"}
 {"time":"2026-11-23T01:35:14.521Z","path":".kiro/steering/design.md","decision":"allow","rule":"ok"}
+{"time":"2026-11-23T01:47:39.423Z","path":"test/boundaries.test.mjs","decision":"allow","rule":"ok"}
+{"time":"2026-11-23T01:47:46.779Z","path":"src/ui/summary.js","decision":"allow","rule":"ok"}
+{"time":"2026-11-23T01:47:51.056Z","path":"src/ui/summary.js","decision":"allow","rule":"ok"}
+{"time":"2026-11-23T01:47:58.917Z","path":"src/styles/app.css","decision":"allow","rule":"ok"}
+{"time":"2026-11-23T01:48:10.893Z","path":".kiro/specs/session-autopsy/design.md","decision":"allow","rule":"ok"}
+{"time":"2026-11-23T01:48:18.408Z","path":".kiro/steering/design.md","decision":"allow","rule":"ok"}
+{"time":"2026-11-23T01:48:18.416Z","path":".kiro/steering/design.md","decision":"allow","rule":"ok"}
+{"time":"2026-11-23T01:51:03.838Z","path":"src/styles/app.css","decision":"allow","rule":"ok"}

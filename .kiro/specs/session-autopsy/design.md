@@ -223,7 +223,7 @@ The case line labels the span "Recorded time". At the end of the replay the hint
 
 ## Screen
 
-Order after load: session name, the ending sentence, case line ("Developed from {file}", then calls, recorded time plus an unknown tail and broken log lines as 44px buttons, and "Replay from the first call"), the three findings (headline, sentence, "Show log lines"), the replay stage, plates with the notes panel, exposure meter, evidence (collapsible tables). Layout breakpoints, tokens and type follow steering `design.md`.
+Order after load: session name, the ending sentence, case line ("Developed from {file}", then calls, recorded time plus an unknown tail and broken log lines as 44px buttons, and "Replay from the first call"), the three findings (label, headline, "Show log lines", then the sentence in a closed "How this was counted" details element), the replay stage, plates with the notes panel, exposure meter, evidence (collapsible tables). The sentence keeps its traced numbers when opened. Layout breakpoints, tokens and type follow steering `design.md`.
 
 The first screen shows, before anything is opened, the apparition of `rich-3480` developing once from its own data, with one primary button "Open the autopsy of rich-3480". From 1000px it takes the right column.
 

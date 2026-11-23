@@ -288,6 +288,36 @@ button, input, select { font: inherit; color: inherit; }
 .finding-head { max-width: 22ch; font: 600 var(--t-heading) / 1.2 var(--font-display); color: var(--c-exposure); overflow-wrap: anywhere; }
 .finding-detail { max-width: 64ch; color: var(--c-text-dim); overflow-wrap: anywhere; }
 .finding-show { margin-top: var(--s-1); }
+/* the exact sentence, closed by default */
+.finding-more { max-width: 64ch; }
+.finding-more-toggle {
+  display: flex;
+  align-items: center;
+  min-height: var(--target);
+  color: var(--c-text-dim);
+  font-size: var(--t-small);
+  line-height: 1.45;
+  cursor: pointer;
+  list-style: none;
+}
+/* one marker only: hide the native one (Firefox and Chrome use ::marker, Safari the webkit marker) */
+.finding-more-toggle::marker { content: ''; }
+.finding-more-toggle::-webkit-details-marker { display: none; }
+/* fixed width so the text does not shift between closed and open; "/ ''" keeps the glyph out of the accessible name */
+.finding-more-toggle::before {
+  content: '▸';
+  content: '▸' / '';
+  flex: none;
+  width: 1em;
+  margin-right: var(--s-1);
+}
+.finding-more[open] > .finding-more-toggle::before {
+  content: '▾';
+  content: '▾' / '';
+}
+.finding-more-toggle:hover { text-decoration: underline; text-underline-offset: 3px; }
+.finding-more-toggle:focus-visible { outline: var(--focus); outline-offset: 2px; }
+.finding-more .finding-detail { padding-bottom: var(--s-2); }
 .finding-note {
   margin-top: var(--s-8);
   max-width: 64ch;

@@ -17,7 +17,7 @@ const tracedLines = (parts) => parts.filter((p) => typeof p !== 'string' && p.tr
 
 /** A hand-built analysis shaped like requests-6644; override any top-level field. */
 const base = (over = {}) => ({
-  totals: { partial: false, broken: [] },
+  totals: { calls: 71, partial: false, broken: [] },
   top: tr({ file: 'src/requests/models.py', from: 81, to: 100, count: 3 }, [20, 45, 67]),
   requests: tr(13, [5, 7]),
   repeats: tr(1, [45]),
@@ -279,6 +279,39 @@ test('headlines for unknown and missing values never show 0 as a stand-in', () =
   assert.equal(heads(withTime({ span: tr(0, [1, 1]), byCategory: new Map([['run', tr(0, [1])]]) }))[2], 'Where the time went is unknown', 'a span of 0 gives no share');
 });
 
+// Below 5 calls a share says nothing: with one read and one edit, both shares are 100%.
+const logOf = (objs) => analyse(parse(objs.map((o) => JSON.stringify(o)).join('\n')));
+const T0 = 1795000000;
+const wholeRead = (t) => ({ t, hook: 'pre', tool: 'read_file', paths: ['src/a.py'], allow: true });
+const editA = (t) => ({ t, hook: 'pre', tool: 'str_replace', paths: ['src/a.py'], allow: true });
+
+test('a 2-call recording (whole-file read, then an edit) gets count headlines, not "100%"', () => {
+  const a = logOf([wholeRead(T0), editA(T0 + 12)]);
+  assert.equal(a.totals.calls, 2, 'test setup: two calls');
+  assert.equal(a.firstSource.value.share, 1, 'test setup: the edit attempt is the last event, so its share is 1, which would read "100%"');
+  const h = heads(a);
+  assert.equal(h[1], 'First recognised source edit attempt at call 2 of 2', 'fewer than 5 calls: the call number and the call count, no share');
+  assert.equal(h[2], 'Only 2 calls recorded, too few to say where the time went', 'fewer than 5 calls: no share of the recorded time');
+  assert.deepEqual(headlines(a)[1].traced.lines, [2], 'headline 2 still opens the log line of the first source edit attempt');
+  assert.deepEqual(headlines(a)[2].traced.lines, [1, 2], 'headline 3 opens the log lines of the calls it counts');
+  assert.equal(sentences(a)[1], 'First recognised source edit attempt: call 2 at 0:12, 100% into the recording (log line 2). 0 earlier calls could have changed files.',
+    'the longer sentence stays as it is');
+});
+
+test('a 1-call recording says "1 call"; with no source edit the existing headline stays', () => {
+  const h = heads(logOf([wholeRead(T0)]));
+  assert.equal(h[1], 'No source edit attempt recognised in this recording', 'none recognised keeps its words at any call count');
+  assert.equal(h[2], 'Only 1 call recorded, too few to say where the time went', 'singular for one call');
+});
+
+test('a 5-call recording still gets the share headlines', () => {
+  const a = logOf([wholeRead(T0), wholeRead(T0 + 10), wholeRead(T0 + 20), editA(T0 + 30), wholeRead(T0 + 40)]);
+  assert.equal(a.totals.calls, 5, 'test setup: five calls, the smallest count that keeps shares');
+  const h = heads(a);
+  assert.equal(h[1], '75% of the recording had passed before the first recognised source edit attempt', 'call 4 at 30 of 40 s');
+  assert.equal(h[2], '75% of the recorded time came after file requests', '30 of 40 s came after the three reads before the edit attempt');
+});
+
 test('every headline carries a traced value with log lines or a reason', () => {
   for (const h of headlines(base())) {
     assert.ok(h.traced && Array.isArray(h.traced.lines), `"${h.text}" must carry its traced value`);
@@ -338,9 +371,12 @@ test('end to end: a first source edit just before the end of the recording reads
   const log = [
     { t: 1795000000, hook: 'pre', tool: 'read_file', paths: ['src/a.py'], range: { offset: 0, limit: 5 }, allow: true },
     { t: 1795000008.733, hook: 'pre', tool: 'str_replace', paths: ['src/a.py'], allow: true },
+    { t: 1795000008.734, hook: 'pre', tool: 'read_file', paths: ['src/a.py'], range: { offset: 0, limit: 5 }, allow: true },
+    { t: 1795000008.735, hook: 'pre', tool: 'read_file', paths: ['src/a.py'], range: { offset: 0, limit: 5 }, allow: true },
     { t: 1795000008.736, hook: 'pre', tool: 'read_file', paths: ['src/a.py'], range: { offset: 0, limit: 5 }, allow: true },
   ].map((o) => JSON.stringify(o)).join('\n');
   const a = analyse(parse(log));
+  assert.equal(a.totals.calls, 5, 'test setup: 5 calls, so the headlines use shares; below 5 they use counts');
   const fs = a.firstSource.value;
   assert.ok(fs !== null && fs.call === 2, 'test setup: call 2, an edit attempt on src/a.py, is the first source edit attempt');
   assert.ok(fs.share > 0.999 && fs.share < 1, `test setup: 8.733 of 8.736 s is a share just below 1, got ${fs.share}`);

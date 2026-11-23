@@ -1,9 +1,9 @@
 # Disclosure
 
 ## Who made what
-- **Claude Code (Anthropic) directed and verified this project. Kiro CLI wrote the code.**
+- **Kiro CLI wrote the code. Claude Code (Anthropic) wrote the prompts, reviewed each run and made the commits.**
 - Kiro CLI wrote the steering documents, the spec, the application, the tests and the hook script. The session for each change is in [BUILD_LOG.md](BUILD_LOG.md) and in the commit message.
-- Claude Code wrote this file, `BUILD_LOG.md`, the prompts given to Kiro, the Kiro agent permission file (`.kiro/agents/autopsy-builder.json`) and the git commits. It also prepared the sanitized sample copies described below and ran tests, checks and screenshots, because Kiro had no shell.
+- Claude Code wrote this file, `BUILD_LOG.md`, `JUDGES.md`, the prompts given to Kiro, the Kiro agent permission file (`.kiro/agents/autopsy-builder.json`) and the git commits. It also prepared the sanitized sample copies described below and ran tests, checks and screenshots, because Kiro had no shell.
 - The prompts were detailed. Much of the product definition, such as the metric rules and the safety limits, came from those prompts, and Kiro turned them into spec and code.
 - A human (the entrant) chose this direction and owns the submission.
 

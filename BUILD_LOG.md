@@ -1090,3 +1090,41 @@ Three runs of the bundled `recorded` agent (`kiro-cli chat --v2 --no-interactive
 Account meter 1030.62 before, 1030.89 after the three runs (0.27 credits). The terminal was recorded with asciinema and is replayed in the video at recorded speed, with pauses over 1.5 s shortened.
 
 Take 4, for the re-cut video (2026-11-23), session `6472e335-cf14-420d-8c46-b2ab0323646a`: the same `recorded` agent in a throwaway copy of this project's `src/`, prompt `In src/core/classify.js, find the rule that treats 'sed -i' as a file write and add a one-line comment above it explaining why.` Kiro read the 897-line file once without a line range and made one edit, so the recorder wrote two lines and the page draws no figure; the video shows that page. Account meter after take 4: 1031.05.
+
+## Run 23: headlines for tiny recordings, first screen order
+
+- Time: 2026-11-23T01:31:48Z to 2026-11-23T01:35:35Z
+- Model: `claude-opus-5.5`
+- Kiro session: `d55e9ffa-a9d2-473a-b29e-ec40030a201d`
+- Exit code: 0
+- Account meter: 1031.05 to 1045.29 (14.24 credits)
+
+Files changed:
+- `.kiro/specs/session-autopsy/design.md`
+- `.kiro/specs/session-autopsy/requirements.md`
+- `.kiro/steering/design.md`
+- `.kiro/steering/product.md`
+- `BUILD_LOG.md`
+- `build-evidence/write-guard.jsonl`
+- `index.html`
+- `src/core/findings.js`
+- `test/findings.test.mjs`
+
+Prompt, verbatim:
+
+~~~~text
+Small polish pass from an independent review. No new feature. Read only what you need, change tests first, one file per tool call, short planning before each write. Do not weaken any other test. The headlines, findings and sentences of the three bundled samples must not change.
+
+1. TINY RECORDINGS READ AS "100%". A real two-call recording (one whole-file read, then one edit) gets the headlines "100% of the recording had passed before the first recognised source edit attempt" and "100% of the recorded time came after file requests". Both are true and meaningless. In headlines() in src/core/findings.js only: when the recording has fewer than 5 recognised tool calls, do not use a share in the second and third headline. Use counts instead:
+   - second headline: "First recognised source edit attempt at call K of N" (keep the existing "No source edit attempt recognised in this recording" when there is none);
+   - third headline: "Only N calls recorded, too few to say where the time went" ("1 call" for one).
+   Use the call count the analysis already has; do not add a new count. The longer finding sentences stay as they are. Add tests: a 2-call recording gets both new headlines; a 5-call recording still gets the share headlines; the three samples are unchanged (the existing sample tests must keep passing). Update the spec (requirements.md, design.md) where headlines are described, in one or two sentences.
+
+2. FIRST SCREEN OPENS WITH A NEGATIVE. In index.html, the paragraph id="limit" sits between the purpose and the button, so a first-time visitor reads about an earlier project's failed comparison before seeing what this page does. Move that paragraph after the intro-primary block (after the button and ending note), and reword it so it states what the page does first and the reason second: "It only reads recordings after a session ends and never intervenes. The reason: in an earlier prototype, three comparisons of interventions did not confirm more issues solved." Keep id="limit" and class="limit". If a test or the steering quotes the old sentence, update it to the new one. No style changes unless the move breaks layout at 360 or 1280 px.
+
+Report the files you changed at the end.
+~~~~
+
+Checked by Claude Code: 289 tests pass (286 before, 3 new). The three samples keep their headlines. The take 4 recording now reads "First recognised source edit attempt at call 2 of 2" and "Only 2 calls recorded, too few to say where the time went". The first screen at 360 and 1280 px has no horizontal overflow and no console error. Kiro noted that the README section "What it does not claim" keeps the old sentence; it was left there, because that section lists what the project does not claim.
+
+Also on 2026-11-23, by Claude Code: `JUDGES.md` added, and the first line of `DISCLOSURE.md` reordered to name Kiro CLI first. No facts in it changed.

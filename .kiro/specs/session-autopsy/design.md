@@ -206,6 +206,8 @@ When `totals.partial` is true, each sentence ends with "Partial: {b} log lines c
 2. "{share}% of the recording had passed before the first recognised source edit attempt"; "First recognised source edit attempt at call {call}, time unknown" when the share is unknown; "No source edit attempt recognised in this recording" (traced to the calls that could have changed files).
 3. "{pct}% of the recorded time came after {category}"; "Where the time went is unknown" when the span is unknown or 0.
 
+With fewer than `FEW_CALLS = 5` calls (`totals.calls`), a share says nothing (one read then one edit gives 100% twice), so headline 2 reads "First recognised source edit attempt at call {call} of {calls}" when there is one, and headline 3 reads "Only {calls} calls recorded, too few to say where the time went" ("1 call"), traced to the call log lines; the sentences do not change.
+
 ### Session ending (provenance/sample-endings.js)
 
 `endingFor({ source: 'sample' | 'file', name })` returns `{ kind, label, sentence }`. Only `source: 'sample'` with a name in the bundled list has a known ending; everything else returns the unknown ending. `ui/main.js` passes `{ source: 'sample' }` only from the sample buttons and `{ source: 'file' }` from the file input. No core module reads it.

@@ -15,9 +15,9 @@ Audience: people who build or study coding agents and want to look closely at on
 
 The product does not fix agents, improve solve rates, save credits, or predict failure, live or afterwards. It cannot say whether a session succeeded, because the log has no outcome. The page reads a recording after the session ended and never intervenes. The recorder (`recorder/`) only writes the log: it never blocks or steers the agent, with one exception. When recording fails, its prompt check asks the agent to say so.
 
-The first screen says this in one short paragraph, in these words:
+The first screen says this in one short paragraph, directly after the primary button and its ending, in these words:
 
-> In three comparisons of interventions we did not confirm more issues solved, so this page only reads recordings after a session ends. It never intervenes.
+> It only reads recordings after a session ends and never intervenes. The reason: in an earlier prototype, three comparisons of interventions did not confirm more issues solved.
 
 Never write, in copy, code comments, docs or commit text:
 - "found it but did not fix it" or any variant;

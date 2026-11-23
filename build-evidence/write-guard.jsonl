@@ -414,3 +414,15 @@
 {"time":"2026-11-22T14:26:56.791Z","path":"README.md","decision":"allow","rule":"ok"}
 {"time":"2026-11-22T14:26:56.797Z","path":"README.md","decision":"allow","rule":"ok"}
 {"time":"2026-11-22T14:27:05.062Z","path":"examples/recorder-agent.json","decision":"allow","rule":"ok"}
+{"time":"2026-11-23T01:32:55.830Z","path":"test/findings.test.mjs","decision":"allow","rule":"ok"}
+{"time":"2026-11-23T01:33:08.684Z","path":"test/findings.test.mjs","decision":"allow","rule":"ok"}
+{"time":"2026-11-23T01:33:13.547Z","path":"test/findings.test.mjs","decision":"allow","rule":"ok"}
+{"time":"2026-11-23T01:33:25.433Z","path":"test/findings.test.mjs","decision":"allow","rule":"ok"}
+{"time":"2026-11-23T01:33:40.998Z","path":"src/core/findings.js","decision":"allow","rule":"ok"}
+{"time":"2026-11-23T01:33:47.486Z","path":"src/core/findings.js","decision":"allow","rule":"ok"}
+{"time":"2026-11-23T01:33:58.254Z","path":"test/findings.test.mjs","decision":"allow","rule":"ok"}
+{"time":"2026-11-23T01:34:08.861Z","path":".kiro/specs/session-autopsy/requirements.md","decision":"allow","rule":"ok"}
+{"time":"2026-11-23T01:34:19.112Z","path":".kiro/specs/session-autopsy/design.md","decision":"allow","rule":"ok"}
+{"time":"2026-11-23T01:34:49.084Z","path":"index.html","decision":"allow","rule":"ok"}
+{"time":"2026-11-23T01:34:55.414Z","path":".kiro/steering/product.md","decision":"allow","rule":"ok"}
+{"time":"2026-11-23T01:35:14.521Z","path":".kiro/steering/design.md","decision":"allow","rule":"ok"}

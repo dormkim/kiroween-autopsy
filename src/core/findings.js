@@ -142,10 +142,14 @@ export function findings(a) {
 
 const isLowerBound = (a, file) => a.files instanceof Map && a.files.get(file)?.lowerBound === true;
 
+/** Below this many calls, headlines 2 and 3 give counts: a share of so few calls says nothing. */
+export const FEW_CALLS = 5;
+
 /**
  * The plain answer that leads each finding, readable in two seconds. Each carries the
  * traced value its "Show log lines" control opens, and a label for that value.
- * Same numbers as findings(); only shorter words.
+ * Same numbers as findings(); only shorter words. With fewer than FEW_CALLS calls,
+ * headlines 2 and 3 use the call count instead of a share.
  * @param {ReturnType<typeof import('./metrics.js').analyse>} a
  * @returns {{ text: string, traced: Traced, label: string }[]}
  */
@@ -164,9 +168,14 @@ export function headlines(a) {
     out.push({ text, traced: a.top, label: 'Most requested lines' });
   }
 
+  const n = a.totals.calls;
+  const few = Number.isInteger(n) && n < FEW_CALLS;
+
   const fs = a.firstSource.value;
   if (fs === null) {
     out.push({ text: 'No source edit attempt recognised in this recording', traced: a.possibleEarlier, label: 'Calls that could have changed files' });
+  } else if (few) {
+    out.push({ text: `First recognised source edit attempt at call ${fs.call} of ${n}`, traced: a.firstSource, label: 'First recognised source edit attempt' });
   } else if (fs.share === null) {
     out.push({ text: `First recognised source edit attempt at call ${fs.call}, time unknown`, traced: a.firstSource, label: 'First recognised source edit attempt' });
   } else {
@@ -175,7 +184,11 @@ export function headlines(a) {
 
   const span = a.time.span;
   const best = largest(a);
-  if (span.value === null || span.value <= 0 || best === null) {
+  if (few) {
+    const callLines = a.calls.map((e) => e.call.n);
+    out.push({ text: `Only ${n} ${many(n, 'call', 'calls')} recorded, too few to say where the time went`,
+      traced: { value: n, lines: callLines, reason: null }, label: 'Calls in this recording' });
+  } else if (span.value === null || span.value <= 0 || best === null) {
     out.push({ text: 'Where the time went is unknown', traced: span, label: 'Time from the first call to the last valid event' });
   } else {
     const [key, t] = best;

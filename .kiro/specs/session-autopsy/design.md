@@ -72,6 +72,7 @@ Analysis = {
   files: Map<file, { counts: Interval[], open: Request[], unlocated: Request[],
                      top: Interval|null, lowerBound: boolean }>,
   top: Traced,              // value { file, from, to, count }
+  topWhole: Traced,         // value { file, count }: most whole-file requests (open from 1), path order on ties; reason 'no_whole_file'
   requests: Traced, repeats: Traced, unchecked: Traced,
   firstSource: Traced,      // value { call, n, offset, share } or null, reason 'none_recognised'
   possibleEarlier: Traced,  // value: count, lines: those calls
@@ -231,7 +232,7 @@ The replay stage holds the apparition, Play, the live line ("{m:ss}, call {k} of
 
 Haunted at a glance. Every element below is data:
 
-- **Apparition**: a cabinet-card photograph of the most requested range. The figure is exactly one offset, translucent copy of a veiled figure with hollow eyes per request (explicit range) covering those lines, up to the playhead: none at 0, faint at 1, dense at 8. Older copies lean further back, like a long exposure. Beside it, the file's line plate is the exact reading, and one strand per exposure runs from that request's lines into the figure. Caption: "The figure is {n} superimposed exposures, one per request of lines {from} to {to} so far", plus "Requested at least {n} times; open-ended requests are not drawn." when the file has open-ended or unlocated requests.
+- **Apparition**: a cabinet-card photograph of the most requested range. The figure is exactly one offset, translucent copy of a veiled figure with hollow eyes per request (explicit range) covering those lines, up to the playhead: none at 0, faint at 1, dense at 8. Older copies lean further back, like a long exposure. Beside it, the file's line plate is the exact reading, and one strand per exposure runs from that request's lines into the figure. Caption: "The figure is {n} superimposed exposures, one per request of lines {from} to {to} so far", plus "Requested at least {n} times; open-ended requests are not drawn." when the file has open-ended or unlocated requests. When `top` is unknown and `topWhole` is known, the figure holds one exposure per whole-file request of `topWhole.file`, the plate shows one open band per such request with only the tick "1", and the caption reads "The figure is {n} superimposed exposures, one per request of the whole of {file} so far. The log does not say how long the file is."; finding 1 then reads "No line ranges were requested in this recording. {file} was requested whole {count} times." before the open-ended part, and headline 1 "No line ranges requested; {file} was requested whole {count} times". When `top` is known, `topWhole` is not used anywhere on screen.
 
 - **Plates** are SVG columns on fixer black, one per file, captioned like a cabinet card: "Plate II. rich/text.py". The vertical axis is the requested line number.
 - **Exposure bands** use the steering opacity formula, per merged interval. Bright bands are the ghost.

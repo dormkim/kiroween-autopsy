@@ -11,7 +11,7 @@ It shows:
 
 Numbers counted from a log link back to its lines. How a bundled sample ended comes from separate records, not from the log.
 
-You can record your own Kiro CLI session with the bundled hook (see "Record your own session"). Such a log draws a figure only when the agent requested explicit line ranges, and neither live test recording did.
+You can record your own Kiro CLI session with the bundled hook (see "Record your own session"). Without line ranges, the figure counts the whole-file requests of the file requested whole most often. A recording with neither draws no figure.
 
 ## How Kiro was used
 

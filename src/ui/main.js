@@ -318,7 +318,7 @@ const drawSpecimen = (animate) => {
   }
   replace(ui.specimenBody, photo.node, el('p', { class: 'ending-note' }, sampleEnding(SPECIMEN).sentence));
   ui.specimenBody.dataset.key = stageKey(ui.specimenBody.clientWidth);
-  const file = a.top.value.file;
+  const file = photo.file;
   const show = (k) => photo.update(k, exposuresAt(a, k).get(file) ?? []);
   const total = a.calls.length;
   if (!animate || reducedQuery.matches) {

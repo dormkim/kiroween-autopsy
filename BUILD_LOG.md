@@ -1213,3 +1213,50 @@ Update the spec design.md in one sentence for each change where the strip codes 
 ~~~~
 
 Checked by Claude Code: 294 tests pass (290 before, 4 new). Screenshots of the three samples at 360, 768 and 1280 px: no two edge codes overlap (before, "161" and "162", and "L161" and "L162", overlapped in rich-3480 at every width), no horizontal overflow, no console error. `favicon.svg` is served and the page no longer leaves the icon request unanswered. No finding text changed.
+
+## Run 27: a figure for recordings without line ranges
+
+- Time: 2026-11-24T13:09:01Z to 2026-11-24T13:14:59Z
+- Model: `claude-opus-5.5`
+- Kiro session: `ff65637b-d79b-444a-afa9-8839fc331971`
+- Exit code: 0
+- Account meter: 1055.19 to 1072.82 (17.63 credits)
+
+Files changed:
+- `.kiro/specs/session-autopsy/design.md`
+- `.kiro/specs/session-autopsy/requirements.md`
+- `.kiro/steering/design.md`
+- `README.md`
+- `build-evidence/write-guard.jsonl`
+- `src/core/findings.js`
+- `src/core/metrics.js`
+- `src/ui/apparition.js`
+- `src/ui/main.js`
+- `src/ui/notes.js`
+- `src/ui/strip.js`
+- `test/invariants.mjs`
+- `test/recorder-format.test.mjs`
+
+Prompt, verbatim:
+
+~~~~text
+One change to what the photograph can show. Read only what you need, change tests first, one file per tool call, short planning before each write. Do not weaken any existing test. Every number, headline and sentence of the three bundled samples must stay exactly as it is.
+
+THE GAP. A session recorded with the bundled recorder usually has read_file calls with an empty range: the agent asked for the whole file. classify.js turns each into a request of kind 'open' with from 1 (plates.js already words that as "whole file, length unknown"). Such a recording has no request of kind 'range', so analysis.top is unknown ('no_ranges'), apparition() returns null and the page shows no photograph at all, even when one file was requested whole many times. Our own live recordings all look like this.
+
+THE CHANGE. Only when a recording has no most requested line range (analysis.top.value is null), fall back to the file that was requested whole most often.
+
+1. src/core/metrics.js: add a traced value next to top, named topWhole. It is the file with the most requests of kind 'open' and from === 1, ties broken by path order, with value { file, count } and the log lines of those requests as its trace. It is unknown when there is no such request. Requests of kind 'open' with from above 1, and unlocated requests, are not whole-file requests and are not counted. Do not change how top, repeats, requests or unchecked are computed. When top has a value the page must ignore topWhole completely, so the three samples do not change.
+
+2. src/ui/apparition.js: when top is null and topWhole has a value, build the photograph for that file. The figure holds exactly one exposure per whole-file request of that file up to the replay step: none at zero, one at one, and so on, the same rule as today. The mini plate shows the file as one band from line 1 to the bottom for each such request (the existing open-band drawing), the ruler shows only the tick "1" (the length is unknown, so no bottom tick and no invented line count), and one strand per exposure runs from the plate into the figure. Caption, with n the number of exposures so far: at zero "No exposure yet: the whole of <file> has not been requested at this call."; otherwise "The figure is <n> superimposed exposure(s), one per request of the whole of <file> so far. The log does not say how long the file is." The aria-label says the same in one sentence. countAt(k) returns n for this case too. Whatever calls apparition() and handles null (strip.js, main.js, plates or notes) must show the photograph in this case and keep the selection and "Show log lines" behaviour working with topWhole's trace.
+
+3. src/core/findings.js, finding about requested lines: when top is null and topWhole has a value, the sentence becomes "No line ranges were requested in this recording. <file> was requested whole <count> time(s)." followed by the existing part about requests with unknown or open-ended lines; the count is a traced value that opens its log lines, like the other numbers. If this finding has a headline for the no-ranges case, make it state the same fact in the existing headline style, and keep the under-5-calls headlines from run 23 as they are. Wording rule from the steering: these are requests for a file, recorded before the permission check. Never say the file or its lines were read, and never give a line count for it.
+
+4. Tests first: a recorder-format recording (lines like {"t":1,"hook":"pre","tool":"read_file","paths":["src/a.js"],"range":{}}) with three whole-file requests of one file and one of another gives topWhole { file of the three, count 3 } with their three log lines, and top unknown; two files tied on count resolve by path order; a request with an offset (from above 1) is not counted; a recording with at least one ranged request keeps top and its finding text as today; a recording with no file request has topWhole unknown and the existing "No file requests were recognised" sentence; the finding sentence for the three-request case reads exactly as specified. The existing sample tests must pass unchanged.
+
+5. Words elsewhere: update .kiro/specs/session-autopsy/requirements.md and design.md, and .kiro/steering/design.md where the apparition is described, with one or two sentences each for the whole-file fallback. In README.md, find the sentence saying a recorded session draws a figure only when the agent asked for line ranges, and replace it with what is now true: without line ranges the figure counts whole-file requests of the file requested whole most often; a recording with neither draws no figure. Change nothing else in the README.
+
+Report the files you changed at the end, and anything you could not do.
+~~~~
+
+Checked by Claude Code: 301 tests pass (294 before, 7 new). The headlines and sentences of the three samples did not change. Opened in the page at 360, 768 and 1280 px: two live recordings from earlier in this log (take 4, and the V3 probe recording) and one made-up log with four whole-file requests of one file. Each now shows a figure with one exposure per whole-file request (1, 1 and 4), only the tick "1" on the ruler, and the caption "one per request of the whole of <file> so far. The log does not say how long the file is." No horizontal overflow, no console error. Both live recordings requested every file once, so their figure has one exposure; no live recording with a repeated whole-file request has been made. Kiro also reworded the note shown when no figure forms and added one sentence to "How to read the replay" for this case; both were kept.

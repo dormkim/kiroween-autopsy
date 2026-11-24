@@ -10,6 +10,8 @@ Under the plates runs the contact strip: the session as a strip of film, one fra
 
 The ghost is the measurement. The most requested line range develops into an apparition: a veiled figure with hollow eyes in a cabinet-card photograph, made of exactly one offset exposure per request of those lines up to the playhead. The figure appears with the first request of the most requested lines and gains one exposure each time they are requested again: invisible at zero requests, faint at one and a dense, staring figure at eight. One short caption says so, and the line plate beside it stays the exact reading, with one strand per exposure running from the requested lines into the figure.
 
+When a recording has no line range at all, the figure counts instead the requests of the whole of the file requested whole most often, one exposure each, and its plate has no line count because the log does not give the length. A recording with neither draws no figure.
+
 No mascots, bats, cobwebs, skulls, dripping type or glow effects. A ghost or figure is allowed only when it is built from the data like the apparition; ghosts that carry no data are banned.
 
 ## Data mapping

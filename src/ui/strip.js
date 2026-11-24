@@ -227,14 +227,18 @@ export function stage(ctx, width) {
   let timer = null;
 
   const top = a.top.value;
-  const photo = apparition(a, {
-    width: wide ? 560 : width,
-    name: ctx.name,
-    onPick: top === null ? null : () => {
+  const whole = top === null && a.topWhole !== undefined ? a.topWhole.value : null;
+  let onPick = null;
+  if (top !== null) {
+    onPick = () => {
       const row = ctx.repeated.find((r) => r.file === top.file && r.from === top.from);
       ctx.select(row !== undefined ? { kind: 'interval', ...row } : { kind: 'interval', ...top, lines: a.top.lines }, { reveal: true, origin: null });
-    },
-  });
+    };
+  } else if (whole !== null) {
+    onPick = () => ctx.select({ kind: 'traced', label: 'Whole-file requests', text: `${whole.file}, requested whole ${whole.count === 1 ? 'once' : `${whole.count} times`}`, traced: a.topWhole },
+      { reveal: true, origin: null });
+  }
+  const photo = apparition(a, { width: wide ? 560 : width, name: ctx.name, onPick });
 
   const playLabel = el('span', {}, 'Play');
   const play = el('button', { class: 'button button-primary play', type: 'button', 'aria-controls': 'scrub' },
@@ -333,7 +337,7 @@ export function stage(ctx, width) {
     }
   });
 
-  const file = top === null ? null : top.file;
+  const file = photo === null ? null : photo.file;
   let current = null;
   ctx.onStep((k, exposures, opts) => {
     if (Number(scrub.value) !== k) scrub.value = String(k);
@@ -367,11 +371,12 @@ export function stage(ctx, width) {
   });
 
   const photoBox = el('div', { class: 'stage-photo' },
-    photo !== null ? photo.node : el('p', { class: 'section-note' }, 'No line range was requested, so no figure formed. The strip below still replays every call.'));
+    photo !== null ? photo.node : el('p', { class: 'section-note' }, 'No line range and no whole file were requested, so no figure formed. The strip below still replays every call.'));
   const how = el('details', { class: 'how' },
     el('summary', {}, 'How to read the replay'),
     el('div', { class: 'how-body' },
       el('p', {}, 'The photograph shows the most requested lines of the recording. Each request of those lines adds one offset exposure to the figure, so it is invisible before the first request and denser with each one. The column on its left is the file, lines from top to bottom; the bright band is where the figure comes from.'),
+      top === null && whole !== null ? el('p', {}, 'This recording has no line ranges, so the figure counts the requests of the whole of the file requested whole most often. The log does not say how long that file is.') : null,
       el('p', {}, 'Each frame of the strip is one call. Frame width is the time until the next call. Edge codes: call number above, log line (L) below. Arrow keys on the slider step one call, Home and End jump to the ends, Space plays and pauses.'),
       legend()));
   section.append(

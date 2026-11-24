@@ -51,13 +51,20 @@ const LABELS = {
   unknown: 'calls with unknown effect',
 };
 
+/** The whole-file fallback, or null. Used only when top is unknown. */
+const wholeOf = (a) => (a.topWhole === undefined || a.topWhole === null ? null : a.topWhole.value);
+
 /** Finding 1: most requested lines and repeat requests. */
 const requested = (a) => {
   const top = a.top.value;
   const k = a.requests.value;
   if (top === null) {
     if (k === 0) return ['No file requests were recognised in this recording.'];
-    return ['No line ranges were requested in this recording. ', num(a.requests), many(k, ' request had', ' requests had'), ' unknown or open-ended lines.'];
+    const rest = [num(a.requests), many(k, ' request had', ' requests had'), ' unknown or open-ended lines.'];
+    const whole = wholeOf(a);
+    if (whole === null) return ['No line ranges were requested in this recording. ', ...rest];
+    return ['No line ranges were requested in this recording. ', val(whole.file, a.topWhole), ' was requested whole ',
+      val(whole.count === 1 ? 'once' : whole.count, a.topWhole), whole.count === 1 ? '. ' : ' times. ', ...rest];
   }
   const single = top.from === top.to;
   const lower = a.files instanceof Map && a.files.get(top.file)?.lowerBound === true;
@@ -157,7 +164,11 @@ export function headlines(a) {
   const out = [];
 
   const top = a.top.value;
-  if (top === null) {
+  const whole = top === null && a.requests.value !== 0 ? wholeOf(a) : null;
+  if (whole !== null) {
+    const times = whole.count === 1 ? 'once' : `${whole.count} times`;
+    out.push({ text: `No line ranges requested; ${whole.file} was requested whole ${times}`, traced: a.topWhole, label: 'Whole-file requests' });
+  } else if (top === null) {
     out.push({ text: a.requests.value === 0 ? 'No file requests recognised in this recording' : 'No line ranges requested in this recording', traced: a.requests, label: 'Requests' });
   } else if (top.count < 2) {
     out.push({ text: 'No line was requested twice in this recording', traced: a.top, label: 'Most requested lines' });

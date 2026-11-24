@@ -3,6 +3,8 @@
 // covers the most requested lines, up to the replay step: none at zero, faint at one, dense at
 // eight. Beside it, the line plate of that file is the exact reading, and one strand per
 // exposure runs from the requested lines on the plate into the figure.
+// Without any line range, the figure counts the requests of the whole of the file requested
+// whole most often (analysis.topWhole); its plate has no line scale, because the length is unknown.
 // Drawn in px units (viewBox equals the size), so SVG text never shrinks.
 
 import { el, svg, replace } from './dom.js';
@@ -56,19 +58,25 @@ const archPath = ({ x, y, w, h }, arch) =>
   `M ${x} ${y + h} L ${x} ${y + arch} A ${w / 2} ${arch} 0 0 1 ${x + w} ${y + arch} L ${x + w} ${y + h} Z`;
 
 /**
- * Builds the photograph for one analysis, or null when no line range was requested.
+ * Builds the photograph for one analysis, or null when it has neither a most requested line
+ * range nor a file requested whole. Without a line range, the figure counts the requests of
+ * the whole of the file requested whole most often (analysis.topWhole).
  * @param {ReturnType<typeof import('../core/metrics.js').analyse>} a
  * @param {{ width: number, name: string, onPick: (() => void)|null }} opts
- * @returns {{ node: HTMLElement, update: (k: number, intervals: object[]) => void, countAt: (k: number) => number }|null}
+ * @returns {{ node: HTMLElement, file: string, update: (k: number, intervals: object[]) => void, countAt: (k: number) => number }|null}
  */
 export function apparition(a, opts) {
   const top = a.top.value;
-  if (top === null) return null;
-  const file = top.file;
+  const whole = top === null && a.topWhole !== undefined ? a.topWhole.value : null;
+  if (top === null && whole === null) return null;
+  const file = top !== null ? top.file : whole.file;
   const requests = a.calls.flatMap((e) => e.effect.requests.filter((r) => r.file === file));
-  const covering = requests.filter((r) => r.kind === 'range' && r.from <= top.from && r.to >= top.to);
-  const opens = requests.filter((r) => r.kind === 'open');
-  const L = Math.max(1, ...requests.filter((r) => r.kind === 'range').map((r) => r.to), ...opens.map((r) => r.from));
+  const covering = top !== null
+    ? requests.filter((r) => r.kind === 'range' && r.from <= top.from && r.to >= top.to)
+    : requests.filter((r) => r.kind === 'open' && r.from === 1);
+  // Whole-file mode draws only the whole-file requests: the length is unknown, so no line scale.
+  const opens = top !== null ? requests.filter((r) => r.kind === 'open') : covering;
+  const L = top === null ? 1 : Math.max(1, ...requests.filter((r) => r.kind === 'range').map((r) => r.to), ...opens.map((r) => r.from));
 
   const { W, H } = photoSize(opts.width);
   const g = geometry(W, H);
@@ -77,7 +85,7 @@ export function apparition(a, opts) {
     const h = Math.max(3, ((to - from + 1) / L) * g.PH);
     return { top: Math.min(yOf(from), g.plateY + g.PH - h), h };
   };
-  const source = box(top.from, top.to);
+  const source = top !== null ? box(top.from, top.to) : { top: g.plateY, h: g.PH };
   const sourceY = source.top + source.h / 2;
 
   const s = Math.min((g.win.w * 0.62) / FIG_W, (g.win.h * 0.9) / FIG_H);
@@ -116,10 +124,14 @@ export function apparition(a, opts) {
     plateLayer, ruler, card, strands);
 
   const tick = (y, text, cls) => ruler.append(svg('text', { class: cls, x: g.rulerW, y: y + 4, 'text-anchor': 'end' }, text));
-  tick(sourceY, String(top.from), 'tick-svg tick-source');
-  if (sourceY - g.plateY > 18) tick(g.plateY + 2, '1', 'tick-svg');
-  if (opens.length === 0 && g.plateY + g.PH - sourceY > 18) tick(g.plateY + g.PH - 4, String(L), 'tick-svg');
-  ruler.append(svg('line', { class: 'source-tie', x1: g.rulerW + 1, y1: sourceY, x2: g.plateX, y2: sourceY }));
+  if (top === null) {
+    tick(g.plateY + 2, '1', 'tick-svg tick-source');
+  } else {
+    tick(sourceY, String(top.from), 'tick-svg tick-source');
+    if (sourceY - g.plateY > 18) tick(g.plateY + 2, '1', 'tick-svg');
+    if (opens.length === 0 && g.plateY + g.PH - sourceY > 18) tick(g.plateY + g.PH - 4, String(L), 'tick-svg');
+    ruler.append(svg('line', { class: 'source-tie', x1: g.rulerW + 1, y1: sourceY, x2: g.plateX, y2: sourceY }));
+  }
 
   if (opts.onPick !== null) {
     root.addEventListener('click', opts.onPick);
@@ -147,7 +159,7 @@ export function apparition(a, opts) {
     }
     for (const iv of intervals) {
       const b = box(iv.from, iv.to);
-      const isSource = iv.from <= top.to && top.from <= iv.to;
+      const isSource = top !== null && iv.from <= top.to && top.from <= iv.to;
       plateLayer.append(svg('rect', {
         class: isSource ? 'band band-source' : 'band', x: g.plateX, y: b.top, width: g.pw, height: b.h, 'fill-opacity': exposure(iv.count).toFixed(3),
       }));
@@ -171,7 +183,7 @@ export function apparition(a, opts) {
 
     replace(strands);
     live.forEach((r, i) => {
-      const b = box(r.from, r.to);
+      const b = top !== null ? box(r.from, r.to) : source;
       const x1 = g.plateX + g.pw;
       const y1 = b.top + b.h / 2;
       const tx = fx + s * (34 + (i % 5) * 13);
@@ -182,6 +194,14 @@ export function apparition(a, opts) {
       }));
     });
 
+    if (top === null) {
+      const noun = n === 1 ? 'exposure' : 'exposures';
+      caption.textContent = n === 0
+        ? `No exposure yet: the whole of ${file} has not been requested at this call.`
+        : `The figure is ${n} superimposed ${noun}, one per request of the whole of ${file} so far. The log does not say how long the file is.`;
+      root.setAttribute('aria-label', `Spirit photograph of the whole of ${file}: ${n} superimposed ${noun}, one per request of the whole file so far, of a length the log does not give.`);
+      return;
+    }
     const range = linesText(top.from, top.to);
     if (n === 0) {
       caption.textContent = `No exposure yet: ${range} ${top.from === top.to ? 'has' : 'have'} not been requested at this call.`;
@@ -193,5 +213,5 @@ export function apparition(a, opts) {
     root.setAttribute('aria-label', `Spirit photograph of ${range} of ${file}: ${n} superimposed ${n === 1 ? 'exposure' : 'exposures'}.`);
   };
 
-  return { node, update, countAt };
+  return { node, file, update, countAt };
 }

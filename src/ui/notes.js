@@ -46,6 +46,7 @@ const REASON_WORDS = {
   no_time: 'no call has a usable time',
   time_anomaly: 'a time on this call or the next one is missing or out of order',
   no_ranges: 'no explicit line range was requested',
+  no_whole_file: 'no file was requested whole',
   none_recognised: 'no source edit attempt was recognised',
   no_repeats: 'no repeat request was found',
 };

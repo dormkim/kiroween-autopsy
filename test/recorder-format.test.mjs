@@ -333,3 +333,77 @@ test('the three samples are unchanged: every call recorded allow, notRecorded 0,
   assert.deepEqual(r3480.top.value, { file: 'rich/text.py', from: 1007, to: 1010, count: 8 });
   assert.deepEqual([r3480.firstSource.value.call, r3480.requests.value, r3480.repeats.value, r3480.possibleEarlier.value], [162, 69, 27, 35]);
 });
+
+// ---- whole-file fallback for the photograph (topWhole) ----
+
+const whole = (file) => ({ tool: 'read_file', paths: [file], range: {} });
+const withoutWhole = (a) => ({ ...a, topWhole: { value: null, lines: [], reason: 'no_whole_file' } });
+
+test('topWhole: the file requested whole most often, traced to those requests; top stays unknown', () => {
+  const a = analyseLog([whole('src/a.js'), whole('src/a.js'), whole('src/b.js'), whole('src/a.js')]);
+  assert.ok(a.topWhole !== undefined, 'analyse() returns topWhole');
+  assert.deepEqual(a.topWhole, { value: { file: 'src/a.js', count: 3 }, lines: [1, 2, 4], reason: null },
+    'src/a.js was requested whole on log lines 1, 2 and 4');
+  assert.equal(a.top.value, null, 'no explicit range, so top is unknown');
+  assert.equal(a.top.reason, 'no_ranges', 'top keeps its reason');
+});
+
+test('topWhole: a tie on count goes to the first path in path order', () => {
+  const a = analyseLog([whole('src/b.js'), whole('src/b.js'), whole('src/a.js'), whole('src/a.js')]);
+  assert.deepEqual(a.topWhole, { value: { file: 'src/a.js', count: 2 }, lines: [3, 4], reason: null },
+    'src/a.js and src/b.js both have 2; src/a.js comes first in path order although it was requested later');
+});
+
+test('topWhole: a request that starts after line 1 is not a whole-file request', () => {
+  const offsetOnly = { tool: 'read_file', paths: ['src/a.js'], range: { offset: 40 } };
+  const a = analyseLog([offsetOnly, offsetOnly, offsetOnly, whole('src/b.js')]);
+  const r = a.calls[0].effect.requests[0];
+  assert.ok(r.kind === 'open' && r.from > 1, `precondition: an offset without a limit is an open request after line 1, got ${JSON.stringify([r.kind, r.from])}`);
+  assert.deepEqual(a.topWhole, { value: { file: 'src/b.js', count: 1 }, lines: [4], reason: null },
+    'the three open requests of src/a.js start after line 1 and are not counted');
+  assert.equal(text(findingsMod.findings(a)[0]),
+    'No line ranges were requested in this recording. src/b.js was requested whole once. 4 requests had unknown or open-ended lines.');
+});
+
+test('topWhole: finding sentence and headline for three whole-file requests', () => {
+  const a = analyseLog([whole('src/a.js'), whole('src/a.js'), whole('src/b.js'), whole('src/a.js')]);
+  const parts = findingsMod.findings(a)[0];
+  assert.equal(text(parts),
+    'No line ranges were requested in this recording. src/a.js was requested whole 3 times. 4 requests had unknown or open-ended lines.');
+  const three = parts.find((p) => typeof p !== 'string' && p.text === '3');
+  assert.ok(three !== undefined, 'the count 3 is a value part');
+  assert.equal(three.traced, a.topWhole, 'the count opens the log lines of the three whole-file requests');
+  const h = findingsMod.headlines(a)[0];
+  assert.equal(h.text, 'No line ranges requested; src/a.js was requested whole 3 times');
+  assert.equal(h.traced, a.topWhole, '"Show log lines" opens the whole-file requests');
+  for (const s of [text(parts), h.text, h.label]) {
+    assert.ok(!/\bread\b|\bviewed\b|\bsaw\b/i.test(s), `requests are never called reads: ${s}`);
+  }
+});
+
+test('topWhole is ignored when a line range was requested', () => {
+  const a = analyseLog([whole('src/a.js'), whole('src/a.js'), whole('src/a.js'),
+    { tool: 'read_file', paths: ['src/b.js'], range: { offset: 0, limit: 5 } }]);
+  assert.deepEqual(a.top.value, { file: 'src/b.js', from: 1, to: 5, count: 1 }, 'top is the ranged request, as before');
+  assert.deepEqual(a.topWhole.value, { file: 'src/a.js', count: 3 }, 'topWhole is still computed');
+  assert.ok(text(findingsMod.findings(a)[0]).startsWith('Lines 1 to 5 of src/b.js were requested once.'), 'the finding is about top');
+  assert.deepEqual(findingsMod.findings(a).map(text), findingsMod.findings(withoutWhole(a)).map(text), 'findings do not depend on topWhole');
+  assert.deepEqual(findingsMod.headlines(a).map((x) => x.text), findingsMod.headlines(withoutWhole(a)).map((x) => x.text), 'headlines do not depend on topWhole');
+});
+
+test('topWhole is unknown without a file request, and the sentence stays as before', () => {
+  const a = analyseLog([{ tool: 'search' }, { tool: 'list_directory', paths: ['src'] }]);
+  assert.equal(a.topWhole.value, null, 'no whole-file request: unknown, never a count of 0');
+  assert.deepEqual(a.topWhole.lines, []);
+  assert.equal(typeof a.topWhole.reason, 'string', 'an unknown value carries a reason code');
+  assert.equal(text(findingsMod.findings(a)[0]), 'No file requests were recognised in this recording.');
+});
+
+test('the three samples: top has a value and topWhole changes no finding or headline', () => {
+  for (const name of ['rich-3480', 'rich-3506', 'requests-6644']) {
+    const a = analyse(parse(readFileSync(new URL(`../samples/${name}.events.jsonl`, import.meta.url), 'utf8')));
+    assert.notEqual(a.top.value, null, `${name}: has a most requested line range`);
+    assert.deepEqual(findingsMod.findings(a), findingsMod.findings(withoutWhole(a)), `${name}: findings ignore topWhole`);
+    assert.deepEqual(findingsMod.headlines(a), findingsMod.headlines(withoutWhole(a)), `${name}: headlines ignore topWhole`);
+  }
+});

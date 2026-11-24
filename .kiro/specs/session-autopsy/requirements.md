@@ -54,6 +54,7 @@ As someone studying agents, I want to open a recorded session in one click, so t
 - R4.1 THE analysis SHALL count, per file, how many requests covered each line, stored as merged intervals with the log lines of the covering requests.
 - R4.2 THE analysis SHALL report the most requested range per file and overall, with its count and log lines.
 - R4.3 THE analysis SHALL count open-ended and unknown-line requests per file beside the line counts. WHEN a file has any, THE screen SHALL say its line counts are a lower bound.
+- R4.4 THE analysis SHALL report, as a traced value, the file with the most whole-file requests (open-ended from line 1), ties by path order, or unknown when there is none. WHEN no line range was requested and that value is known, THE photograph SHALL hold one exposure per whole-file request of that file up to the replay step, with no line count for the file, and THE first finding SHALL say "No line ranges were requested in this recording. <file> was requested whole <count> times." WHEN a line range was requested, THE screen SHALL NOT use this value.
 
 ## R5. Repeat requests
 

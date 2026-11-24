@@ -114,7 +114,7 @@ export function checkTime(a) {
 /** Every traced value of an analysis with a name for messages. */
 export function tracedValues(a) {
   const out = [
-    ['top', a.top], ['requests', a.requests], ['repeats', a.repeats], ['unchecked', a.unchecked],
+    ['top', a.top], ['topWhole', a.topWhole], ['requests', a.requests], ['repeats', a.repeats], ['unchecked', a.unchecked],
     ['firstSource', a.firstSource], ['possibleEarlier', a.possibleEarlier],
     ['time.span', a.time.span], ['time.afterRepeats', a.time.afterRepeats],
   ];

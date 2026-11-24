@@ -116,6 +116,24 @@ const overallTop = (files) => {
   return traced({ file: best.file, from: best.from, to: best.to, count: best.count }, best.lines);
 };
 
+/**
+ * The file requested whole most often: requests of kind 'open' from line 1, with path order
+ * as the tie-break. Open requests from a later line and unlocated requests are not counted.
+ * Used for the photograph only when no line range was requested.
+ */
+const overallWhole = (files) => {
+  let best = null;
+  for (const [file, f] of files) {
+    const lines = f.open.filter((r) => r.from === 1).map((r) => r.n);
+    if (lines.length === 0) continue;
+    if (best === null || lines.length > best.lines.length || (lines.length === best.lines.length && file < best.file)) {
+      best = { file, lines };
+    }
+  }
+  if (best === null) return unknown('no_whole_file');
+  return traced({ file: best.file, count: best.lines.length }, best.lines);
+};
+
 // ---- time ----
 
 /** Accepts times in log order; every other time becomes an anomaly. Lines are never reordered. */
@@ -276,6 +294,7 @@ export function analyse(parsed) {
     calls: entries,
     files,
     top: overallTop(files),
+    topWhole: overallWhole(files),
     requests: countOf(requestLines, callLines),
     repeats: countOf(markLines('repeat'), requestLines, callLines),
     unchecked: countOf(markLines('unchecked'), requestLines, callLines),

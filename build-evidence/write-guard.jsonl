@@ -434,3 +434,13 @@
 {"time":"2026-11-23T01:48:18.408Z","path":".kiro/steering/design.md","decision":"allow","rule":"ok"}
 {"time":"2026-11-23T01:48:18.416Z","path":".kiro/steering/design.md","decision":"allow","rule":"ok"}
 {"time":"2026-11-23T01:51:03.838Z","path":"src/styles/app.css","decision":"allow","rule":"ok"}
+{"time":"2026-11-24T13:06:01.044Z","path":"test/timeline.test.mjs","decision":"allow","rule":"ok"}
+{"time":"2026-11-24T13:06:01.045Z","path":"src/ui/strip.js","decision":"allow","rule":"ok"}
+{"time":"2026-11-24T13:06:01.045Z","path":"src/ui/strip.js","decision":"allow","rule":"ok"}
+{"time":"2026-11-24T13:06:01.047Z","path":"src/ui/strip.js","decision":"allow","rule":"ok"}
+{"time":"2026-11-24T13:06:01.048Z","path":"src/core/timeline.js","decision":"allow","rule":"ok"}
+{"time":"2026-11-24T13:06:01.049Z","path":"test/timeline.test.mjs","decision":"allow","rule":"ok"}
+{"time":"2026-11-24T13:06:10.025Z","path":"favicon.svg","decision":"allow","rule":"ok"}
+{"time":"2026-11-24T13:06:10.027Z","path":"index.html","decision":"allow","rule":"ok"}
+{"time":"2026-11-24T13:06:24.026Z","path":".kiro/specs/session-autopsy/design.md","decision":"allow","rule":"ok"}
+{"time":"2026-11-24T13:06:24.029Z","path":".kiro/specs/session-autopsy/design.md","decision":"allow","rule":"ok"}

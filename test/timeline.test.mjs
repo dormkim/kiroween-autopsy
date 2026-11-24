@@ -9,7 +9,7 @@ import { readFileSync } from 'node:fs';
 import { parse } from '../src/core/parse.js';
 import { analyse } from '../src/core/metrics.js';
 import { countLines } from '../src/core/lines.js';
-import { frames, exposuresAt } from '../src/core/timeline.js';
+import { frames, exposuresAt, codeFrames } from '../src/core/timeline.js';
 import { check, sessionLines } from './gen.mjs';
 
 const T0 = 1795248000;
@@ -95,4 +95,63 @@ test('generated: frames match the analysis and exposures never drop as k grows',
       prev = now;
     }
   });
+});
+
+// ---- edge code choice (codeFrames) ----
+
+/** The choice the strip made before the cut frame was special-cased in the gap rule. */
+const oldChoice = (xs, gap) => {
+  const out = [];
+  let last = -Infinity;
+  xs.forEach((x, i) => {
+    if (x - last < gap) return;
+    last = x;
+    out.push(i);
+  });
+  return out;
+};
+
+test('codeFrames: a cut frame right after a drawn frame drops the earlier one', () => {
+  const xs = [12, 60, 100, 120];
+  const cuts = [false, false, false, true];
+  assert.deepEqual(codeFrames(xs, cuts, 34), [0, 1, 3], 'expected the frame at x=100 to be dropped because the cut frame at x=120 is 20px away, less than the gap of 34');
+});
+
+test('codeFrames: a frame right after the cut frame is skipped', () => {
+  const xs = [12, 60, 100, 120, 130, 140, 160];
+  const cuts = [false, false, false, true, false, false, false];
+  const got = codeFrames(xs, cuts, 34);
+  assert.ok(!got.includes(4) && !got.includes(5), 'expected frames at x=130 and x=140 to be skipped, because they are closer than 34px to the cut frame at x=120');
+  assert.ok(!got.includes(2), 'expected the frame at x=100 to be skipped as well, because it is 20px before the cut frame');
+  assert.deepEqual(got, [0, 1, 3, 6], 'expected frames 0, 1, the cut frame and the frame at x=160 (40px after the cut)');
+});
+
+test('codeFrames: with no cut frame the result is the one from before', () => {
+  const xs = [12, 20, 50, 51, 90, 124, 125, 300];
+  const cuts = xs.map(() => false);
+  assert.deepEqual(codeFrames(xs, cuts, 34), oldChoice(xs, 34), 'expected the plain gap rule when no frame is cut');
+  assert.deepEqual(codeFrames([], [], 34), [], 'expected no frames to give no indexes');
+});
+
+test('codeFrames: no two drawn codes are closer than the gap and the cut frame is always drawn', () => {
+  for (let seed = 1; seed <= 200; seed += 1) {
+    let s = seed;
+    const rnd = () => {
+      s = (s * 1103515245 + 12345) % 2147483648;
+      return s / 2147483648;
+    };
+    const n = 1 + Math.floor(rnd() * 40);
+    const xs = [];
+    let x = 12;
+    for (let i = 0; i < n; i += 1) {
+      xs.push(x);
+      x += 4 + rnd() * 30;
+    }
+    const cut = rnd() < 0.8 ? Math.floor(rnd() * n) : -1;
+    const got = codeFrames(xs, xs.map((_, i) => i === cut), 34);
+    if (cut !== -1) assert.ok(got.includes(cut), `expected the cut frame ${cut} in the result (seed ${seed}), because it always keeps its codes`);
+    for (let i = 1; i < got.length; i += 1) {
+      assert.ok(xs[got[i]] - xs[got[i - 1]] >= 34, `expected drawn frames ${got[i - 1]} and ${got[i]} at least 34px apart (seed ${seed}), because closer codes print on top of each other`);
+    }
+  }
 });

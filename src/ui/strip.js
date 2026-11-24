@@ -3,6 +3,7 @@
 // torn frames, cut mark, ectoplasm threads and the unknown tail.
 
 import { formatTime } from '../core/findings.js';
+import { codeFrames } from '../core/timeline.js';
 import { el, svg } from './dom.js';
 import { describeRequest, rawText, wordFor } from './notes.js';
 import { apparition } from './apparition.js';
@@ -97,16 +98,14 @@ const drawStrip = (ctx) => {
 
   // Edge codes: call number in the top margin, log line in the bottom margin, where they fit.
   const codes = svg('g', { 'aria-hidden': 'true' });
-  let lastCode = -Infinity;
-  frames.forEach((f, i) => {
+  for (const i of codeFrames(boxes.map((b) => b.x), frames.map((f) => f.cut), CODE_GAP)) {
+    const f = frames[i];
     const b = boxes[i];
-    if (!f.cut && b.x - lastCode < CODE_GAP) return;
-    lastCode = b.x;
     const cls = f.cut ? 'edge-code edge-code-cut' : 'edge-code';
     codes.append(
       svg('text', { class: cls, x: b.x + 1, y: THREAD_H + 12 }, String(f.index)),
       svg('text', { class: cls, x: b.x + 1, y: FRAME_Y + FRAME_H + 12 }, `L${f.n}`));
-  });
+  }
 
   // Torn frames: a notch where a broken log line sits between calls.
   const tears = svg('g', { 'aria-hidden': 'true' });

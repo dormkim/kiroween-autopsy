@@ -21,7 +21,7 @@ Smallest design that meets `requirements.md`. Steering (`.kiro/steering/`) still
 ## Modules
 
 ```
-index.html            shell, CSP meta, loads ./src/ui/main.js
+index.html            shell, CSP meta, icon link to ./favicon.svg (the cabinet-card arched window, plain shapes, literal token colours), loads ./src/ui/main.js
 src/core/parse.js     text -> lines (call | note | broken | blank)
 src/core/shell.js     cmd string -> segments (words, redirects, flags)
 src/core/classify.js  call -> Effect
@@ -186,7 +186,7 @@ Time on screen is m:ss from `start`, rounded to the nearest second; minutes can 
 
 ### Replay (timeline.js)
 
-`frames(analysis)` returns one frame per call: `{ index, n, start: number|null, seconds: number|null, category, fog, blocked, cut, repeat }`. `fog` is set by hiddenEdit or hiddenRequest, and `cut` is set on the first source edit attempt. `exposuresAt(analysis, k)` returns the per-file `countLines` of requests from calls `<= k`. The strip shows the unknown tail as a fogged end piece with no width claim.
+`frames(analysis)` returns one frame per call: `{ index, n, start: number|null, seconds: number|null, category, fog, blocked, cut, repeat }`. `fog` is set by hiddenEdit or hiddenRequest, and `cut` is set on the first source edit attempt. `exposuresAt(analysis, k)` returns the per-file `countLines` of requests from calls `<= k`. The strip shows the unknown tail as a fogged end piece with no width claim. `codeFrames(xs, cuts, gap)` picks the frames that get edge codes: the cut frame always, any other frame only when it is at least `gap` px from the last drawn code and from the cut frame on either side.
 
 ### Findings (findings.js)
 

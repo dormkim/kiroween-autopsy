@@ -1182,3 +1182,34 @@ Checked by Claude Code after runs 24 and 25: 290 tests pass. The headline and se
 ## Credit total through run 25
 
 Account meter 539.77 at the start of the build, 1053.41 after run 25: **513.64 credits**. This is the whole account meter, so it includes the boundary probes, test sessions and the filming runs, not only the numbered runs.
+
+## Run 26: edge codes on the strip, favicon
+
+- Time: 2026-11-24T13:05:31Z to 2026-11-24T13:06:31Z
+- Model: `auto`
+- Kiro session: `2c6b47e7-acc8-4a0f-8e55-d169adc9b222`
+- Exit code: 0
+- Account meter: 1053.41 to 1055.19 (1.78 credits)
+
+Files changed:
+- `.kiro/specs/session-autopsy/design.md`
+- `build-evidence/write-guard.jsonl`
+- `favicon.svg`
+- `index.html`
+- `src/core/timeline.js`
+- `src/ui/strip.js`
+- `test/timeline.test.mjs`
+
+Prompt, verbatim:
+
+~~~~text
+Two small fixes found on the published page. No new feature. Read only what you need, change tests first where a test can see it, one file per tool call, short planning before each write. Do not weaken any other test. No text of any finding changes.
+
+1. OVERLAPPING EDGE CODES ON THE STRIP. In src/ui/strip.js, the "Edge codes" block skips a frame's codes when it is closer than CODE_GAP to the last drawn one, except for the cut frame (the first recognised edit), which is always drawn. In the sample rich-3480 the frame before the cut frame is drawn too, so "161" and "162" in the top margin and "L161" and "L162" in the bottom margin are printed on top of each other at every width. Fix the choice of frames so that no two drawn codes are closer than CODE_GAP: the cut frame always keeps its codes, and a non-cut frame whose codes would be closer than CODE_GAP to the cut frame's, on either side, is not drawn. Move the choice into a small pure exported function (frames' x positions and cut flags in, the indexes to draw out) so a test can see it, and use it in the block. Add tests: a cut frame right after a drawn frame drops the earlier one; a frame right after the cut frame is skipped; with no cut frame the result is the same as today; the cut frame is always in the result.
+
+2. NO FAVICON. The page has no icon, so browsers ask for /favicon.ico and get a 404. Add favicon.svg in the project root and one line in index.html: <link rel="icon" type="image/svg+xml" href="./favicon.svg">. The Content-Security-Policy already allows img-src 'self'; do not change it. The icon follows the steering design rules: the arched window of the cabinet card on the dark mount, drawn with plain shapes, colours taken from the values in src/styles/tokens.css written as literal hex in the SVG (an icon file cannot read CSS variables). No figure, no ghost, no text, no gradient, no script, no external reference. It must stay readable at 16 px. If a test lists the files the page loads or checks index.html, update it for the new line.
+
+Update the spec design.md in one sentence for each change where the strip codes and the page head are described, if they are described. Report the files you changed at the end.
+~~~~
+
+Checked by Claude Code: 294 tests pass (290 before, 4 new). Screenshots of the three samples at 360, 768 and 1280 px: no two edge codes overlap (before, "161" and "162", and "L161" and "L162", overlapped in rich-3480 at every width), no horizontal overflow, no console error. `favicon.svg` is served and the page no longer leaves the icon request unanswered. No finding text changed.

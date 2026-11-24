@@ -47,3 +47,24 @@ export function exposuresAt(analysis, k) {
   }
   return new Map([...byFile].map(([file, reqs]) => [file, countLines(reqs)]));
 }
+
+/**
+ * Which frames get edge codes on the strip. A cut frame always keeps its codes. Any other
+ * frame is skipped when its code would sit closer than `gap` to the cut frame's, before or
+ * after it, or closer than `gap` to the last code drawn.
+ * @param {number[]} xs left edge of each frame
+ * @param {boolean[]} cuts true for the cut frame
+ * @param {number} gap least distance between two drawn codes
+ * @returns {number[]} indexes of the frames to draw, ascending
+ */
+export function codeFrames(xs, cuts, gap) {
+  const cutXs = xs.filter((_, i) => cuts[i]);
+  const out = [];
+  let last = -Infinity;
+  xs.forEach((x, i) => {
+    if (!cuts[i] && (x - last < gap || cutXs.some((c) => Math.abs(x - c) < gap))) return;
+    last = x;
+    out.push(i);
+  });
+  return out;
+}

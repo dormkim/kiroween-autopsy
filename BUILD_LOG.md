@@ -1260,3 +1260,9 @@ Report the files you changed at the end, and anything you could not do.
 ~~~~
 
 Checked by Claude Code: 301 tests pass (294 before, 7 new). The headlines and sentences of the three samples did not change. Opened in the page at 360, 768 and 1280 px: two live recordings from earlier in this log (take 4, and the V3 probe recording) and one made-up log with four whole-file requests of one file. Each now shows a figure with one exposure per whole-file request (1, 1 and 4), only the tick "1" on the ruler, and the caption "one per request of the whole of <file> so far. The log does not say how long the file is." No horizontal overflow, no console error. Both live recordings requested every file once, so their figure has one exposure; no live recording with a repeated whole-file request has been made. Kiro also reworded the note shown when no figure forms and added one sentence to "How to read the replay" for this case; both were kept.
+
+## Credit total through run 27
+
+Account meter 539.77 at the start of the build, 1072.82 after run 27: **533.05 credits**. As above, this is the whole account meter. Runs 26 and 27 used 19.41 of it.
+
+Also on 2026-11-24, by Claude Code: `JUDGES.md` counts updated to 301 tests and runs 1 to 27.

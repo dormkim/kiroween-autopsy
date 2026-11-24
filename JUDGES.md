@@ -10,7 +10,7 @@ Category: Costume Contest. Written by Claude Code, the project's reviewer; Kiro 
 4. Press replay. The figure gains one exposure each time those lines are requested again.
 5. Open a log of your own with "Open a log file", or one of the other two samples. One crashed and one exited normally; the page says which, and where that fact comes from.
 
-Without a browser: the video ([VIDEO_URL]) shows the same steps, and `npm test` runs 290 tests with Node 22.13 or later (it leaves small test folders in the system temp directory).
+Without a browser: the video ([VIDEO_URL]) shows the same steps, and `npm test` runs 301 tests with Node 22.13 or later (it leaves small test folders in the system temp directory).
 
 To run the page locally instead: `python3 -m http.server --bind 127.0.0.1 8000` in the repository root, then open `http://127.0.0.1:8000`.
 
@@ -30,8 +30,8 @@ To run the page locally instead: `python3 -m http.server --bind 127.0.0.1 8000` 
 |---|---|---|
 | In rich-3480 the same four lines (lines 1007 to 1010 of one file) were requested 8 times, 6 of them before the first recognised edit attempt at 13:21 of 14:48 | Reproducible | Open the sample, click the numbers |
 | The page uploads nothing | Reproducible | Content Security Policy in `index.html`; README "Privacy" |
-| 290 tests pass | Reproducible | `npm test` |
-| Kiro CLI wrote the spec, steering, application, tests and both hooks | Recorded | BUILD_LOG runs 1 to 25, commit messages |
+| 301 tests pass | Reproducible | `npm test` |
+| Kiro CLI wrote the spec, steering, application, tests and both hooks | Recorded | BUILD_LOG runs 1 to 27, commit messages |
 | The recorder never hides a failure | **Not met** | README "When recording fails" |
 | The log order matches the session order | **Not met** | README "Limits", parallel calls |
 | The page makes agents better, saves credits or predicts failure | Not claimed | README "What it does not claim" |

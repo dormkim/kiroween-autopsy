@@ -1266,3 +1266,14 @@ Checked by Claude Code: 301 tests pass (294 before, 7 new). The headlines and se
 Account meter 539.77 at the start of the build, 1072.82 after run 27: **533.05 credits**. As above, this is the whole account meter. Runs 26 and 27 used 19.41 of it.
 
 Also on 2026-11-24, by Claude Code: `JUDGES.md` counts updated to 301 tests and runs 1 to 27.
+
+## Takes 5 and 6: a live recording with line ranges (2026-11-25)
+
+An outside review of the finished project pointed out that every live recording so far requested each file whole and once, so the page had never drawn more than one exposure for a session recorded with the bundled hook. Claude Code ran the bundled `recorded` agent twice more (`kiro-cli chat --v2 --no-interactive --agent recorded`, Kiro CLI 3.5.0, default model) in throwaway copies of this project's `src/`, with the recorder installed as the README describes. No application code changed. The prompt both times: `Find every place where the sed command is handled in src/core/classify.js and src/core/shell.js. Above each one, add a one-line comment saying what the code treats that form of sed as. Then re-read each place you changed to make sure the comment sits on the right line.` The prompt asks for a re-read; it does not say how to read.
+
+- Take 5, session `bd189c15-b54a-43bf-a515-5f9283bbc25a`: 12 log lines. One whole-file read of two files, seven edit attempts, then four read calls with nine line ranges. The page draws two exposures for lines 206 to 207.
+- Take 6, session `4ba7d490-49a3-48d9-9d00-ddb18036c375`, recorded with asciinema for the video: 19 log lines. One whole-file read of two files, nine edit attempts, then nine read lines with eleven line ranges. The page draws two exposures for lines 641 to 680 and the headline "At least 2 requests for the same 40 lines". The log is kept as `build-evidence/live-recording-take6.events.jsonl`; open it with the page's file input.
+
+In both takes the edit attempts of one response were sent in parallel, so their order in the log is the order the hooks started (see "Limits" in the README). The sentence under take 4 above, "the page draws no figure; the video shows that page", describes the page before run 27 and the earlier cut of the video. The current video uses take 6.
+
+Account meter 1072.82 before take 5, 1073.74 after it, 1074.91 after take 6 (2.09 credits). **Total through take 6: 535.14 credits** (539.77 at the start of the build).

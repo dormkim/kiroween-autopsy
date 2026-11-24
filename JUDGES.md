@@ -10,7 +10,7 @@ Category: Costume Contest. Written by Claude Code, the project's reviewer; Kiro 
 4. Press replay. The figure gains one exposure each time those lines are requested again.
 5. Open a log of your own with "Open a log file", or one of the other two samples. One crashed and one exited normally; the page says which, and where that fact comes from.
 
-Without a browser: the video ([VIDEO_URL]) shows the same steps, and `npm test` runs 301 tests with Node 22.13 or later (it leaves small test folders in the system temp directory).
+Without a browser: the video (https://youtu.be/7jZ2pY2Nr3Y) shows the same steps, and `npm test` runs 301 tests with Node 22.13 or later (it leaves small test folders in the system temp directory).
 
 To run the page locally instead: `python3 -m http.server --bind 127.0.0.1 8000` in the repository root, then open `http://127.0.0.1:8000`.
 
